@@ -36,7 +36,7 @@ export interface AddressResolveResponse {
 }
 
 function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, (character) => `\\${character}`);
+  return value.replace(/[!%_]/g, (character) => `!${character}`);
 }
 
 function mapAddress(row: AddressCandidateRow): ApiAddress {
@@ -72,12 +72,12 @@ export class AddressService {
          m.name AS municipality_name,
          CASE
            WHEN lower(a.canonical_text) = lower($1) THEN 1.0
-           WHEN a.canonical_text ILIKE $2 ESCAPE '\\' THEN 0.9
+           WHEN a.canonical_text ILIKE $2 ESCAPE '!' THEN 0.9
            ELSE 0.75
          END AS score
        FROM addresses a
        JOIN municipalities m ON m.id = a.municipality_id
-       WHERE a.canonical_text ILIKE $3 ESCAPE '\\'
+       WHERE a.canonical_text ILIKE $3 ESCAPE '!'
        ORDER BY score DESC, length(a.canonical_text), a.canonical_text, a.id
        LIMIT $4`,
       [query, prefix, contains, limit],
