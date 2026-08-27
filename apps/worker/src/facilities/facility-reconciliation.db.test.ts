@@ -60,6 +60,9 @@ integrationDescribe('facility reconciliation persistence', () => {
   });
 
   afterAll(async () => {
+    if (assertionIds.length) {
+      await pool.query('DELETE FROM facility_source_assertions WHERE id = ANY($1::uuid[])', [assertionIds]);
+    }
     if (facilityId) await pool.query('DELETE FROM facilities WHERE id = $1', [facilityId]);
     if (artifactIds.length) await pool.query('DELETE FROM source_artifacts WHERE id = ANY($1::uuid[])', [artifactIds]);
     if (sourceIds.length) await pool.query('DELETE FROM sources WHERE id = ANY($1::uuid[])', [sourceIds]);
@@ -146,12 +149,12 @@ integrationDescribe('facility reconciliation persistence', () => {
          operational_status_observed_at, operational_status_source_key,
          fingerprint, reconciliation_state
        ) VALUES (
-         $1, $2, 'stale-source', 500, now() - interval '8 days',
-         86400, 3600, 'DEPOSIT_RVM', $3,
+         NULL, $1, 'stale-source', 500, now() - interval '8 days',
+         86400, 3600, 'DEPOSIT_RVM', $2,
          'Stale RVM', 'stale rvm', 'test 1 koszalin', 'OPERATIONAL',
-         now() - interval '2 hours', 'telemetry-source', $4, 'CANONICAL'
+         now() - interval '2 hours', 'telemetry-source', $3, 'UNMATCHED'
        ) RETURNING id`,
-      [facilityId, artifactIds[1], municipalityId, `stale-${suffix}`],
+      [artifactIds[1], municipalityId, `stale-${suffix}`],
     );
     assertionIds.push(stale.rows[0]!.id);
 
