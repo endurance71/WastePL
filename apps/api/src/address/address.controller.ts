@@ -1,9 +1,9 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Inject, Query } from '@nestjs/common';
 import { AddressService, type AddressResolveResponse } from './address.service.js';
 
 @Controller('v1/addresses')
 export class AddressController {
-  constructor(private readonly addresses: AddressService) {}
+  constructor(@Inject(AddressService) private readonly addresses: AddressService) {}
 
   @Get('resolve')
   async resolve(@Query('query') query?: string): Promise<AddressResolveResponse> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { QueryResultRow } from 'pg';
 import { DatabaseService } from '../database/database.service.js';
 
@@ -54,7 +54,7 @@ function mapAddress(row: AddressCandidateRow): ApiAddress {
 
 @Injectable()
 export class AddressService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
 
   async search(rawQuery: string, limit = 20): Promise<AddressResolveResponse> {
     const query = rawQuery.trim();

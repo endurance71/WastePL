@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Inject, Query } from '@nestjs/common';
 import {
   CollectionService,
   type CollectionScheduleQuery,
@@ -33,7 +33,7 @@ function parseDays(value: string | undefined): number {
 
 @Controller('v1/collection')
 export class CollectionController {
-  constructor(private readonly collection: CollectionService) {}
+  constructor(@Inject(CollectionService) private readonly collection: CollectionService) {}
 
   @Get()
   async getCollection(

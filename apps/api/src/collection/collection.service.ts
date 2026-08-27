@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -68,8 +69,8 @@ function dateAtNoonUtc(isoDate: string): Date {
 @Injectable()
 export class CollectionService {
   constructor(
-    private readonly database: DatabaseService,
-    private readonly addresses: AddressService,
+    @Inject(DatabaseService) private readonly database: DatabaseService,
+    @Inject(AddressService) private readonly addresses: AddressService,
   ) {}
 
   private async resolveInputAddress(query: CollectionScheduleQuery): Promise<ApiAddress> {
