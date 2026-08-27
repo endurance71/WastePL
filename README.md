@@ -12,13 +12,20 @@ WastePL is a vendor-neutral data layer for municipal waste collection in Poland.
 
 ## Architecture
 
-The PoC starts as a modular monolith: NestJS/Fastify API + BullMQ worker + shared domain contracts. PostgreSQL/PostGIS is the system of record; raw source artifacts are designed to be immutable and addressed by SHA-256.
+The PoC starts as a modular monolith: NestJS/Fastify API + BullMQ worker + shared domain contracts. PostgreSQL/PostGIS is the system of record. Raw source artifacts are immutable, content-addressed with SHA-256 and stored in S3-compatible object storage (MinIO locally).
+
+The ingestion path is:
+
+`source registry → conditional HTTP fetch → retry/timeout policy → SHA-256 → dedupe → immutable object store → source_artifacts → audit log`
+
+ETag and Last-Modified are preserved when sources provide them. HTTP 304 and repeated identical content do not create a new artifact. Every fetch attempt, including failures, is recorded in `source_fetch_attempts`.
 
 ## Repository contracts
 
 - `schemas/wastepl-v0.1.schema.json` — normalized data contract
 - `openapi/wastepl-v0.1.yaml` — HTTP API contract
 - `db/migrations/0001_init.sql` — canonical database schema
+- `db/migrations/0002_source_ingestion_audit.sql` — ingestion audit/polling schema
 - `docs/adr/` — architecture decisions
 - `docs/sprint-01.md` — first sprint scope
 
@@ -70,4 +77,4 @@ pnpm typecheck
 pnpm test
 ```
 
-CI additionally starts PostGIS and Redis, applies the migration to an empty database, builds the monorepo, runs typechecks/tests and smoke-tests `/v1/health`.
+CI starts PostGIS, Redis and MinIO, applies all pending migrations to an empty database, builds the monorepo, runs typechecks and unit/integration tests, verifies immutable object storage and smoke-tests `/v1/health`.

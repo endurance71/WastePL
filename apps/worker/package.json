@@ -13,10 +13,13 @@
   "dependencies": {
     "@wastepl/domain": "workspace:*",
     "bullmq": "^5.58.5",
-    "ioredis": "^5.7.0"
+    "ioredis": "^5.7.0",
+    "minio": "^8.0.6",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/node": "^22.18.1",
+    "@types/pg": "^8.15.5",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
