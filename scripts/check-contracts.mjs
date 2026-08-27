@@ -49,9 +49,18 @@ if ('openNow' in facilityItemProperties) {
   throw new Error('Facilities API must not expose openNow before timezone/exception semantics are proven');
 }
 const provenanceRequired = openApi.components?.schemas?.FacilityItem?.properties?.provenance?.required ?? [];
-for (const claim of ['primary', 'location', 'openingHours', 'access', 'operationalStatus']) {
+for (const claim of ['primary', 'location', 'openingHours', 'access', 'operationalStatus', 'assertions']) {
   if (!provenanceRequired.includes(claim)) {
     throw new Error(`Facility provenance must explicitly include ${claim}`);
+  }
+}
+const assertionSchema = openApi.components?.schemas?.FacilityAssertionFreshnessRef;
+if (!assertionSchema) {
+  throw new Error('Facilities API must document source assertion freshness');
+}
+for (const field of ['staticFreshnessState', 'operationalStatusStale', 'externalIds']) {
+  if (!assertionSchema.required?.includes(field)) {
+    throw new Error(`FacilityAssertionFreshnessRef must require ${field}`);
   }
 }
 
@@ -106,4 +115,4 @@ const rvmWithIsWorking = structuredClone(rvmV02);
 rvmWithIsWorking.isWorking = true;
 assertInvalid(validateFacilityV02, rvmWithIsWorking, 'unproven isWorking boolean');
 
-console.log('WastePL contracts OK (dataset v0.1 + facility v0.2 + facilities API)');
+console.log('WastePL contracts OK (dataset v0.1 + facility v0.2 + facilities API freshness)');
