@@ -1,8 +1,20 @@
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import type { ValidateFunction } from 'ajv';
-import Ajv2020 from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
 import type { NormalizedDataset } from '../adapters/pdf-text/types.js';
+
+interface AjvLike {
+  compile(schema: object): ValidateFunction;
+}
+
+type AjvConstructor = new (options?: Record<string, unknown>) => AjvLike;
+type AddFormats = (ajv: AjvLike) => unknown;
+
+const require = createRequire(import.meta.url);
+const ajvModule = require('ajv/dist/2020');
+const formatsModule = require('ajv-formats');
+const Ajv2020 = (ajvModule.default ?? ajvModule) as AjvConstructor;
+const addFormats = (formatsModule.default ?? formatsModule) as AddFormats;
 
 let validatorPromise: Promise<ValidateFunction> | null = null;
 
