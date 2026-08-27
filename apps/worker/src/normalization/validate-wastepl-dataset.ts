@@ -1,11 +1,12 @@
 import { readFile } from 'node:fs/promises';
+import type { ValidateFunction } from 'ajv';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import type { NormalizedDataset } from '../adapters/pdf-text/types.js';
 
-let validatorPromise: Promise<ReturnType<Ajv2020['compile']>> | null = null;
+let validatorPromise: Promise<ValidateFunction> | null = null;
 
-async function loadValidator(): Promise<ReturnType<Ajv2020['compile']>> {
+async function loadValidator(): Promise<ValidateFunction> {
   if (!validatorPromise) {
     validatorPromise = (async () => {
       const schemaUrl = new URL('../../../../schemas/wastepl-v0.1.schema.json', import.meta.url);
