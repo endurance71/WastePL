@@ -18,6 +18,16 @@ function errorCode(error: unknown): string | null {
   return typeof code === 'string' ? code : null;
 }
 
+function endpointFromEnvironment(): URL {
+  const endpoint = process.env.S3_ENDPOINT;
+  if (endpoint) return new URL(endpoint);
+
+  const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+  const host = process.env.MINIO_ENDPOINT ?? 'localhost';
+  const port = process.env.MINIO_PORT ?? '9000';
+  return new URL(`${protocol}://${host}:${port}`);
+}
+
 export class MinioArtifactStore implements ArtifactStore {
   private readonly client: MinioClient;
   private readonly bucket: string;
@@ -25,14 +35,22 @@ export class MinioArtifactStore implements ArtifactStore {
   private bucketReady: Promise<void> | null = null;
 
   constructor(options: Partial<MinioArtifactStoreOptions> = {}) {
+    const endpoint = endpointFromEnvironment();
     const resolved: MinioArtifactStoreOptions = {
-      endPoint: options.endPoint ?? process.env.MINIO_ENDPOINT ?? 'localhost',
-      port: options.port ?? Number.parseInt(process.env.MINIO_PORT ?? '9000', 10),
-      useSSL: options.useSSL ?? process.env.MINIO_USE_SSL === 'true',
-      accessKey: options.accessKey ?? process.env.MINIO_ACCESS_KEY ?? 'minio',
-      secretKey: options.secretKey ?? process.env.MINIO_SECRET_KEY ?? 'change-me-now',
-      bucket: options.bucket ?? process.env.MINIO_BUCKET ?? 'wastepl-artifacts',
-      region: options.region ?? process.env.MINIO_REGION ?? 'eu-central-1',
+      endPoint: options.endPoint ?? endpoint.hostname,
+      port: options.port ?? Number.parseInt(endpoint.port || (endpoint.protocol === 'https:' ? '443' : '80'), 10),
+      useSSL: options.useSSL ?? endpoint.protocol === 'https:',
+      accessKey:
+        options.accessKey ?? process.env.MINIO_ACCESS_KEY ?? process.env.S3_ACCESS_KEY ?? 'minio',
+      secretKey:
+        options.secretKey ??
+        process.env.MINIO_SECRET_KEY ??
+        process.env.S3_SECRET_KEY ??
+        'change-me-now',
+      bucket:
+        options.bucket ?? process.env.MINIO_BUCKET ?? process.env.S3_BUCKET ?? 'wastepl-artifacts',
+      region:
+        options.region ?? process.env.MINIO_REGION ?? process.env.S3_REGION ?? 'eu-central-1',
     };
 
     this.client = new MinioClient({
