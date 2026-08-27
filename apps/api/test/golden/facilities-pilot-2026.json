@@ -14,13 +14,13 @@
       "url": "https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-koszalin/",
       "fixture": "../../../worker/test/fixtures/pgk-koszalin-pszok-main.html",
       "parserKey": "pgk-koszalin-pszok-html",
-      "parserVersion": "1.0.0"
+      "parserVersion": "1.1.0"
     },
     "pgkFaq": {
       "url": "https://www.pgkkoszalin.pl/najczesciej-zadawane-pytania-f-a-q/",
       "fixture": "../../../worker/test/fixtures/pgk-koszalin-pszok-faq.html",
       "parserKey": "pgk-koszalin-pszok-html",
-      "parserVersion": "1.0.0"
+      "parserVersion": "1.1.0"
     }
   },
   "entities": [
@@ -34,21 +34,7 @@
         "name": "PSZOK – ul. Komunalna 5",
         "address": "ul. Komunalna 5, Koszalin",
         "location": { "lat": 54.212266, "lon": 16.183616 },
-        "acceptedMaterials": [
-          "PAPER",
-          "GLASS",
-          "METALS_PLASTICS",
-          "BIO",
-          "BULKY",
-          "TEXTILES",
-          "ELECTRONICS",
-          "BATTERIES",
-          "MEDICINES",
-          "TYRES",
-          "CONSTRUCTION",
-          "RUBBLE",
-          "HAZARDOUS"
-        ],
+        "acceptedMaterials": ["PAPER","GLASS","METALS_PLASTICS","BIO","BULKY","TEXTILES","ELECTRONICS","BATTERIES","MEDICINES","TYRES","CONSTRUCTION","RUBBLE","HAZARDOUS"],
         "acceptedContainers": [],
         "openingHours": {
           "timezone": "Europe/Warsaw",
@@ -102,18 +88,7 @@
     { "id": "komunalna-paper", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&material=PAPER&limit=200" }
   ],
   "regressionScenarios": [
-    {
-      "id": "duplicate-source-assertions-one-pin",
-      "type": "SOURCE_DUPLICATE",
-      "expectedCanonicalPins": 1,
-      "note": "Main PGK page and FAQ assertions must remain two provenance assertions attached to one canonical PSZOK pin."
-    },
-    {
-      "id": "rvm-manual-same-venue-review",
-      "type": "SYNTHETIC_DEPOSIT_CONFLICT",
-      "countsTowardRealCorrectness": false,
-      "expected": "REVIEW_REQUIRED",
-      "note": "Regression-only: same-venue RVM and manual return must never be silently collapsed."
-    }
+    { "id": "duplicate-source-assertions-one-pin", "type": "SOURCE_DUPLICATE", "expectedCanonicalPins": 1, "note": "Main PGK page and FAQ assertions must remain two provenance assertions attached to one canonical PSZOK pin." },
+    { "id": "rvm-manual-same-venue-review", "type": "SYNTHETIC_DEPOSIT_CONFLICT", "countsTowardRealCorrectness": false, "expected": "REVIEW_REQUIRED", "note": "Regression-only: same-venue RVM and manual return must never be silently collapsed." }
   ]
 }
