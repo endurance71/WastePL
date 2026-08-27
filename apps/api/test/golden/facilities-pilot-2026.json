@@ -29,7 +29,7 @@
       "expectedDisposition": "PUBLISHED_PIN",
       "evidenceSources": ["pgkMain", "pgkFaq"],
       "expected": {
-        "canonicalKey": "golden-pl-3261011-pszok-komunalna-5",
+        "canonicalKey": "pl-3261011-pszok-komunalna-5",
         "kind": "PSZOK",
         "name": "PSZOK – ul. Komunalna 5",
         "address": "ul. Komunalna 5, Koszalin",
@@ -82,6 +82,7 @@
       "expectedDisposition": "REVIEW_REQUIRED",
       "evidenceSources": ["pgkMain"],
       "expected": {
+        "canonicalKey": "pl-3261011-pszok-na-skwierzynke-2",
         "kind": "PSZOK",
         "name": "PSZOK – ul. Na Skwierzynkę 2",
         "address": "ul. Na Skwierzynkę 2, Koszalin",
