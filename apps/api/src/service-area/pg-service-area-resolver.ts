@@ -61,20 +61,12 @@ function object(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function stringField(
-  payload: Record<string, unknown>,
-  camelCase: string,
-  snakeCase: string,
-): string | null {
+function stringField(payload: Record<string, unknown>, camelCase: string, snakeCase: string): string | null {
   const value = payload[camelCase] ?? payload[snakeCase];
   return typeof value === 'string' ? value : null;
 }
 
-function numberField(
-  payload: Record<string, unknown>,
-  camelCase: string,
-  snakeCase: string,
-): number | null {
+function numberField(payload: Record<string, unknown>, camelCase: string, snakeCase: string): number | null {
   const value = payload[camelCase] ?? payload[snakeCase];
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
@@ -84,9 +76,7 @@ function parityField(value: unknown): NumberParity | null {
 }
 
 function includeSelector(row: RuleRow): ServiceAreaRuleSelector {
-  if (row.rule_type === 'EXCLUDE') {
-    throw new Error('EXCLUDE rule cannot be mapped as an include selector');
-  }
+  if (row.rule_type === 'EXCLUDE') throw new Error('EXCLUDE rule cannot be mapped as an include selector');
   return {
     type: row.rule_type,
     localityId: row.locality_id,
@@ -105,7 +95,6 @@ function exclusionSelector(payloadValue: unknown, ruleId: string): ServiceAreaRu
   if (!payload || typeof type !== 'string' || !INCLUDE_RULE_TYPES.has(type as IncludeRuleType)) {
     throw new Error(`EXCLUDE rule ${ruleId} has an invalid exclusion_payload`);
   }
-
   const explicitNumbersValue = payload.explicitNumbers ?? payload.explicit_numbers;
   return {
     type: type as IncludeRuleType,
@@ -125,10 +114,9 @@ function mapRule(row: RuleRow): ServiceAreaRule {
     serviceAreaId: row.area_id,
     kind: row.rule_type === 'EXCLUDE' ? 'EXCLUDE' : 'INCLUDE',
     priority: row.priority,
-    selector:
-      row.rule_type === 'EXCLUDE'
-        ? exclusionSelector(row.exclusion_payload, row.rule_id)
-        : includeSelector(row),
+    selector: row.rule_type === 'EXCLUDE'
+      ? exclusionSelector(row.exclusion_payload, row.rule_id)
+      : includeSelector(row),
   };
 }
 
@@ -146,14 +134,12 @@ function mapAddress(row: AddressRow): CanonicalAddressRef {
 export class PgServiceAreaResolver {
   constructor(private readonly pool: Pool) {}
 
-  async resolveByAddressId(
-    addressId: string,
-    onDate = new Date(),
-  ): Promise<AddressServiceAreaResolution> {
+  async resolveByAddressId(addressId: string, onDate = new Date()): Promise<AddressServiceAreaResolution> {
     const addressResult = await this.pool.query<AddressRow>(
-      `SELECT id, municipality_id, locality_id, street_id, building_number, canonical_text
-       FROM addresses
-       WHERE id = $1`,
+      `SELECT a.id, a.municipality_id, a.locality_id, a.street_id, a.building_number, a.canonical_text
+       FROM addresses a
+       JOIN municipalities m ON m.id = a.municipality_id
+       WHERE a.id = $1 AND a.active = true AND m.active = true`,
       [addressId],
     );
     const addressRow = addressResult.rows[0];
@@ -163,21 +149,9 @@ export class PgServiceAreaResolver {
     const date = onDate.toISOString().slice(0, 10);
     const rulesResult = await this.pool.query<RuleRow>(
       `SELECT
-         sa.id AS area_id,
-         sa.municipality_id,
-         sa.external_key,
-         sa.name AS area_name,
-         r.id AS rule_id,
-         r.rule_type,
-         r.locality_id,
-         r.street_id,
-         r.number_from,
-         r.number_to,
-         r.parity,
-         r.explicit_numbers,
-         r.address_id,
-         r.exclusion_payload,
-         r.priority
+         sa.id AS area_id, sa.municipality_id, sa.external_key, sa.name AS area_name,
+         r.id AS rule_id, r.rule_type, r.locality_id, r.street_id, r.number_from,
+         r.number_to, r.parity, r.explicit_numbers, r.address_id, r.exclusion_payload, r.priority
        FROM service_areas sa
        JOIN service_area_rules r ON r.service_area_id = sa.id
        WHERE sa.municipality_id = $1
@@ -194,17 +168,16 @@ export class PgServiceAreaResolver {
       const mappedRule = mapRule(row);
       if (existing) {
         existing.rules = [...existing.rules, mappedRule];
-        continue;
+      } else {
+        byArea.set(row.area_id, {
+          id: row.area_id,
+          municipalityId: row.municipality_id,
+          externalKey: row.external_key,
+          name: row.area_name,
+          rules: [mappedRule],
+        });
       }
-      byArea.set(row.area_id, {
-        id: row.area_id,
-        municipalityId: row.municipality_id,
-        externalKey: row.external_key,
-        name: row.area_name,
-        rules: [mappedRule],
-      });
     }
-
     return resolveServiceArea(address, [...byArea.values()]);
   }
 }
