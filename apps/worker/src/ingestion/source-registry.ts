@@ -94,8 +94,8 @@ export class PgSourceRegistry implements SourceRegistry {
        SET etag = $2,
            last_modified = $3,
            last_sha256 = COALESCE($4, last_sha256),
-           last_checked_at = $5,
-           next_check_at = $5 + (poll_interval_minutes * interval '1 minute')
+           last_checked_at = $5::timestamptz,
+           next_check_at = $5::timestamptz + (poll_interval_minutes * interval '1 minute')
        WHERE id = $1`,
       [sourceId, update.etag, update.lastModified, update.sha256, update.checkedAt],
     );
