@@ -1,0 +1,130 @@
+openapi: 3.1.0
+info:
+  title: WastePL API
+  version: 0.1.0
+  description: Vendor-neutral municipal waste data API for Poland.
+servers:
+  - url: https://api.wastepl.pl
+  - url: http://localhost:3000
+paths:
+  /v1/health:
+    get:
+      operationId: getHealth
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, time]
+                properties:
+                  status: { type: string, const: ok }
+                  time: { type: string, format: date-time }
+  /v1/addresses/resolve:
+    get:
+      operationId: resolveAddress
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema: { type: string, minLength: 3 }
+      responses:
+        '200':
+          description: Candidate canonical addresses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressResolveResponse'
+  /v1/collection:
+    get:
+      operationId: getCollectionSchedule
+      parameters:
+        - in: query
+          name: addressId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: address
+          schema: { type: string, minLength: 3 }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: days
+          schema: { type: integer, minimum: 1, maximum: 365, default: 90 }
+      responses:
+        '200':
+          description: Collection schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionScheduleResponse'
+        '404': { description: Address or service area not found }
+        '409': { description: Ambiguous service area }
+components:
+  schemas:
+    Municipality:
+      type: object
+      required: [id, terc, name]
+      properties:
+        id: { type: string, format: uuid }
+        terc: { type: string }
+        name: { type: string }
+    Address:
+      type: object
+      required: [id, canonicalText, municipality]
+      properties:
+        id: { type: string, format: uuid }
+        prgId: { type: [string, 'null'] }
+        canonicalText: { type: string }
+        municipality: { $ref: '#/components/schemas/Municipality' }
+    AddressCandidate:
+      type: object
+      required: [address, score]
+      properties:
+        address: { $ref: '#/components/schemas/Address' }
+        score: { type: number, minimum: 0, maximum: 1 }
+    AddressResolveResponse:
+      type: object
+      required: [query, items]
+      properties:
+        query: { type: string }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AddressCandidate' }
+    CollectionEvent:
+      type: object
+      required: [date, fraction, status]
+      properties:
+        date: { type: string, format: date }
+        fraction: { type: string }
+        status: { type: string, enum: [SCHEDULED, CHANGED, CANCELLED, COMPLETED] }
+    CollectionScheduleResponse:
+      type: object
+      required: [address, municipality, serviceArea, events, source, quality]
+      properties:
+        address: { $ref: '#/components/schemas/Address' }
+        municipality: { $ref: '#/components/schemas/Municipality' }
+        serviceArea:
+          type: object
+          required: [id, name]
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+        events:
+          type: array
+          items: { $ref: '#/components/schemas/CollectionEvent' }
+        source:
+          type: object
+          required: [url, format]
+          properties:
+            url: { type: string, format: uri }
+            format: { type: string }
+        quality:
+          type: object
+          required: [verificationStatus, confidence, retrievedAt]
+          properties:
+            verificationStatus: { type: string, enum: [VERIFIED, OFFICIAL_SOURCE, UNVERIFIED, REVIEW_REQUIRED] }
+            confidence: { type: number, minimum: 0, maximum: 1 }
+            retrievedAt: { type: string, format: date-time }
+            warnings: { type: array, items: { type: string } }
