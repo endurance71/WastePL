@@ -7,6 +7,9 @@ CREATE TABLE facility_source_assertions (
   source_artifact_id uuid NOT NULL REFERENCES source_artifacts(id) ON DELETE RESTRICT,
   source_key text NOT NULL,
   source_authority integer NOT NULL CHECK (source_authority BETWEEN 0 AND 1000),
+  verification_status text NOT NULL DEFAULT 'OFFICIAL_SOURCE'
+    CHECK (verification_status IN ('VERIFIED','OFFICIAL_SOURCE','UNVERIFIED','REVIEW_REQUIRED')),
+  confidence numeric(5,4) NOT NULL DEFAULT 1 CHECK (confidence BETWEEN 0 AND 1),
   retrieved_at timestamptz NOT NULL,
   static_freshness_seconds integer NOT NULL CHECK (static_freshness_seconds > 0),
   status_freshness_seconds integer NOT NULL CHECK (status_freshness_seconds > 0),
