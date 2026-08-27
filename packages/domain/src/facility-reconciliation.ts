@@ -70,7 +70,7 @@ export function normalizeFacilityText(value: string | null): string {
     .normalize('NFKD')
     .replace(/\p{M}/gu, '')
     .toLowerCase()
-    .replace(/\b(ulica|ul\.|aleja|al\.|plac|pl\.)\b/g, ' ')
+    .replace(/\b(?:ulica|ul|aleja|al|plac|pl)\b\.?/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .replace(/\s+/g, ' ');
