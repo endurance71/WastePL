@@ -102,6 +102,13 @@ integrationDescribe('source scheduler persistence', () => {
     expect(replay.created).toBe(false);
     expect(replay.artifact.id).toBe(inserted.artifact.id);
 
+    await pool.query(
+      `UPDATE artifact_processing_outbox
+       SET next_attempt_at='2026-08-27T12:11:00Z'
+       WHERE artifact_id=$1`,
+      [inserted.artifact.id],
+    );
+
     const now = new Date('2026-08-27T12:12:00Z');
     const [first, second] = await Promise.all([
       registry.claimPendingArtifactWork({ now, limit: 1000, leaseMs: 2_000 }),
