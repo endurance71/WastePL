@@ -1,0 +1,50 @@
+{
+  "key": "rvm-example",
+  "kind": "DEPOSIT_RVM",
+  "name": "Automat kaucyjny — przykład kontraktowy",
+  "address": "ul. Przykładowa 2, Koszalin",
+  "location": { "lat": 54.19, "lon": 16.18 },
+  "locationSourceKey": "rvm-source",
+  "externalIds": [
+    { "provider": "retailer-example", "id": "store-123-rvm-1" }
+  ],
+  "acceptedMaterials": [],
+  "acceptedContainers": ["PET_BOTTLE", "METAL_CAN"],
+  "openingHours": {
+    "timezone": "Europe/Warsaw",
+    "weekly": [
+      { "day": "MONDAY", "intervals": [{ "opens": "06:00", "closes": "22:00" }] },
+      { "day": "TUESDAY", "intervals": [{ "opens": "06:00", "closes": "22:00" }] },
+      { "day": "WEDNESDAY", "intervals": [{ "opens": "06:00", "closes": "22:00" }] },
+      { "day": "THURSDAY", "intervals": [{ "opens": "06:00", "closes": "22:00" }] },
+      { "day": "FRIDAY", "intervals": [{ "opens": "06:00", "closes": "22:00" }] },
+      { "day": "SATURDAY", "intervals": [{ "opens": "06:00", "closes": "22:00" }] },
+      { "day": "SUNDAY", "intervals": [{ "opens": "09:00", "closes": "20:00" }] }
+    ],
+    "exceptions": [],
+    "sourceKey": "rvm-source"
+  },
+  "access": {
+    "scope": "OPEN_TO_ALL",
+    "requiresProof": false,
+    "quantityLimits": [],
+    "notes": [],
+    "sourceKey": "rvm-source"
+  },
+  "operationalStatus": {
+    "state": "OPERATIONAL",
+    "observedAt": "2026-08-27T16:55:00Z",
+    "sourceKey": "rvm-source",
+    "note": null
+  },
+  "operatorName": "Przykładowa sieć",
+  "rulesUrl": null,
+  "sourceKey": "rvm-source",
+  "quality": {
+    "verificationStatus": "VERIFIED",
+    "confidence": 0.99,
+    "retrievedAt": "2026-08-27T17:00:00Z",
+    "warnings": []
+  },
+  "schemaVersion": "0.2.0"
+}

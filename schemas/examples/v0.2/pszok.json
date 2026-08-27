@@ -1,0 +1,58 @@
+{
+  "key": "pszok-koszalin-example",
+  "kind": "PSZOK",
+  "name": "PSZOK — przykład kontraktowy",
+  "address": "ul. Przykładowa 1, Koszalin",
+  "location": null,
+  "locationSourceKey": null,
+  "externalIds": [],
+  "acceptedMaterials": [
+    "PAPER",
+    "GLASS",
+    "METALS_PLASTICS",
+    "BIO",
+    "BULKY",
+    "ELECTRONICS",
+    "BATTERIES",
+    "TEXTILES",
+    "TYRES"
+  ],
+  "acceptedContainers": [],
+  "openingHours": {
+    "timezone": "Europe/Warsaw",
+    "weekly": [
+      { "day": "MONDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+      { "day": "TUESDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+      { "day": "WEDNESDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+      { "day": "THURSDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+      { "day": "FRIDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+      { "day": "SATURDAY", "intervals": [] },
+      { "day": "SUNDAY", "intervals": [] }
+    ],
+    "exceptions": [],
+    "sourceKey": "pszok-source"
+  },
+  "access": {
+    "scope": "MUNICIPALITY_RESIDENTS",
+    "requiresProof": true,
+    "quantityLimits": [],
+    "notes": ["Przykład semantyczny — nie jest rekordem produkcyjnym."],
+    "sourceKey": "pszok-source"
+  },
+  "operationalStatus": {
+    "state": "UNKNOWN",
+    "observedAt": null,
+    "sourceKey": null,
+    "note": "Brak źródła statusu operacyjnego."
+  },
+  "operatorName": "Przykładowy operator",
+  "rulesUrl": "https://example.gov.pl/pszok",
+  "sourceKey": "pszok-source",
+  "quality": {
+    "verificationStatus": "OFFICIAL_SOURCE",
+    "confidence": 1,
+    "retrievedAt": "2026-08-27T17:00:00Z",
+    "warnings": ["COORDINATES_UNKNOWN"]
+  },
+  "schemaVersion": "0.2.0"
+}
