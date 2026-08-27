@@ -47,9 +47,30 @@ CREATE INDEX idx_source_processing_attempts_source_completed
 CREATE INDEX idx_source_processing_attempts_artifact
   ON source_processing_attempts(artifact_id, completed_at DESC);
 
+-- Durable handoff between immutable artifact creation and Redis/BullMQ. Only a
+-- newly inserted source_artifact receives a row here. A deterministic queue job
+-- id based on artifact_id makes re-dispatch after a crash safe.
+CREATE TABLE artifact_processing_outbox (
+  artifact_id uuid PRIMARY KEY REFERENCES source_artifacts(id) ON DELETE CASCADE,
+  source_id uuid NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+  parser_key text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  next_attempt_at timestamptz NOT NULL DEFAULT now(),
+  enqueue_attempts integer NOT NULL DEFAULT 0 CHECK (enqueue_attempts >= 0),
+  enqueued_at timestamptz,
+  claim_token uuid,
+  claim_expires_at timestamptz,
+  last_error text
+);
+
+CREATE INDEX idx_artifact_processing_outbox_pending
+  ON artifact_processing_outbox(enqueued_at, next_attempt_at, claim_expires_at);
+
 COMMENT ON COLUMN sources.poll_claim_token IS
   'Opaque claim token created atomically by a scheduler. Cleared when the poll finishes or the enqueue fails.';
 COMMENT ON COLUMN sources.poll_claim_expires_at IS
   'Crash-safety lease deadline. Expired claims can be reclaimed by another scheduler.';
 COMMENT ON COLUMN sources.health_status IS
   'Operational source state; independent from last_sha256/last published canonical data.';
+COMMENT ON TABLE artifact_processing_outbox IS
+  'Transactional durable handoff: exactly one pending parse/normalize item per newly created immutable artifact.';
