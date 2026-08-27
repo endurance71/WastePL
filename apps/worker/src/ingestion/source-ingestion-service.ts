@@ -8,7 +8,11 @@ import type {
   StructuredLogger,
 } from './types.js';
 
-export type IngestionOutcome = 'FETCHED' | 'NOT_MODIFIED' | 'DEDUPLICATED';
+export type IngestionOutcome =
+  | 'FETCHED'
+  | 'NOT_MODIFIED'
+  | 'DEDUPLICATED'
+  | 'SKIPPED_STALE_CLAIM';
 
 export interface IngestionResult {
   sourceId: string;
@@ -17,6 +21,10 @@ export interface IngestionResult {
   sha256: string | null;
   storageUri: string | null;
   attempts: number;
+}
+
+export interface IngestionOptions {
+  claimToken?: string | null;
 }
 
 const consoleLogger: StructuredLogger = {
@@ -36,11 +44,36 @@ export class SourceIngestionService {
     private readonly logger: StructuredLogger = consoleLogger,
   ) {}
 
-  async ingest(sourceId: string): Promise<IngestionResult> {
+  async ingest(sourceId: string, options: IngestionOptions = {}): Promise<IngestionResult> {
     const startedAt = new Date();
+    const claimToken = options.claimToken ?? null;
     const source = await this.registry.getSourceById(sourceId);
     if (!source) throw new Error(`Source ${sourceId} not found`);
     if (!source.active) throw new Error(`Source ${sourceId} is inactive`);
+
+    if (
+      claimToken !== null &&
+      (
+        source.pollClaimToken !== claimToken ||
+        source.pollClaimExpiresAt === null ||
+        source.pollClaimExpiresAt.getTime() <= startedAt.getTime()
+      )
+    ) {
+      this.logger.info('source.ingestion.stale_claim_skipped', {
+        sourceId,
+        claimToken,
+        currentClaimToken: source.pollClaimToken,
+        claimExpiresAt: source.pollClaimExpiresAt?.toISOString() ?? null,
+      });
+      return {
+        sourceId,
+        outcome: 'SKIPPED_STALE_CLAIM',
+        artifactId: null,
+        sha256: null,
+        storageUri: null,
+        attempts: 0,
+      };
+    }
 
     let fetched: FetchedSource | null = null;
     let sha256: string | null = null;
@@ -56,6 +89,8 @@ export class SourceIngestionService {
           etag,
           lastModified,
           sha256: null,
+          healthStatus: 'UNCHANGED',
+          claimToken,
         });
         await this.registry.recordFetchAttempt({
           sourceId: source.id,
@@ -99,6 +134,8 @@ export class SourceIngestionService {
           etag,
           lastModified,
           sha256,
+          healthStatus: 'UNCHANGED',
+          claimToken,
         });
         await this.registry.recordFetchAttempt({
           sourceId: source.id,
@@ -143,25 +180,29 @@ export class SourceIngestionService {
         body: fetched.body,
         contentType: fetched.contentType,
       });
-      const artifact = await this.registry.insertArtifact({
+      const inserted = await this.registry.insertArtifact({
         sourceId: source.id,
         retrievedAt: fetched.retrievedAt,
         sha256,
         storageUri: stored.uri,
         parserKey: source.parserKey,
       });
+      const artifact = inserted.artifact;
+      const outcome = inserted.created ? 'FETCHED' : 'DEDUPLICATED';
 
       await this.registry.markSourceChecked(source.id, {
         checkedAt: fetched.retrievedAt,
         etag,
         lastModified,
         sha256,
+        healthStatus: inserted.created ? 'FETCHED' : 'UNCHANGED',
+        claimToken,
       });
       await this.registry.recordFetchAttempt({
         sourceId: source.id,
         startedAt,
         completedAt: fetched.retrievedAt,
-        outcome: 'FETCHED',
+        outcome,
         attempts: fetched.attempts,
         httpStatus: fetched.status,
         etag,
@@ -176,21 +217,25 @@ export class SourceIngestionService {
           sourceFormat: source.sourceFormat,
           parserKey: source.parserKey,
           objectCreated: stored.created,
+          artifactCreated: inserted.created,
           artifactId: artifact.id,
         },
       });
 
-      this.logger.info('source.ingestion.fetched', {
-        sourceId: source.id,
-        artifactId: artifact.id,
-        sha256,
-        storageUri: artifact.storageUri,
-        bytes: fetched.body.length,
-        attempts: fetched.attempts,
-      });
+      this.logger.info(
+        inserted.created ? 'source.ingestion.fetched' : 'source.ingestion.deduplicated_race',
+        {
+          sourceId: source.id,
+          artifactId: artifact.id,
+          sha256,
+          storageUri: artifact.storageUri,
+          bytes: fetched.body.length,
+          attempts: fetched.attempts,
+        },
+      );
       return {
         sourceId: source.id,
-        outcome: 'FETCHED',
+        outcome,
         artifactId: artifact.id,
         sha256,
         storageUri: artifact.storageUri,
@@ -204,6 +249,22 @@ export class SourceIngestionService {
         fetched?.status ?? (error instanceof SourceFetchError ? error.status : null);
       const errorCode = error instanceof SourceFetchError ? error.code : 'PIPELINE_ERROR';
       const errorMessage = error instanceof Error ? error.message : String(error);
+      const retryable = error instanceof SourceFetchError ? error.retryable : true;
+
+      try {
+        await this.registry.markSourceFailed(source.id, {
+          failedAt: completedAt,
+          errorCode,
+          errorMessage,
+          retryable,
+          claimToken,
+        });
+      } catch (healthError) {
+        this.logger.error('source.ingestion.health_update_failed', {
+          sourceId: source.id,
+          error: healthError instanceof Error ? healthError.message : String(healthError),
+        });
+      }
 
       try {
         await this.registry.recordFetchAttempt({
@@ -222,7 +283,7 @@ export class SourceIngestionService {
           errorMessage: errorMessage.slice(0, 4000),
           metadata: {
             sourceFormat: source.sourceFormat,
-            retryable: error instanceof SourceFetchError ? error.retryable : true,
+            retryable,
           },
         });
       } catch (auditError) {
@@ -237,6 +298,7 @@ export class SourceIngestionService {
         errorCode,
         error: errorMessage,
         attempts,
+        retryable,
       });
       throw error;
     }
