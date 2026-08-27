@@ -36,6 +36,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressResolveResponse'
+        '400': { description: Invalid or too-short address query }
   /v1/collection:
     get:
       operationId: getCollectionSchedule
@@ -59,8 +60,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CollectionScheduleResponse'
-        '404': { description: Address or service area not found }
-        '409': { description: Ambiguous service area }
+        '400': { description: Invalid address selector, date or schedule window }
+        '404': { description: Address, service area or published schedule not found }
+        '409': { description: Ambiguous canonical address or service-area resolution }
 components:
   schemas:
     Municipality:
