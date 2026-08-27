@@ -41,7 +41,7 @@ describe('PgkKoszalinPszokHtmlAdapter', () => {
 
     await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
     expect(adapter.parserKey).toBe('pgk-koszalin-pszok-html');
-    expect(adapter.parserVersion).toBe('1.0.0');
+    expect(adapter.parserVersion).toBe('1.1.0');
     expect(facility).toMatchObject({
       schemaVersion: '0.2.0',
       key: 'pl-3261011-pszok-komunalna-5',
@@ -79,6 +79,30 @@ describe('PgkKoszalinPszokHtmlAdapter', () => {
         sourceKey: 'pgk-koszalin-pszok-faq',
       },
     ]);
+  });
+
+  it('returns the second official PSZOK as review-required without inventing coordinates', async () => {
+    const adapter = new PgkKoszalinPszokHtmlAdapter();
+    const facilities = adapter.parseAll(input());
+
+    expect(facilities).toHaveLength(2);
+    for (const facility of facilities) {
+      await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    }
+
+    expect(facilities[1]).toMatchObject({
+      key: 'pl-3261011-pszok-na-skwierzynke-2',
+      kind: 'PSZOK',
+      address: 'ul. Na Skwierzynkę 2, Koszalin',
+      location: null,
+      locationSourceKey: null,
+      acceptedMaterials: [],
+      quality: {
+        verificationStatus: 'REVIEW_REQUIRED',
+        confidence: 0.8,
+        warnings: ['TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE'],
+      },
+    });
   });
 
   it('fails visibly when an official limit disappears from the expected template', () => {
