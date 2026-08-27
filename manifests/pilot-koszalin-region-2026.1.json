@@ -1,0 +1,238 @@
+{
+  "schemaVersion": "0.1.0",
+  "manifestId": "pilot-koszalin-region",
+  "version": "2026.1",
+  "generatedAt": "2026-08-27T20:30:00Z",
+  "municipalities": [
+    {
+      "terc": "3261011",
+      "name": "Koszalin",
+      "sources": [
+        {
+          "key": "koszalin-collection-bio-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/bio.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Official PGK Koszalin schedule URL already used by the deterministic WastePL PDF_TEXT pilot adapter; source bytes remain immutable artifacts.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31"
+        },
+        {
+          "key": "koszalin-pszok-main",
+          "dataType": "PSZOK",
+          "url": "https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-koszalin/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Official PGK PSZOK page; paired with the official FAQ source by the existing PGK Koszalin facility bundle adapter.",
+          "activeFrom": null,
+          "activeTo": null
+        },
+        {
+          "key": "koszalin-pszok-faq",
+          "dataType": "PSZOK",
+          "url": "https://www.pgkkoszalin.pl/najczesciej-zadawane-pytania-f-a-q/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Official PGK FAQ supplying accepted-material and quantity-limit claims for the PSZOK bundle.",
+          "activeFrom": null,
+          "activeTo": null
+        }
+      ]
+    },
+    {
+      "terc": "3209033",
+      "name": "Bobolice",
+      "sources": [
+        {
+          "key": "bobolice-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bobolice.pl/cms/5665",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Bobolicach",
+          "reuseNotes": "Official municipal harmonogram page with 2026 attachments/images; no WastePL parser is claimed yet.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31"
+        },
+        {
+          "key": "bobolice-pszok",
+          "dataType": "PSZOK",
+          "url": "https://bobolice.pl/cms/8587",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Bobolicach",
+          "reuseNotes": "Official municipal PSZOK page for Boboliczki; parser support intentionally remains planned.",
+          "activeFrom": null,
+          "activeTo": null
+        }
+      ]
+    },
+    {
+      "terc": "3209073",
+      "name": "Sianów",
+      "sources": [
+        {
+          "key": "sianow-collection-2026-h2",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/harmonogram-odbioru-odpadow/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy i Miasta w Sianowie",
+          "reuseNotes": "Official municipal page for second-half 2026 collection schedules; linked schedule layout is not yet covered by a WastePL adapter.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31"
+        }
+      ]
+    },
+    {
+      "terc": "3209042",
+      "name": "Manowo",
+      "sources": [
+        {
+          "key": "manowo-collection-2ab-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/manowo/2AB.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Official PGK Manowo route URL already represented by the deterministic PDF_TEXT adapter; current content still remains subject to golden-data verification.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31"
+        },
+        {
+          "key": "manowo-collection-entrypoint",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.manowo.pl/artykul/gospodarka-komunalna",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Gminy Manowo",
+          "reuseNotes": "Official BIP collection-information index, useful as a discovery/change source; generic BIP index parsing is not implemented.",
+          "activeFrom": null,
+          "activeTo": null
+        }
+      ]
+    },
+    {
+      "terc": "3209082",
+      "name": "Świeszyno",
+      "sources": [
+        {
+          "key": "swieszyno-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://swieszyno.pl/harmonogram-wywozu-odpadow-komunalnych-na-rok-2026/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Świeszyno",
+          "reuseNotes": "Official 2026 municipal schedule page; no source-specific WastePL adapter exists yet.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31"
+        },
+        {
+          "key": "swieszyno-pszok",
+          "dataType": "PSZOK",
+          "url": "https://swieszyno.pl/punkt-selektywnej-zbiorki-odpadow-komunalnych-pszok/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Świeszyno",
+          "reuseNotes": "Official PSZOK page for Chałupy 13B; source-specific extraction is not yet implemented.",
+          "activeFrom": null,
+          "activeTo": null
+        }
+      ]
+    },
+    {
+      "terc": "3209012",
+      "name": "Będzino",
+      "sources": [
+        {
+          "key": "bedzino-collection-2026-h2",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.bedzino.pl/?id=6920&type=article",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Gminy Będzino",
+          "reuseNotes": "Official BIP 2026 schedule article with multiple route PDFs; multi-attachment BIP parsing is not implemented.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31"
+        }
+      ]
+    },
+    {
+      "terc": "3209063",
+      "name": "Polanów",
+      "sources": [
+        {
+          "key": "polanow-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.polanow.pl/zalacznik/c12f707570cc18225e6954fa8a79780d/70/2660/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Urzędu Miejskiego w Polanowie",
+          "reuseNotes": "Official BIP schedule publication for 2026; the BIP attachment/index layout is not yet supported by a WastePL adapter.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31"
+        }
+      ]
+    },
+    {
+      "terc": "3201043",
+      "name": "Tychowo",
+      "sources": [
+        {
+          "key": "tychowo-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://tychowo.pl/cms/2151/harmonogram-odbioru-odpadow-komunalnych-",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Tychowie",
+          "reuseNotes": "Official municipal page linking the 2026 standard and hard-to-reach-property schedules; parser support is planned.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31"
+        }
+      ]
+    }
+  ]
+}
