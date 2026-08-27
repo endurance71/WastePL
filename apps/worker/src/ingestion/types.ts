@@ -105,6 +105,7 @@ export interface SourceProcessingAttemptInput {
 export interface SourceProcessingStateUpdate {
   sourceId: string;
   artifactId: string;
+  startedAt: Date;
   completedAt: Date;
   outcome: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'PARSE_FAILED';
   parserKey: string | null;
