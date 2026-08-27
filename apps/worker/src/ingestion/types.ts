@@ -43,6 +43,15 @@ export interface InsertSourceArtifactInput {
   parserKey: string | null;
 }
 
+export interface ArtifactParseUpdate {
+  artifactId: string;
+  parserKey: string;
+  parserVersion: string;
+  extractionConfidence: number;
+  status: 'PARSED' | 'NORMALIZED' | 'PUBLISHED' | 'REVIEW_REQUIRED' | 'REJECTED';
+  parseReport: Record<string, unknown>;
+}
+
 export interface SourceCheckUpdate {
   checkedAt: Date;
   etag: string | null;
@@ -54,6 +63,7 @@ export interface SourceRegistry {
   getSourceById(sourceId: string): Promise<SourceRecord | null>;
   findArtifactByHash(sourceId: string, sha256: string): Promise<SourceArtifactRecord | null>;
   insertArtifact(input: InsertSourceArtifactInput): Promise<SourceArtifactRecord>;
+  markArtifactParsed(update: ArtifactParseUpdate): Promise<void>;
   markSourceChecked(sourceId: string, update: SourceCheckUpdate): Promise<void>;
   recordFetchAttempt(input: SourceFetchAttemptInput): Promise<void>;
 }
