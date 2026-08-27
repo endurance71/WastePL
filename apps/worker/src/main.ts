@@ -1,5 +1,5 @@
 import { Worker, type Job } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
 import { INGESTION_QUEUE, PIPELINE_STAGES } from '@wastepl/domain';
 
 export interface IngestionJobData {
@@ -8,11 +8,11 @@ export interface IngestionJobData {
 
 export function createRedisConnection(
   redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379',
-): IORedis {
-  return new IORedis(redisUrl, { maxRetriesPerRequest: null });
+): Redis {
+  return new Redis(redisUrl, { maxRetriesPerRequest: null });
 }
 
-export function createIngestionWorker(connection: IORedis): Worker<IngestionJobData> {
+export function createIngestionWorker(connection: Redis): Worker<IngestionJobData> {
   return new Worker<IngestionJobData>(
     INGESTION_QUEUE,
     async (job: Job<IngestionJobData>) => {
