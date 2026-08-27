@@ -1,0 +1,11 @@
+{
+  "name": "@wastepl/worker",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "echo 'Sprint 01: initialize BullMQ worker'",
+    "build": "echo 'not initialized yet'",
+    "test": "echo 'no tests yet'",
+    "typecheck": "echo 'not initialized yet'"
+  }
+}
