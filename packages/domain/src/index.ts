@@ -1,5 +1,6 @@
 export const APP_NAME = 'wastepl' as const;
 export const INGESTION_QUEUE = 'source-ingestion' as const;
+export const ARTIFACT_PROCESSING_QUEUE = 'artifact-processing' as const;
 
 export const PIPELINE_STAGES = [
   'fetch',
