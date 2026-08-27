@@ -12,11 +12,12 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(new URL(relativePath, import.meta.url), 'utf8'));
 }
 
-const [schemaV01, facilitySchemaV02, openApi, compatV01, pszokV02, rvmV02, manualV02] =
+const [schemaV01, facilitySchemaV02, openApi, internalOpenApi, compatV01, pszokV02, rvmV02, manualV02] =
   await Promise.all([
     readJson('../schemas/wastepl-v0.1.schema.json'),
     readJson('../schemas/wastepl-facility-v0.2.schema.json'),
     readFile(new URL('../openapi/wastepl-v0.1.yaml', import.meta.url), 'utf8').then(YAML.parse),
+    readFile(new URL('../openapi/wastepl-internal-v0.1.yaml', import.meta.url), 'utf8').then(YAML.parse),
     readJson('../schemas/examples/v0.1-compat.json'),
     readJson('../schemas/examples/v0.2/pszok.json'),
     readJson('../schemas/examples/v0.2/deposit-rvm.json'),
@@ -41,6 +42,33 @@ if (openApi.openapi !== '3.1.0') {
 for (const path of ['/v1/health', '/v1/addresses/resolve', '/v1/collection', '/v1/facilities']) {
   if (!openApi.paths?.[path]) {
     throw new Error(`OpenAPI is missing required path: ${path}`);
+  }
+}
+
+if (internalOpenApi.openapi !== '3.1.0') {
+  throw new Error('WastePL internal OpenAPI document must use OpenAPI 3.1.0');
+}
+if (!internalOpenApi.components?.securitySchemes?.WastePLAdminKey) {
+  throw new Error('Internal OpenAPI must require WastePLAdminKey security');
+}
+for (const [path, operations] of Object.entries(internalOpenApi.paths ?? {})) {
+  if (!path.startsWith('/internal/')) {
+    throw new Error(`Internal OpenAPI may not expose a public path: ${path}`);
+  }
+  for (const operation of Object.values(operations ?? {})) {
+    if (typeof operation === 'object' && operation && !operation['x-wastepl-internal']) {
+      throw new Error(`Internal operation ${path} must declare x-wastepl-internal: true`);
+    }
+  }
+}
+for (const path of [
+  '/internal/v1/reviews',
+  '/internal/v1/reviews/audit',
+  '/internal/v1/reviews/{kind}/{id}',
+  '/internal/v1/reviews/{kind}/{id}/decision',
+]) {
+  if (!internalOpenApi.paths?.[path]) {
+    throw new Error(`Internal OpenAPI is missing required path: ${path}`);
   }
 }
 
@@ -115,4 +143,4 @@ const rvmWithIsWorking = structuredClone(rvmV02);
 rvmWithIsWorking.isWorking = true;
 assertInvalid(validateFacilityV02, rvmWithIsWorking, 'unproven isWorking boolean');
 
-console.log('WastePL contracts OK (dataset v0.1 + facility v0.2 + facilities API freshness)');
+console.log('WastePL contracts OK (public API + internal data-ops API + dataset/facility schemas)');

@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: WastePL Internal Data Ops API
+  version: 0.1.0
+  description: Internal/admin-only API, intentionally separate from the public WastePL contract.
+security:
+  - WastePLAdminKey: []
+paths:
+  /internal/v1/reviews:
+    get:
+      operationId: listInternalReviews
+      x-wastepl-internal: true
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+        - in: query
+          name: state
+          schema: { type: string, enum: [PENDING, APPROVED, REJECTED, ALL], default: PENDING }
+      responses:
+        '200': { description: Pending/resolved reconciliation and data-quality reviews }
+        '401': { description: Admin authentication required }
+  /internal/v1/reviews/audit:
+    get:
+      operationId: listReviewAudit
+      x-wastepl-internal: true
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+      responses:
+        '200': { description: Append-only review decision audit trail }
+        '401': { description: Admin authentication required }
+  /internal/v1/reviews/{kind}/{id}:
+    get:
+      operationId: getInternalReview
+      x-wastepl-internal: true
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+        - $ref: '#/components/parameters/ReviewKind'
+        - $ref: '#/components/parameters/ReviewId'
+      responses:
+        '200': { description: Review context with score, reasons, source provenance and candidate }
+        '404': { description: Review not found }
+  /internal/v1/reviews/{kind}/{id}/decision:
+    post:
+      operationId: decideInternalReview
+      x-wastepl-internal: true
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+        - $ref: '#/components/parameters/ReviewKind'
+        - $ref: '#/components/parameters/ReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [APPROVE, REJECT] }
+                note: { type: [string, 'null'], maxLength: 2000 }
+                geometry:
+                  type: [object, 'null']
+                  properties:
+                    lat: { type: number, minimum: -90, maximum: 90 }
+                    lon: { type: number, minimum: -180, maximum: 180 }
+                    sourceArtifactId: { type: string, format: uuid }
+      responses:
+        '200': { description: Decision committed transactionally and audited }
+        '400': { description: Invalid decision/evidence }
+        '409': { description: Review already resolved }
+components:
+  securitySchemes:
+    WastePLAdminKey:
+      type: apiKey
+      in: header
+      name: x-wastepl-admin-key
+  parameters:
+    ActorHeader:
+      in: header
+      name: x-wastepl-actor
+      required: true
+      schema: { type: string, minLength: 1 }
+    ReviewKind:
+      in: path
+      name: kind
+      required: true
+      schema: { type: string, enum: [RECONCILIATION, DATA_QUALITY] }
+    ReviewId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
