@@ -32,6 +32,11 @@ export interface SourceArtifactRecord {
   retrievedAt: Date;
 }
 
+export interface InsertSourceArtifactResult {
+  artifact: SourceArtifactRecord;
+  created: boolean;
+}
+
 export type FetchOutcome = 'FETCHED' | 'NOT_MODIFIED' | 'DEDUPLICATED' | 'FAILED';
 
 export interface SourceFetchAttemptInput {
@@ -111,7 +116,7 @@ export interface SourceProcessingStateUpdate {
 export interface SourceRegistry {
   getSourceById(sourceId: string): Promise<SourceRecord | null>;
   findArtifactByHash(sourceId: string, sha256: string): Promise<SourceArtifactRecord | null>;
-  insertArtifact(input: InsertSourceArtifactInput): Promise<SourceArtifactRecord>;
+  insertArtifact(input: InsertSourceArtifactInput): Promise<InsertSourceArtifactResult>;
   markArtifactParsed(update: ArtifactParseUpdate): Promise<void>;
   markSourceChecked(sourceId: string, update: SourceCheckUpdate): Promise<void>;
   markSourceFailed(sourceId: string, update: SourceFailureUpdate): Promise<void>;
@@ -157,6 +162,29 @@ export interface ArtifactProcessingJobInput {
 
 export interface ArtifactProcessingQueue {
   enqueue(input: ArtifactProcessingJobInput): Promise<void>;
+}
+
+export interface ArtifactOutboxClaim extends ArtifactProcessingJobInput {
+  claimToken: string;
+  claimExpiresAt: Date;
+  enqueueAttempts: number;
+}
+
+export interface ClaimArtifactOutboxInput {
+  now: Date;
+  limit: number;
+  leaseMs: number;
+}
+
+export interface ArtifactOutboxRegistry {
+  claimPendingArtifactWork(input: ClaimArtifactOutboxInput): Promise<ArtifactOutboxClaim[]>;
+  markArtifactWorkEnqueued(artifactId: string, claimToken: string, enqueuedAt: Date): Promise<void>;
+  releaseArtifactWorkClaim(
+    artifactId: string,
+    claimToken: string,
+    nextAttemptAt: Date,
+    errorMessage: string,
+  ): Promise<void>;
 }
 
 export interface ArtifactPutInput {
