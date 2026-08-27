@@ -38,6 +38,70 @@ CREATE INDEX idx_review_decision_audit_review
 CREATE INDEX idx_review_decision_audit_actor
   ON review_decision_audit(actor, decided_at DESC);
 
+CREATE OR REPLACE FUNCTION queue_missing_facility_geometry_review()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.reconciliation_state = 'REVIEW_REQUIRED' AND NEW.geom IS NULL THEN
+    INSERT INTO facility_data_quality_reviews (
+      assertion_id, review_type, details, state
+    ) VALUES (
+      NEW.id,
+      'MISSING_TRUSTED_GEOMETRY',
+      jsonb_build_object(
+        'name', NEW.name,
+        'address', NEW.address_text,
+        'sourceKey', NEW.source_key,
+        'reason', 'Source assertion requires review and has no trusted geometry'
+      ),
+      'PENDING'
+    )
+    ON CONFLICT (assertion_id, review_type)
+    DO UPDATE SET
+      details = EXCLUDED.details,
+      state = CASE
+        WHEN facility_data_quality_reviews.state = 'APPROVED' THEN 'APPROVED'
+        ELSE 'PENDING'
+      END,
+      resolved_at = CASE
+        WHEN facility_data_quality_reviews.state = 'APPROVED'
+          THEN facility_data_quality_reviews.resolved_at
+        ELSE NULL
+      END,
+      resolution_note = CASE
+        WHEN facility_data_quality_reviews.state = 'APPROVED'
+          THEN facility_data_quality_reviews.resolution_note
+        ELSE NULL
+      END;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_queue_missing_facility_geometry_review
+AFTER INSERT OR UPDATE OF reconciliation_state, geom ON facility_source_assertions
+FOR EACH ROW
+EXECUTE FUNCTION queue_missing_facility_geometry_review();
+
+-- Backfill already-known review-required assertions, including the pilot
+-- Na Skwierzynkę 2 case produced before this migration exists.
+INSERT INTO facility_data_quality_reviews (assertion_id, review_type, details, state)
+SELECT
+  a.id,
+  'MISSING_TRUSTED_GEOMETRY',
+  jsonb_build_object(
+    'name', a.name,
+    'address', a.address_text,
+    'sourceKey', a.source_key,
+    'reason', 'Source assertion requires review and has no trusted geometry'
+  ),
+  'PENDING'
+FROM facility_source_assertions a
+WHERE a.reconciliation_state = 'REVIEW_REQUIRED'
+  AND a.geom IS NULL
+ON CONFLICT (assertion_id, review_type) DO NOTHING;
+
 COMMENT ON TABLE facility_data_quality_reviews IS
   'Internal review queue for source-backed facility quality problems that are not candidate identity matches.';
 COMMENT ON TABLE review_decision_audit IS
