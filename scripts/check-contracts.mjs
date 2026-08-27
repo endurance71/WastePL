@@ -71,11 +71,7 @@ assertValid(validateFacilityV02, manualV02, 'v0.2 manual-return fixture');
 const operationalWithoutProvenance = structuredClone(rvmV02);
 operationalWithoutProvenance.operationalStatus.observedAt = null;
 operationalWithoutProvenance.operationalStatus.sourceKey = null;
-assertInvalid(
-  validateFacilityV02,
-  operationalWithoutProvenance,
-  'OPERATIONAL facility without observation/source provenance',
-);
+assertInvalid(validateFacilityV02, operationalWithoutProvenance, 'OPERATIONAL facility without observation/source provenance');
 
 const rvmWithoutContainers = structuredClone(rvmV02);
 rvmWithoutContainers.acceptedContainers = [];
@@ -83,18 +79,16 @@ assertInvalid(validateFacilityV02, rvmWithoutContainers, 'RVM without accepted c
 
 const pszokWithDepositContainer = structuredClone(pszokV02);
 pszokWithDepositContainer.acceptedContainers = ['PET_BOTTLE'];
-assertInvalid(
-  validateFacilityV02,
-  pszokWithDepositContainer,
-  'PSZOK with deposit container capability',
-);
+assertInvalid(validateFacilityV02, pszokWithDepositContainer, 'PSZOK with deposit container capability');
 
 const coordinatesWithoutSource = structuredClone(rvmV02);
 coordinatesWithoutSource.locationSourceKey = null;
-assertInvalid(
-  validateFacilityV02,
-  coordinatesWithoutSource,
-  'facility coordinates without explicit source provenance',
-);
+assertInvalid(validateFacilityV02, coordinatesWithoutSource, 'facility coordinates without explicit source provenance');
+
+const quantityLimitWithoutSource = structuredClone(pszokV02);
+quantityLimitWithoutSource.access.quantityLimits = [
+  { material: 'TYRES', limit: '8 sztuk', period: 'YEAR' },
+];
+assertInvalid(validateFacilityV02, quantityLimitWithoutSource, 'facility quantity limit without claim provenance');
 
 console.log('WastePL contracts OK (dataset v0.1 + facility v0.2)');

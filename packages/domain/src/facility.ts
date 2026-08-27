@@ -65,9 +65,17 @@ export interface FacilityOperationalStatus {
   sourceKey: string | null;
 }
 
+export interface FacilityQuantityLimit {
+  material: string;
+  limit: string;
+  period: string | null;
+  sourceKey: string | null;
+}
+
 export interface FacilityAccess {
   scope: FacilityAccessScope;
   sourceKey: string | null;
+  quantityLimits?: FacilityQuantityLimit[];
 }
 
 export interface FacilitySemanticInput {
@@ -100,6 +108,13 @@ export function facilitySemanticViolations(input: FacilitySemanticInput): string
 
   if (input.access.scope !== 'UNKNOWN' && !input.access.sourceKey) {
     violations.push('ACCESS_CLAIM_REQUIRES_SOURCE');
+  }
+
+  for (const limit of input.access.quantityLimits ?? []) {
+    if (!limit.sourceKey) {
+      violations.push('QUANTITY_LIMIT_REQUIRES_SOURCE');
+      break;
+    }
   }
 
   if (

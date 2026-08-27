@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SourceFetchError } from './http-source-fetcher.js';
 import { SourceIngestionService } from './source-ingestion-service.js';
 import type {
+  ArtifactParseUpdate,
   ArtifactPutInput,
   ArtifactPutResult,
   ArtifactStore,
@@ -29,6 +30,7 @@ class FakeRegistry implements SourceRegistry {
   readonly artifacts = new Map<string, SourceArtifactRecord>();
   readonly checks: SourceCheckUpdate[] = [];
   readonly attempts: SourceFetchAttemptInput[] = [];
+  readonly parseUpdates: ArtifactParseUpdate[] = [];
 
   async getSourceById(sourceId: string): Promise<SourceRecord | null> {
     return sourceId === this.source.id ? this.source : null;
@@ -50,6 +52,10 @@ class FakeRegistry implements SourceRegistry {
     };
     this.artifacts.set(input.sha256, artifact);
     return artifact;
+  }
+
+  async markArtifactParsed(update: ArtifactParseUpdate): Promise<void> {
+    this.parseUpdates.push(update);
   }
 
   async markSourceChecked(_sourceId: string, update: SourceCheckUpdate): Promise<void> {
@@ -107,10 +113,7 @@ describe('SourceIngestionService', () => {
     expect(first.artifactId).toBe(second.artifactId);
     expect(store.puts).toBe(1);
     expect(registry.artifacts.size).toBe(1);
-    expect(registry.attempts.map((attempt) => attempt.outcome)).toEqual([
-      'FETCHED',
-      'DEDUPLICATED',
-    ]);
+    expect(registry.attempts.map((attempt) => attempt.outcome)).toEqual(['FETCHED', 'DEDUPLICATED']);
   });
 
   it('does not store a new artifact for HTTP 304', async () => {

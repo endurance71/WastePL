@@ -1,5 +1,6 @@
 import type { Pool, QueryResultRow } from 'pg';
 import type {
+  ArtifactParseUpdate,
   InsertSourceArtifactInput,
   SourceArtifactRecord,
   SourceCheckUpdate,
@@ -86,6 +87,32 @@ export class PgSourceRegistry implements SourceRegistry {
     const existing = await this.findArtifactByHash(input.sourceId, input.sha256);
     if (!existing) throw new Error('Artifact insert conflicted but existing artifact was not found');
     return existing;
+  }
+
+  async markArtifactParsed(update: ArtifactParseUpdate): Promise<void> {
+    if (update.extractionConfidence < 0 || update.extractionConfidence > 1) {
+      throw new Error('extractionConfidence must be between 0 and 1');
+    }
+
+    const result = await this.pool.query(
+      `UPDATE source_artifacts
+       SET parser_key = $2,
+           parser_version = $3,
+           extraction_confidence = $4,
+           status = $5,
+           parse_report = $6::jsonb
+       WHERE id = $1`,
+      [
+        update.artifactId,
+        update.parserKey,
+        update.parserVersion,
+        update.extractionConfidence,
+        update.status,
+        JSON.stringify(update.parseReport),
+      ],
+    );
+
+    if (result.rowCount !== 1) throw new Error(`Source artifact ${update.artifactId} not found`);
   }
 
   async markSourceChecked(sourceId: string, update: SourceCheckUpdate): Promise<void> {
