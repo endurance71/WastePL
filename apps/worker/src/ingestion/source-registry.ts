@@ -282,7 +282,7 @@ export class PgSourceRegistry
     await this.recordProcessingAttempt({
       sourceId: update.sourceId,
       artifactId: update.artifactId,
-      startedAt: update.completedAt,
+      startedAt: update.startedAt,
       completedAt: update.completedAt,
       outcome: update.outcome,
       parserKey: update.parserKey,
