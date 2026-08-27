@@ -1,0 +1,86 @@
+{
+  "version": "2026-08-27",
+  "threshold": 0.99,
+  "sources": {
+    "koszalin": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/bio.pdf",
+    "manowo": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/manowo/2AB.pdf"
+  },
+  "addressEvidence": {
+    "koszalin-pgk": {
+      "kind": "OFFICIAL_SCHEDULE",
+      "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/bio.pdf",
+      "fixture": "apps/worker/test/fixtures/pdf-text/koszalin-bio-2026.txt",
+      "note": "Address and weekday come from the deterministic excerpt of the official PGK schedule."
+    },
+    "bonin-simc-0308040": {
+      "kind": "PUBLIC_ADDRESS_DIRECTORY",
+      "url": "https://e-mapa.net/polska/bonin-0308040/",
+      "simc": "0308040",
+      "note": "Building numbers were cross-checked against the public Bonin address list; schedule membership comes from the official PGK Manowo fixture."
+    }
+  },
+  "serviceAreas": {
+    "koszalin-bio-poniedziałek": { "name": "Koszalin zabudowa wielorodzinna BIO - poniedziałek", "source": "koszalin" },
+    "koszalin-bio-wtorek": { "name": "Koszalin zabudowa wielorodzinna BIO - wtorek", "source": "koszalin" },
+    "koszalin-bio-środa": { "name": "Koszalin zabudowa wielorodzinna BIO - środa", "source": "koszalin" },
+    "koszalin-bio-czwartek": { "name": "Koszalin zabudowa wielorodzinna BIO - czwartek", "source": "koszalin" },
+    "koszalin-bio-piątek": { "name": "Koszalin zabudowa wielorodzinna BIO - piątek", "source": "koszalin" },
+    "manowo-bonin-deborogi-policko-wyszeborz": { "name": "Gmina Manowo: Bonin, Dęborogi, Policko, Wyszebórz", "source": "manowo" }
+  },
+  "eventProfiles": {
+    "KOSZALIN_MON": { "from": "2026-07-01", "days": 7, "events": [{ "date": "2026-07-06", "fraction": "BIO", "status": "SCHEDULED" }] },
+    "KOSZALIN_TUE": { "from": "2026-07-01", "days": 7, "events": [{ "date": "2026-07-07", "fraction": "BIO", "status": "SCHEDULED" }] },
+    "KOSZALIN_WED": { "from": "2026-07-01", "days": 7, "events": [{ "date": "2026-07-01", "fraction": "BIO", "status": "SCHEDULED" }] },
+    "KOSZALIN_THU": { "from": "2026-07-01", "days": 7, "events": [{ "date": "2026-07-02", "fraction": "BIO", "status": "SCHEDULED" }] },
+    "KOSZALIN_FRI": { "from": "2026-07-01", "days": 7, "events": [{ "date": "2026-07-03", "fraction": "BIO", "status": "SCHEDULED" }] },
+    "MANOWO_JAN": {
+      "from": "2026-01-01",
+      "days": 31,
+      "events": [
+        { "date": "2026-01-07", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-01-07", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-01-07", "fraction": "METALS_PLASTICS", "status": "SCHEDULED" },
+        { "date": "2026-01-07", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-01-13", "fraction": "MIXED", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "METALS_PLASTICS", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-01-27", "fraction": "MIXED", "status": "SCHEDULED" }
+      ]
+    }
+  },
+  "cases": [
+    { "id": "koszalin-1-maja-8", "addressQuery": "1 Maja 8", "expectedCanonicalText": "1 Maja 8, 75-800 Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-piątek", "eventProfile": "KOSZALIN_FRI", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-4-marca-10", "addressQuery": "4 Marca 10", "expectedCanonicalText": "4 Marca 10, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-środa", "eventProfile": "KOSZALIN_WED", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-asnyka-11", "addressQuery": "Adama Asnyka 11", "expectedCanonicalText": "Adama Asnyka 11, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-poniedziałek", "eventProfile": "KOSZALIN_MON", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-asnyka-14", "addressQuery": "Adama Asnyka 14", "expectedCanonicalText": "Adama Asnyka 14, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-poniedziałek", "eventProfile": "KOSZALIN_MON", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-armii-krajowej-9", "addressQuery": "Aleja Armii Krajowej 9", "expectedCanonicalText": "Aleja Armii Krajowej 9, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-piątek", "eventProfile": "KOSZALIN_FRI", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-monte-cassino-14", "addressQuery": "Aleja Monte Cassino 14", "expectedCanonicalText": "Aleja Monte Cassino 14, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-wtorek", "eventProfile": "KOSZALIN_TUE", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-baltycka-1", "addressQuery": "Bałtycka 1", "expectedCanonicalText": "Bałtycka 1, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-czwartek", "eventProfile": "KOSZALIN_THU", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-boguslawa-1-3", "addressQuery": "Bogusława II 1-3", "expectedCanonicalText": "Bogusława II 1-3, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-poniedziałek", "eventProfile": "KOSZALIN_MON", "evidence": "koszalin-pgk" },
+    { "id": "koszalin-frezji-11", "addressQuery": "Frezji 11", "expectedCanonicalText": "Frezji 11, Koszalin", "municipalityTerc": "3261011", "serviceArea": "koszalin-bio-środa", "eventProfile": "KOSZALIN_WED", "evidence": "koszalin-pgk" },
+
+    { "id": "bonin-2", "addressQuery": "Bonin 2", "expectedCanonicalText": "Bonin 2, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-3a", "addressQuery": "Bonin 3A", "expectedCanonicalText": "Bonin 3A, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-4", "addressQuery": "Bonin 4", "expectedCanonicalText": "Bonin 4, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-5", "addressQuery": "Bonin 5", "expectedCanonicalText": "Bonin 5, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-6", "addressQuery": "Bonin 6", "expectedCanonicalText": "Bonin 6, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-7a", "addressQuery": "Bonin 7A", "expectedCanonicalText": "Bonin 7A, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-7b", "addressQuery": "Bonin 7B", "expectedCanonicalText": "Bonin 7B, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-7c", "addressQuery": "Bonin 7C", "expectedCanonicalText": "Bonin 7C, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-8", "addressQuery": "Bonin 8", "expectedCanonicalText": "Bonin 8, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-9", "addressQuery": "Bonin 9", "expectedCanonicalText": "Bonin 9, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-10a", "addressQuery": "Bonin 10A", "expectedCanonicalText": "Bonin 10A, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-11", "addressQuery": "Bonin 11", "expectedCanonicalText": "Bonin 11, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-11c", "addressQuery": "Bonin 11C", "expectedCanonicalText": "Bonin 11C, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-11d", "addressQuery": "Bonin 11D", "expectedCanonicalText": "Bonin 11D, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-11e", "addressQuery": "Bonin 11E", "expectedCanonicalText": "Bonin 11E, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-14", "addressQuery": "Bonin 14", "expectedCanonicalText": "Bonin 14, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-16", "addressQuery": "Bonin 16", "expectedCanonicalText": "Bonin 16, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-24a", "addressQuery": "Bonin 24A", "expectedCanonicalText": "Bonin 24A, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-29", "addressQuery": "Bonin 29", "expectedCanonicalText": "Bonin 29, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-44c", "addressQuery": "Bonin 44C", "expectedCanonicalText": "Bonin 44C, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" },
+    { "id": "bonin-48", "addressQuery": "Bonin 48", "expectedCanonicalText": "Bonin 48, 76-009 Bonin", "municipalityTerc": "3209042", "serviceArea": "manowo-bonin-deborogi-policko-wyszeborz", "eventProfile": "MANOWO_JAN", "evidence": "bonin-simc-0308040" }
+  ]
+}
