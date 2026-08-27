@@ -77,7 +77,9 @@ export class AddressService {
          END AS score
        FROM addresses a
        JOIN municipalities m ON m.id = a.municipality_id
-       WHERE a.canonical_text ILIKE $3 ESCAPE '!'
+       WHERE a.active = true
+         AND m.active = true
+         AND a.canonical_text ILIKE $3 ESCAPE '!'
        ORDER BY score DESC, length(a.canonical_text), a.canonical_text, a.id
        LIMIT $4`,
       [query, prefix, contains, limit],
@@ -104,7 +106,7 @@ export class AddressService {
          1.0 AS score
        FROM addresses a
        JOIN municipalities m ON m.id = a.municipality_id
-       WHERE a.id = $1`,
+       WHERE a.id = $1 AND a.active = true AND m.active = true`,
       [addressId],
     );
     const row = result.rows[0];
