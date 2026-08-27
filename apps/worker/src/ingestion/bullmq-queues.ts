@@ -45,7 +45,8 @@ export class BullMqArtifactProcessingQueue
   async enqueue(input: ArtifactProcessingJobInput): Promise<void> {
     await this.queue.add('process-artifact', input, {
       jobId: `artifact-${input.artifactId}`,
-      attempts: 1,
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 1000 },
       removeOnComplete: 1000,
       removeOnFail: 5000,
     });
