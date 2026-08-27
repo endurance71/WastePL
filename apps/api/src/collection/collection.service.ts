@@ -66,6 +66,14 @@ function dateAtNoonUtc(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00Z`);
 }
 
+function normalizeAddressLabel(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pl-PL');
+}
+
+function canonicalAddressLabel(canonicalText: string): string {
+  return canonicalText.split(',')[0]?.trim() ?? canonicalText.trim();
+}
+
 @Injectable()
 export class CollectionService {
   constructor(
@@ -96,6 +104,13 @@ export class CollectionService {
 
     const exact = result.items.filter((candidate) => candidate.score === 1);
     if (exact.length === 1 && exact[0]) return exact[0].address;
+
+    const normalizedText = normalizeAddressLabel(text);
+    const labelExact = result.items.filter(
+      (candidate) => normalizeAddressLabel(canonicalAddressLabel(candidate.address.canonicalText)) === normalizedText,
+    );
+    if (labelExact.length === 1 && labelExact[0]) return labelExact[0].address;
+
     if (result.items.length === 1 && result.items[0]) return result.items[0].address;
 
     throw new ConflictException({

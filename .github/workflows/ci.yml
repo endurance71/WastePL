@@ -72,6 +72,13 @@ jobs:
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Upload golden mismatch report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-mismatch-report
+          path: apps/api/test-results/golden-mismatch-report.json
+          if-no-files-found: warn
       - name: Smoke-test API health endpoint
         run: |
           pnpm --filter @wastepl/api start > /tmp/wastepl-api.log 2>&1 &
