@@ -60,20 +60,23 @@ CREATE VIEW facility_source_assertion_freshness AS
 SELECT
   a.*,
   CASE
-    WHEN a.retrieved_at + (a.static_freshness_seconds * interval '1 second') >= now()
+    WHEN a.retrieved_at <= now()
+     AND a.retrieved_at + (a.static_freshness_seconds * interval '1 second') >= now()
       THEN 'CURRENT'
     ELSE 'STALE'
   END AS static_freshness_state,
   CASE
     WHEN a.operational_status = 'UNKNOWN' THEN 'UNKNOWN'
     WHEN a.operational_status_observed_at IS NULL OR a.operational_status_source_key IS NULL THEN 'UNKNOWN'
-    WHEN a.operational_status_observed_at + (a.status_freshness_seconds * interval '1 second') >= now()
+    WHEN a.operational_status_observed_at <= now()
+     AND a.operational_status_observed_at + (a.status_freshness_seconds * interval '1 second') >= now()
       THEN a.operational_status
     ELSE 'UNKNOWN'
   END AS effective_operational_status,
   (
     a.operational_status <> 'UNKNOWN'
     AND a.operational_status_observed_at IS NOT NULL
+    AND a.operational_status_observed_at <= now()
     AND a.operational_status_observed_at + (a.status_freshness_seconds * interval '1 second') < now()
   ) AS operational_status_stale
 FROM facility_source_assertions a;
