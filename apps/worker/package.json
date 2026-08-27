@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@wastepl/domain": "workspace:*",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "bullmq": "^5.58.5",
     "ioredis": "^5.7.0",
     "minio": "^8.0.6",
