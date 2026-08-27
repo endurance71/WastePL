@@ -1,8 +1,12 @@
 import type { Pool, QueryResultRow } from 'pg';
 import type {
+  ArtifactOutboxClaim,
+  ArtifactOutboxRegistry,
   ArtifactParseUpdate,
+  ClaimArtifactOutboxInput,
   ClaimDueSourcesInput,
   InsertSourceArtifactInput,
+  InsertSourceArtifactResult,
   SourceArtifactRecord,
   SourceCheckUpdate,
   SourceFailureUpdate,
@@ -50,6 +54,15 @@ interface PollClaimRow extends QueryResultRow {
   claim_expires_at: Date;
 }
 
+interface ArtifactOutboxClaimRow extends QueryResultRow {
+  source_id: string;
+  artifact_id: string;
+  parser_key: string | null;
+  claim_token: string;
+  claim_expires_at: Date;
+  enqueue_attempts: number;
+}
+
 const SOURCE_SELECT = `
   id, source_url, source_format, parser_key, etag, last_modified, last_sha256,
   active, poll_interval_minutes, next_check_at, health_status, consecutive_failures,
@@ -85,7 +98,9 @@ function mapArtifact(row: ArtifactRow): SourceArtifactRecord {
   };
 }
 
-export class PgSourceRegistry implements SourceRegistry, SourceSchedulerRegistry {
+export class PgSourceRegistry
+  implements SourceRegistry, SourceSchedulerRegistry, ArtifactOutboxRegistry
+{
   constructor(private readonly pool: Pool) {}
 
   async getSourceById(sourceId: string): Promise<SourceRecord | null> {
@@ -108,21 +123,50 @@ export class PgSourceRegistry implements SourceRegistry, SourceSchedulerRegistry
     return result.rows[0] ? mapArtifact(result.rows[0]) : null;
   }
 
-  async insertArtifact(input: InsertSourceArtifactInput): Promise<SourceArtifactRecord> {
-    const inserted = await this.pool.query<ArtifactRow>(
-      `INSERT INTO source_artifacts (
-         source_id, retrieved_at, sha256, storage_uri, parser_key, status
-       ) VALUES ($1, $2, $3, $4, $5, 'FETCHED')
-       ON CONFLICT (source_id, sha256) DO NOTHING
-       RETURNING id, source_id, sha256, storage_uri, retrieved_at`,
-      [input.sourceId, input.retrievedAt, input.sha256, input.storageUri, input.parserKey],
-    );
+  async insertArtifact(input: InsertSourceArtifactInput): Promise<InsertSourceArtifactResult> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const inserted = await client.query<ArtifactRow>(
+        `INSERT INTO source_artifacts (
+           source_id, retrieved_at, sha256, storage_uri, parser_key, status
+         ) VALUES ($1, $2, $3, $4, $5, 'FETCHED')
+         ON CONFLICT (source_id, sha256) DO NOTHING
+         RETURNING id, source_id, sha256, storage_uri, retrieved_at`,
+        [input.sourceId, input.retrievedAt, input.sha256, input.storageUri, input.parserKey],
+      );
 
-    if (inserted.rows[0]) return mapArtifact(inserted.rows[0]);
+      const insertedRow = inserted.rows[0];
+      if (insertedRow) {
+        const artifact = mapArtifact(insertedRow);
+        await client.query(
+          `INSERT INTO artifact_processing_outbox (artifact_id, source_id, parser_key)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (artifact_id) DO NOTHING`,
+          [artifact.id, input.sourceId, input.parserKey],
+        );
+        await client.query('COMMIT');
+        return { artifact, created: true };
+      }
 
-    const existing = await this.findArtifactByHash(input.sourceId, input.sha256);
-    if (!existing) throw new Error('Artifact insert conflicted but existing artifact was not found');
-    return existing;
+      const existing = await client.query<ArtifactRow>(
+        `SELECT id, source_id, sha256, storage_uri, retrieved_at
+         FROM source_artifacts
+         WHERE source_id = $1 AND sha256 = $2`,
+        [input.sourceId, input.sha256],
+      );
+      const existingRow = existing.rows[0];
+      if (!existingRow) {
+        throw new Error('Artifact insert conflicted but existing artifact was not found');
+      }
+      await client.query('COMMIT');
+      return { artifact: mapArtifact(existingRow), created: false };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async markArtifactParsed(update: ArtifactParseUpdate): Promise<void> {
@@ -397,6 +441,87 @@ export class PgSourceRegistry implements SourceRegistry, SourceSchedulerRegistry
            next_check_at = $3
        WHERE id = $1 AND poll_claim_token = $2::uuid`,
       [sourceId, claimToken, nextCheckAt],
+    );
+  }
+
+  async claimPendingArtifactWork(input: ClaimArtifactOutboxInput): Promise<ArtifactOutboxClaim[]> {
+    if (!Number.isInteger(input.limit) || input.limit < 1 || input.limit > 1000) {
+      throw new Error('outbox claim limit must be an integer between 1 and 1000');
+    }
+    if (!Number.isFinite(input.leaseMs) || input.leaseMs < 1000) {
+      throw new Error('outbox leaseMs must be at least 1000');
+    }
+
+    const result = await this.pool.query<ArtifactOutboxClaimRow>(
+      `WITH due AS (
+         SELECT artifact_id
+         FROM artifact_processing_outbox
+         WHERE enqueued_at IS NULL
+           AND next_attempt_at <= $1::timestamptz
+           AND (claim_expires_at IS NULL OR claim_expires_at <= $1::timestamptz)
+         ORDER BY next_attempt_at, artifact_id
+         FOR UPDATE SKIP LOCKED
+         LIMIT $2
+       ), claimed AS (
+         UPDATE artifact_processing_outbox o
+         SET claim_token = gen_random_uuid(),
+             claim_expires_at = $1::timestamptz + ($3::double precision * interval '1 millisecond')
+         FROM due
+         WHERE o.artifact_id = due.artifact_id
+         RETURNING
+           o.source_id,
+           o.artifact_id,
+           o.parser_key,
+           o.claim_token,
+           o.claim_expires_at,
+           o.enqueue_attempts
+       )
+       SELECT * FROM claimed ORDER BY artifact_id`,
+      [input.now, input.limit, input.leaseMs],
+    );
+
+    return result.rows.map((row) => ({
+      sourceId: row.source_id,
+      artifactId: row.artifact_id,
+      parserKey: row.parser_key,
+      claimToken: row.claim_token,
+      claimExpiresAt: row.claim_expires_at,
+      enqueueAttempts: Number(row.enqueue_attempts),
+    }));
+  }
+
+  async markArtifactWorkEnqueued(
+    artifactId: string,
+    claimToken: string,
+    enqueuedAt: Date,
+  ): Promise<void> {
+    await this.pool.query(
+      `UPDATE artifact_processing_outbox
+       SET enqueued_at = $3,
+           enqueue_attempts = enqueue_attempts + 1,
+           claim_token = NULL,
+           claim_expires_at = NULL,
+           last_error = NULL
+       WHERE artifact_id = $1 AND claim_token = $2::uuid`,
+      [artifactId, claimToken, enqueuedAt],
+    );
+  }
+
+  async releaseArtifactWorkClaim(
+    artifactId: string,
+    claimToken: string,
+    nextAttemptAt: Date,
+    errorMessage: string,
+  ): Promise<void> {
+    await this.pool.query(
+      `UPDATE artifact_processing_outbox
+       SET enqueue_attempts = enqueue_attempts + 1,
+           next_attempt_at = $3,
+           claim_token = NULL,
+           claim_expires_at = NULL,
+           last_error = $4
+       WHERE artifact_id = $1 AND claim_token = $2::uuid`,
+      [artifactId, claimToken, nextAttemptAt, errorMessage.slice(0, 4000)],
     );
   }
 }
