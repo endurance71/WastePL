@@ -85,7 +85,7 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
   constructor(private readonly db: Pool | PoolClient) {}
 
   private async transaction<T>(operation: (executor: PoolClient) => Promise<T>): Promise<T> {
-    if (!('connect' in this.db)) {
+    if ('release' in this.db) {
       return operation(this.db);
     }
 
