@@ -66,7 +66,7 @@ paths:
   /v1/facilities:
     get:
       operationId: listFacilities
-      description: Returns source-backed PSZOK and deposit-return facilities. `openNow` is intentionally not exposed.
+      description: Returns source-backed PSZOK and deposit-return facilities. `openNow` is intentionally not exposed. Stale operational assertions degrade to UNKNOWN.
       parameters:
         - in: query
           name: kind
@@ -194,6 +194,21 @@ components:
       oneOf:
         - $ref: '#/components/schemas/FacilitySourceRef'
         - type: 'null'
+    FacilityAssertionFreshnessRef:
+      type: object
+      additionalProperties: false
+      required: [assertionId, sourceArtifactId, sourceKey, sourceAuthority, retrievedAt, staticFreshnessState, operationalStatusStale, externalIds]
+      properties:
+        assertionId: { type: string, format: uuid }
+        sourceArtifactId: { type: string, format: uuid }
+        sourceKey: { type: string }
+        sourceAuthority: { type: integer, minimum: 0, maximum: 1000 }
+        retrievedAt: { type: string, format: date-time }
+        staticFreshnessState: { type: string, enum: [CURRENT, STALE] }
+        operationalStatusStale: { type: boolean }
+        externalIds:
+          type: array
+          items: { type: object, additionalProperties: true }
     FacilityItem:
       type: object
       additionalProperties: false
@@ -257,13 +272,16 @@ components:
         provenance:
           type: object
           additionalProperties: false
-          required: [primary, location, openingHours, access, operationalStatus]
+          required: [primary, location, openingHours, access, operationalStatus, assertions]
           properties:
             primary: { $ref: '#/components/schemas/FacilitySourceRef' }
             location: { $ref: '#/components/schemas/NullableFacilitySourceRef' }
             openingHours: { $ref: '#/components/schemas/NullableFacilitySourceRef' }
             access: { $ref: '#/components/schemas/NullableFacilitySourceRef' }
             operationalStatus: { $ref: '#/components/schemas/NullableFacilitySourceRef' }
+            assertions:
+              type: array
+              items: { $ref: '#/components/schemas/FacilityAssertionFreshnessRef' }
     FacilitiesResponse:
       type: object
       additionalProperties: false
