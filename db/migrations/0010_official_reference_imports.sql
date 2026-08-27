@@ -28,6 +28,8 @@ CREATE INDEX idx_reference_import_runs_scope
   ON reference_import_runs(dataset, scope_key, started_at DESC);
 
 ALTER TABLE municipalities
+  ADD COLUMN IF NOT EXISTS teryt_kind_code text,
+  ADD COLUMN IF NOT EXISTS teryt_kind_name text,
   ADD COLUMN IF NOT EXISTS active boolean NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS source_updated_at date,
   ADD COLUMN IF NOT EXISTS last_seen_import_id uuid REFERENCES reference_import_runs(id) ON DELETE SET NULL;
@@ -68,7 +70,9 @@ COMMENT ON TABLE reference_import_runs IS
   'Auditable full/incremental imports from official TERYT and PRG datasets.';
 COMMENT ON COLUMN reference_import_runs.scope_key IS
   'Optional import scope, e.g. municipality TERC for a PRG municipal package.';
+COMMENT ON COLUMN municipalities.teryt_kind_code IS
+  'Official TERYT RODZ code. Kept separate from WastePL product-level municipality_type.';
 COMMENT ON COLUMN addresses.prg_id IS
   'Authoritative PRG/idIIP-derived source identifier. WastePL must never synthesize it.';
 COMMENT ON COLUMN streets.ulic IS
-  'Authoritative TERYT SYM_UL identifier for a street name within the locality relation.';
+  'Authoritative TERYT SYM_UL identifier for a street name within the locality relation; not globally unique by itself.';
