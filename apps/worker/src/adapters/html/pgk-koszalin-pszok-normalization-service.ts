@@ -22,8 +22,14 @@ export class PgkKoszalinPszokNormalizationService {
   ) {}
 
   async normalize(input: PgkKoszalinPszokNormalizationInput): Promise<NormalizedFacilityV02> {
-    const facility = this.adapter.parse({ main: input.main, faq: input.faq });
-    await validateFacilityV02(facility);
+    return (await this.normalizeAll(input))[0]!;
+  }
+
+  async normalizeAll(input: PgkKoszalinPszokNormalizationInput): Promise<NormalizedFacilityV02[]> {
+    const facilities = this.adapter.parseAll({ main: input.main, faq: input.faq });
+    for (const facility of facilities) await validateFacilityV02(facility);
+
+    const facilityKeys = facilities.map((facility) => facility.key);
 
     await this.registry.markArtifactParsed({
       artifactId: input.main.artifactId,
@@ -32,8 +38,17 @@ export class PgkKoszalinPszokNormalizationService {
       extractionConfidence: 0.99,
       status: 'NORMALIZED',
       parseReport: {
-        facilityKey: facility.key,
-        assertions: ['identity', 'address', 'location', 'openingHours', 'accessScope', 'requiresProof'],
+        facilityKey: facilities[0]!.key,
+        facilityKeys,
+        assertions: [
+          'identity',
+          'address',
+          'location',
+          'openingHours',
+          'accessScope',
+          'requiresProof',
+          'reviewCandidateWithoutTrustedGeometry',
+        ],
       },
     });
 
@@ -44,11 +59,12 @@ export class PgkKoszalinPszokNormalizationService {
       extractionConfidence: 0.99,
       status: 'NORMALIZED',
       parseReport: {
-        facilityKey: facility.key,
+        facilityKey: facilities[0]!.key,
+        facilityKeys: [facilities[0]!.key],
         assertions: ['acceptedMaterials', 'quantityLimits'],
       },
     });
 
-    return facility;
+    return facilities;
   }
 }
