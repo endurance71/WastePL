@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teryt>
+  <!-- Deterministic subset shaped like the GUS TERYT full-file XML. -->
+  <row>
+    <col name="WOJ">32</col><col name="POW">61</col><col name="GMI">01</col><col name="RODZ">1</col>
+    <col name="NAZWA">Koszalin</col><col name="NAZDOD">gmina miejska</col><col name="STAN_NA">2026-01-01</col>
+  </row>
+  <row>
+    <col name="WOJ">32</col><col name="POW">09</col><col name="GMI">04</col><col name="RODZ">2</col>
+    <col name="NAZWA">Manowo</col><col name="NAZDOD">gmina wiejska</col><col name="STAN_NA">2026-01-01</col>
+  </row>
+</teryt>

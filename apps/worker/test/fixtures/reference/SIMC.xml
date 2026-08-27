@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teryt>
+  <row>
+    <col name="WOJ">32</col><col name="POW">61</col><col name="GMI">01</col><col name="RODZ_GMI">1</col>
+    <col name="RM">96</col><col name="MZ">1</col><col name="NAZWA">Koszalin</col><col name="SYM">0949448</col><col name="SYMPOD"></col><col name="STAN_NA">2026-01-01</col>
+  </row>
+  <row>
+    <col name="WOJ">32</col><col name="POW">09</col><col name="GMI">04</col><col name="RODZ_GMI">2</col>
+    <col name="RM">01</col><col name="MZ">1</col><col name="NAZWA">Bonin</col><col name="SYM">0308040</col><col name="SYMPOD"></col><col name="STAN_NA">2026-01-01</col>
+  </row>
+  <row>
+    <col name="WOJ">32</col><col name="POW">09</col><col name="GMI">04</col><col name="RODZ_GMI">2</col>
+    <col name="RM">01</col><col name="MZ">1</col><col name="NAZWA">Manowo</col><col name="SYM">0308152</col><col name="SYMPOD"></col><col name="STAN_NA">2026-01-01</col>
+  </row>
+  <row>
+    <col name="WOJ">32</col><col name="POW">09</col><col name="GMI">04</col><col name="RODZ_GMI">2</col>
+    <col name="RM">01</col><col name="MZ">1</col><col name="NAZWA">Wyszebórz</col><col name="SYM">0308206</col><col name="SYMPOD"></col><col name="STAN_NA">2026-01-01</col>
+  </row>
+</teryt>
