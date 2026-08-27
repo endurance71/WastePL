@@ -12,6 +12,7 @@ integrationDescribe('WastePL API vertical slice', () => {
 
   beforeEach(async () => {
     app = await createApp();
+    app.useLogger(['error']);
     await app.init();
   });
 
@@ -25,7 +26,7 @@ integrationDescribe('WastePL API vertical slice', () => {
       url: '/v1/addresses/resolve?query=1%20Maja%203',
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
     expect(body.query).toBe('1 Maja 3');
     expect(body.items).toHaveLength(1);
@@ -42,7 +43,7 @@ integrationDescribe('WastePL API vertical slice', () => {
       url: '/v1/collection?address=1%20Maja%203&from=2026-08-26&days=8',
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
     expect(body.address.canonicalText).toBe('1 Maja 3, 75-800 Koszalin');
     expect(body.municipality.terc).toBe('3261011');
@@ -69,7 +70,7 @@ integrationDescribe('WastePL API vertical slice', () => {
       url: '/v1/collection?address=Bonin%202&from=2026-01-01&days=31',
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
     expect(body.municipality.terc).toBe('3209042');
     expect(body.events).toHaveLength(10);
@@ -87,6 +88,7 @@ integrationDescribe('WastePL API vertical slice', () => {
       method: 'GET',
       url: '/v1/addresses/resolve?query=1%20Maja%208',
     });
+    expect(addressResponse.statusCode, addressResponse.body).toBe(200);
     const addressId = addressResponse.json().items[0]?.address?.id as string | undefined;
     expect(addressId).toBeTruthy();
 
@@ -94,7 +96,7 @@ integrationDescribe('WastePL API vertical slice', () => {
       method: 'GET',
       url: `/v1/collection?addressId=${addressId}&from=2026-08-28&days=1`,
     });
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode, response.body).toBe(200);
     expect(response.json().events).toEqual([
       { date: '2026-08-28', fraction: 'BIO', status: 'SCHEDULED' },
     ]);
@@ -105,7 +107,7 @@ integrationDescribe('WastePL API vertical slice', () => {
       method: 'GET',
       url: '/v1/collection?address=Nieistniejaca%209999&from=2026-08-27&days=7',
     });
-    expect(response.statusCode).toBe(404);
+    expect(response.statusCode, response.body).toBe(404);
     expect(response.json().code).toBe('ADDRESS_NOT_FOUND');
   });
 
@@ -141,7 +143,7 @@ integrationDescribe('WastePL API vertical slice', () => {
         method: 'GET',
         url: `/v1/collection?addressId=${address.id}&from=2026-08-26&days=7`,
       });
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode, response.body).toBe(409);
       const body = response.json();
       expect(body.code).toBe('AMBIGUOUS_SERVICE_AREA');
       expect(body.candidates).toHaveLength(2);
