@@ -38,9 +38,20 @@ if (facilitySchemaV02.properties?.schemaVersion?.const !== '0.2.0') {
 if (openApi.openapi !== '3.1.0') {
   throw new Error('WastePL OpenAPI document must use OpenAPI 3.1.0');
 }
-for (const path of ['/v1/health', '/v1/addresses/resolve', '/v1/collection']) {
+for (const path of ['/v1/health', '/v1/addresses/resolve', '/v1/collection', '/v1/facilities']) {
   if (!openApi.paths?.[path]) {
     throw new Error(`OpenAPI is missing required path: ${path}`);
+  }
+}
+
+const facilityItemProperties = openApi.components?.schemas?.FacilityItem?.properties ?? {};
+if ('openNow' in facilityItemProperties) {
+  throw new Error('Facilities API must not expose openNow before timezone/exception semantics are proven');
+}
+const provenanceRequired = openApi.components?.schemas?.FacilityItem?.properties?.provenance?.required ?? [];
+for (const claim of ['primary', 'location', 'openingHours', 'access', 'operationalStatus']) {
+  if (!provenanceRequired.includes(claim)) {
+    throw new Error(`Facility provenance must explicitly include ${claim}`);
   }
 }
 
@@ -95,4 +106,4 @@ const rvmWithIsWorking = structuredClone(rvmV02);
 rvmWithIsWorking.isWorking = true;
 assertInvalid(validateFacilityV02, rvmWithIsWorking, 'unproven isWorking boolean');
 
-console.log('WastePL contracts OK (dataset v0.1 + facility v0.2)');
+console.log('WastePL contracts OK (dataset v0.1 + facility v0.2 + facilities API)');
