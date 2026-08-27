@@ -1,4 +1,10 @@
-import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { PoolClient, QueryResultRow } from 'pg';
 import { DatabaseService } from '../database/database.service.js';
 
@@ -166,7 +172,7 @@ function mapReview(row: ReviewRow) {
 
 @Injectable()
 export class InternalReviewService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(@Inject(DatabaseService) private readonly db: DatabaseService) {}
 
   async list(state: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL', limit: number, offset: number) {
     const params: unknown[] = [];
