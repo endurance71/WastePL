@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.1.0",
+  "municipality": {
+    "terc": "3261011",
+    "name": "Koszalin",
+    "municipalityType": "DISTRICT_CITY"
+  },
+  "serviceAreas": [],
+  "collectionEvents": [],
+  "facilities": [],
+  "alerts": [],
+  "sources": [
+    {
+      "sourceKey": "compat-source",
+      "url": "https://example.gov.pl/waste",
+      "ownerType": "MUNICIPALITY",
+      "format": "JSON",
+      "reuseBasis": "Compatibility fixture",
+      "artifact": {
+        "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "retrievedAt": "2026-08-27T17:00:00Z",
+        "parserKey": "compat",
+        "parserVersion": "0.1.0",
+        "extractionConfidence": 1,
+        "storageUri": "fixture://compat"
+      }
+    }
+  ]
+}

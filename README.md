@@ -22,14 +22,19 @@ ETag and Last-Modified are preserved when sources provide them. HTTP 304 and rep
 
 ## Repository contracts
 
-- `schemas/wastepl-v0.1.schema.json` — normalized data contract
+- `schemas/wastepl-v0.1.schema.json` — immutable Sprint 01 normalized data contract
+- `schemas/wastepl-facility-v0.2.schema.json` — standalone PSZOK/deposit-return facility contract
 - `openapi/wastepl-v0.1.yaml` — HTTP API contract
 - `db/migrations/0001_init.sql` — canonical database schema
 - `db/migrations/0002_source_ingestion_audit.sql` — ingestion audit/polling schema
 - `db/migrations/0003_pilot_address_slice.sql` — TERYT-backed pilot address/service-area slice
 - `db/migrations/0004_pilot_schedule_slice.sql` — fixture-derived pilot schedule/provenance slice
+- `db/migrations/0005_golden_pilot_addresses.sql` — golden pilot address expansion
+- `db/migrations/0006_facility_contract_v02.sql` — source-backed facility semantics
 - `docs/adr/` — architecture decisions
 - `docs/sprint-01.md` — first sprint scope
+
+Facility contract v0.2 keeps `UNKNOWN` distinct from unavailable/closed, permits missing coordinates instead of fabricated pins, separates facility kind from accepted material/container capabilities, and requires provenance for structured hours, access claims and non-unknown operational status.
 
 ## Requirements
 

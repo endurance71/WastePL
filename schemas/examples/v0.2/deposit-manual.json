@@ -1,0 +1,35 @@
+{
+  "key": "manual-example",
+  "kind": "DEPOSIT_MANUAL",
+  "name": "Punkt ręcznego zwrotu — przykład kontraktowy",
+  "address": "ul. Przykładowa 3, Koszalin",
+  "location": { "lat": 54.191, "lon": 16.181 },
+  "locationSourceKey": "manual-source",
+  "externalIds": [],
+  "acceptedMaterials": [],
+  "acceptedContainers": ["REUSABLE_GLASS_BOTTLE"],
+  "openingHours": null,
+  "access": {
+    "scope": "OPEN_TO_ALL",
+    "requiresProof": false,
+    "quantityLimits": [],
+    "notes": [],
+    "sourceKey": "manual-source"
+  },
+  "operationalStatus": {
+    "state": "UNKNOWN",
+    "observedAt": null,
+    "sourceKey": null,
+    "note": "Brak bieżącej telemetrii/statusu."
+  },
+  "operatorName": "Przykładowy sklep",
+  "rulesUrl": null,
+  "sourceKey": "manual-source",
+  "quality": {
+    "verificationStatus": "OFFICIAL_SOURCE",
+    "confidence": 0.95,
+    "retrievedAt": "2026-08-27T17:00:00Z",
+    "warnings": ["OPENING_HOURS_UNKNOWN"]
+  },
+  "schemaVersion": "0.2.0"
+}

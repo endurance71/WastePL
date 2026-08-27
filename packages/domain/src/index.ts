@@ -41,4 +41,5 @@ export const SERVICE_AREA_SPECIFICITY = [
   'MUNICIPALITY',
 ] as const;
 
+export * from './facility.js';
 export * from './service-area.js';
