@@ -2,13 +2,25 @@
   "name": "wastepl",
   "private": true,
   "version": "0.1.0",
-  "packageManager": "pnpm@10",
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --parallel --filter './apps/*' dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "infra:up": "docker compose up -d",
+    "db:migrate": "node scripts/migrate.mjs",
+    "contracts:check": "node scripts/check-contracts.mjs",
+    "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down"
+  },
+  "dependencies": {
+    "pg": "^8.16.3",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5"
   }
 }
