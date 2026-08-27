@@ -28,13 +28,14 @@ integrationDescribe('PgSourceRegistry parser audit metadata', () => {
 
   it('persists parser version, confidence and parse report on the exact artifact', async () => {
     const registry = new PgSourceRegistry(pool);
-    const artifact = await registry.insertArtifact({
+    const inserted = await registry.insertArtifact({
       sourceId,
       retrievedAt: new Date('2026-08-27T17:41:00Z'),
       sha256: 'a'.repeat(64),
       storageUri: 'fixture://pgk-pszok-audit.html',
       parserKey: 'pgk-koszalin-pszok-html',
     });
+    const artifact = inserted.artifact;
 
     await registry.markArtifactParsed({
       artifactId: artifact.id,
