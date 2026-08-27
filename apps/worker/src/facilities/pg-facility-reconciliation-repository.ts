@@ -5,7 +5,7 @@ import {
   type FacilityOperationalState,
   type FacilityKind,
 } from '@wastepl/domain';
-import type { Pool, QueryResultRow } from 'pg';
+import type { Pool, PoolClient, QueryResultRow } from 'pg';
 import type {
   FacilityReconciliationRepository,
   ReconciliationCandidate,
@@ -82,12 +82,31 @@ const assertionSelect = `
 `;
 
 export class PgFacilityReconciliationRepository implements FacilityReconciliationRepository {
-  constructor(private readonly pool: Pool) {}
+  constructor(private readonly db: Pool | PoolClient) {}
+
+  private async transaction<T>(operation: (executor: PoolClient) => Promise<T>): Promise<T> {
+    if (!('connect' in this.db)) {
+      return operation(this.db);
+    }
+
+    const client = await this.db.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await operation(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 
   async findExactIdentityCandidates(assertion: FacilityIdentityAssertion): Promise<ReconciliationCandidate[]> {
     if (assertion.externalIdentities.length === 0) return [];
 
-    const result = await this.pool.query<AssertionRow>(
+    const result = await this.db.query<AssertionRow>(
       `${assertionSelect}
        WHERE a.facility_id IS NOT NULL
          AND EXISTS (
@@ -144,7 +163,7 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
       municipalityClause = `AND m.terc = $${bind(assertion.municipalityTerc)}`;
     }
 
-    const result = await this.pool.query<AssertionRow>(
+    const result = await this.db.query<AssertionRow>(
       `${assertionSelect}
        WHERE a.facility_id IS NOT NULL
          ${municipalityClause}
@@ -157,7 +176,7 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
   }
 
   async attachAssertion(assertionId: string, facilityId: string): Promise<void> {
-    await this.pool.query(
+    await this.db.query(
       `UPDATE facility_source_assertions
        SET facility_id = $2, reconciliation_state = 'CANONICAL'
        WHERE id = $1`,
@@ -166,10 +185,8 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
   }
 
   async createCanonicalFacility(assertionId: string): Promise<string> {
-    const client = await this.pool.connect();
-    try {
-      await client.query('BEGIN');
-      const inserted = await client.query<{ id: string }>(
+    return this.transaction(async (executor) => {
+      const inserted = await executor.query<{ id: string }>(
         `INSERT INTO facilities (
            municipality_id, canonical_key, kind, name, address_text, geom,
            external_ids, accepted_materials, accepted_containers,
@@ -204,20 +221,14 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
       const facilityId = inserted.rows[0]?.id;
       if (!facilityId) throw new Error(`Facility assertion ${assertionId} not found`);
 
-      await client.query(
+      await executor.query(
         `UPDATE facility_source_assertions
          SET facility_id = $2, reconciliation_state = 'CANONICAL'
          WHERE id = $1`,
         [assertionId, facilityId],
       );
-      await client.query('COMMIT');
       return facilityId;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async queueReview(
@@ -225,10 +236,8 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
     candidateFacilityId: string,
     result: FacilityMatchResult,
   ): Promise<void> {
-    const client = await this.pool.connect();
-    try {
-      await client.query('BEGIN');
-      await client.query(
+    await this.transaction(async (executor) => {
+      await executor.query(
         `INSERT INTO facility_reconciliation_reviews (
            assertion_id, candidate_facility_id, score, reasons, state
          ) VALUES ($1, $2, $3, $4::jsonb, 'PENDING')
@@ -240,18 +249,12 @@ export class PgFacilityReconciliationRepository implements FacilityReconciliatio
                        resolution_note = NULL`,
         [assertionId, candidateFacilityId, result.score, JSON.stringify(result.reasons)],
       );
-      await client.query(
+      await executor.query(
         `UPDATE facility_source_assertions
          SET facility_id = NULL, reconciliation_state = 'REVIEW_REQUIRED'
          WHERE id = $1`,
         [assertionId],
       );
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 }
