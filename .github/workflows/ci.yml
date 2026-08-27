@@ -1,0 +1,17 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --no-frozen-lockfile
+      - run: node -e "JSON.parse(require('fs').readFileSync('schemas/wastepl-v0.1.schema.json','utf8')); console.log('JSON Schema parses')"
+      - run: pnpm test
