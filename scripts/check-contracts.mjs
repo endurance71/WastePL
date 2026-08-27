@@ -91,4 +91,8 @@ quantityLimitWithoutSource.access.quantityLimits = [
 ];
 assertInvalid(validateFacilityV02, quantityLimitWithoutSource, 'facility quantity limit without claim provenance');
 
+const rvmWithIsWorking = structuredClone(rvmV02);
+rvmWithIsWorking.isWorking = true;
+assertInvalid(validateFacilityV02, rvmWithIsWorking, 'unproven isWorking boolean');
+
 console.log('WastePL contracts OK (dataset v0.1 + facility v0.2)');
