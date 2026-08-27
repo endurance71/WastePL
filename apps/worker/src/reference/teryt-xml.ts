@@ -50,15 +50,17 @@ function stateDate(row: Record<string, string>): string {
 }
 
 export function parseTercXml(xml: string): TercRow[] {
-  return rowMaps(xml).map((row) => ({
-    woj: digits(row, 'WOJ', 2),
-    pow: digits(row, 'POW', 2),
-    gmi: digits(row, 'GMI', 2),
-    rodz: digits(row, 'RODZ', 1),
-    name: required(row, 'NAZWA'),
-    nameAdditional: required(row, 'NAZDOD'),
-    stateDate: stateDate(row),
-  }));
+  return rowMaps(xml)
+    .filter((row) => Boolean(row.GMI?.trim() && row.RODZ?.trim()))
+    .map((row) => ({
+      woj: digits(row, 'WOJ', 2),
+      pow: digits(row, 'POW', 2),
+      gmi: digits(row, 'GMI', 2),
+      rodz: digits(row, 'RODZ', 1),
+      name: required(row, 'NAZWA'),
+      nameAdditional: required(row, 'NAZDOD'),
+      stateDate: stateDate(row),
+    }));
 }
 
 export function parseSimcXml(xml: string): SimcRow[] {
