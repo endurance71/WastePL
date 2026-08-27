@@ -8,10 +8,14 @@ import type {
   ArtifactStore,
   FetchedSource,
   InsertSourceArtifactInput,
+  InsertSourceArtifactResult,
   SourceArtifactRecord,
   SourceCheckUpdate,
+  SourceFailureUpdate,
   SourceFetchAttemptInput,
   SourceFetcher,
+  SourceProcessingAttemptInput,
+  SourceProcessingStateUpdate,
   SourceRecord,
   SourceRegistry,
   StructuredLogger,
@@ -25,12 +29,22 @@ class FakeRegistry implements SourceRegistry {
     parserKey: 'pdf-text-v1',
     etag: null,
     lastModified: null,
+    lastSha256: null,
     active: true,
+    pollIntervalMinutes: 1440,
+    nextCheckAt: null,
+    healthStatus: 'UNKNOWN',
+    consecutiveFailures: 0,
+    pollClaimToken: null,
+    pollClaimExpiresAt: null,
   };
   readonly artifacts = new Map<string, SourceArtifactRecord>();
   readonly checks: SourceCheckUpdate[] = [];
+  readonly failures: SourceFailureUpdate[] = [];
   readonly attempts: SourceFetchAttemptInput[] = [];
   readonly parseUpdates: ArtifactParseUpdate[] = [];
+  readonly processingStates: SourceProcessingStateUpdate[] = [];
+  readonly processingAttempts: SourceProcessingAttemptInput[] = [];
 
   async getSourceById(sourceId: string): Promise<SourceRecord | null> {
     return sourceId === this.source.id ? this.source : null;
@@ -40,9 +54,9 @@ class FakeRegistry implements SourceRegistry {
     return this.artifacts.get(sha256) ?? null;
   }
 
-  async insertArtifact(input: InsertSourceArtifactInput): Promise<SourceArtifactRecord> {
+  async insertArtifact(input: InsertSourceArtifactInput): Promise<InsertSourceArtifactResult> {
     const existing = this.artifacts.get(input.sha256);
-    if (existing) return existing;
+    if (existing) return { artifact: existing, created: false };
     const artifact: SourceArtifactRecord = {
       id: `artifact-${this.artifacts.size + 1}`,
       sourceId: input.sourceId,
@@ -51,7 +65,7 @@ class FakeRegistry implements SourceRegistry {
       retrievedAt: input.retrievedAt,
     };
     this.artifacts.set(input.sha256, artifact);
-    return artifact;
+    return { artifact, created: true };
   }
 
   async markArtifactParsed(update: ArtifactParseUpdate): Promise<void> {
@@ -62,8 +76,20 @@ class FakeRegistry implements SourceRegistry {
     this.checks.push(update);
   }
 
+  async markSourceFailed(_sourceId: string, update: SourceFailureUpdate): Promise<void> {
+    this.failures.push(update);
+  }
+
+  async markSourceProcessingState(update: SourceProcessingStateUpdate): Promise<void> {
+    this.processingStates.push(update);
+  }
+
   async recordFetchAttempt(input: SourceFetchAttemptInput): Promise<void> {
     this.attempts.push(input);
+  }
+
+  async recordProcessingAttempt(input: SourceProcessingAttemptInput): Promise<void> {
+    this.processingAttempts.push(input);
   }
 }
 
@@ -113,6 +139,7 @@ describe('SourceIngestionService', () => {
     expect(first.artifactId).toBe(second.artifactId);
     expect(store.puts).toBe(1);
     expect(registry.artifacts.size).toBe(1);
+    expect(registry.checks.map((check) => check.healthStatus)).toEqual(['FETCHED', 'UNCHANGED']);
     expect(registry.attempts.map((attempt) => attempt.outcome)).toEqual(['FETCHED', 'DEDUPLICATED']);
   });
 
@@ -139,10 +166,11 @@ describe('SourceIngestionService', () => {
     const result = await service.ingest(registry.source.id);
     expect(result.outcome).toBe('NOT_MODIFIED');
     expect(store.puts).toBe(0);
+    expect(registry.checks[0]?.healthStatus).toBe('UNCHANGED');
     expect(registry.attempts[0]?.outcome).toBe('NOT_MODIFIED');
   });
 
-  it('records retryable fetch failures for audit and rethrows them', async () => {
+  it('records retryable fetch failures, schedules health backoff and rethrows', async () => {
     const registry = new FakeRegistry();
     const store = new FakeArtifactStore();
     const fetcher: SourceFetcher = {
@@ -159,6 +187,11 @@ describe('SourceIngestionService', () => {
     const service = new SourceIngestionService(registry, store, fetcher, logger);
 
     await expect(service.ingest(registry.source.id)).rejects.toThrow('upstream unavailable');
+    expect(registry.failures).toHaveLength(1);
+    expect(registry.failures[0]).toMatchObject({
+      errorCode: 'HTTP_503',
+      retryable: true,
+    });
     expect(registry.attempts).toHaveLength(1);
     expect(registry.attempts[0]).toMatchObject({
       outcome: 'FAILED',
@@ -166,5 +199,27 @@ describe('SourceIngestionService', () => {
       httpStatus: 503,
       errorCode: 'HTTP_503',
     });
+  });
+
+  it('skips a delayed queue job whose scheduler claim is stale', async () => {
+    const registry = new FakeRegistry();
+    registry.source.pollClaimToken = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    registry.source.pollClaimExpiresAt = new Date(Date.now() + 60_000);
+    const store = new FakeArtifactStore();
+    let fetchCalls = 0;
+    const fetcher: SourceFetcher = {
+      async fetch(): Promise<FetchedSource> {
+        fetchCalls += 1;
+        return successfulFetcher().fetch(registry.source);
+      },
+    };
+    const service = new SourceIngestionService(registry, store, fetcher, logger);
+
+    const result = await service.ingest(registry.source.id, {
+      claimToken: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    });
+    expect(result.outcome).toBe('SKIPPED_STALE_CLAIM');
+    expect(fetchCalls).toBe(0);
+    expect(registry.attempts).toEqual([]);
   });
 });

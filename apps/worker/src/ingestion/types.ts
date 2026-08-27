@@ -1,3 +1,12 @@
+export type SourceHealthStatus =
+  | 'UNKNOWN'
+  | 'FETCHED'
+  | 'HEALTHY'
+  | 'UNCHANGED'
+  | 'FETCH_FAILED'
+  | 'PARSE_FAILED'
+  | 'REVIEW_REQUIRED';
+
 export interface SourceRecord {
   id: string;
   sourceUrl: string;
@@ -5,7 +14,14 @@ export interface SourceRecord {
   parserKey: string | null;
   etag: string | null;
   lastModified: string | null;
+  lastSha256: string | null;
   active: boolean;
+  pollIntervalMinutes: number;
+  nextCheckAt: Date | null;
+  healthStatus: SourceHealthStatus;
+  consecutiveFailures: number;
+  pollClaimToken: string | null;
+  pollClaimExpiresAt: Date | null;
 }
 
 export interface SourceArtifactRecord {
@@ -14,6 +30,11 @@ export interface SourceArtifactRecord {
   sha256: string;
   storageUri: string;
   retrievedAt: Date;
+}
+
+export interface InsertSourceArtifactResult {
+  artifact: SourceArtifactRecord;
+  created: boolean;
 }
 
 export type FetchOutcome = 'FETCHED' | 'NOT_MODIFIED' | 'DEDUPLICATED' | 'FAILED';
@@ -57,15 +78,114 @@ export interface SourceCheckUpdate {
   etag: string | null;
   lastModified: string | null;
   sha256: string | null;
+  healthStatus?: Extract<SourceHealthStatus, 'FETCHED' | 'HEALTHY' | 'UNCHANGED'>;
+  claimToken?: string | null;
+}
+
+export interface SourceFailureUpdate {
+  failedAt: Date;
+  errorCode: string;
+  errorMessage: string;
+  retryable: boolean;
+  claimToken?: string | null;
+}
+
+export interface SourceProcessingAttemptInput {
+  sourceId: string;
+  artifactId: string;
+  startedAt: Date;
+  completedAt: Date;
+  outcome: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'PARSE_FAILED';
+  parserKey: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface SourceProcessingStateUpdate {
+  sourceId: string;
+  artifactId: string;
+  startedAt: Date;
+  completedAt: Date;
+  outcome: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'PARSE_FAILED';
+  parserKey: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SourceRegistry {
   getSourceById(sourceId: string): Promise<SourceRecord | null>;
   findArtifactByHash(sourceId: string, sha256: string): Promise<SourceArtifactRecord | null>;
-  insertArtifact(input: InsertSourceArtifactInput): Promise<SourceArtifactRecord>;
+  insertArtifact(input: InsertSourceArtifactInput): Promise<InsertSourceArtifactResult>;
   markArtifactParsed(update: ArtifactParseUpdate): Promise<void>;
   markSourceChecked(sourceId: string, update: SourceCheckUpdate): Promise<void>;
+  markSourceFailed(sourceId: string, update: SourceFailureUpdate): Promise<void>;
+  markSourceProcessingState(update: SourceProcessingStateUpdate): Promise<void>;
   recordFetchAttempt(input: SourceFetchAttemptInput): Promise<void>;
+  recordProcessingAttempt(input: SourceProcessingAttemptInput): Promise<void>;
+}
+
+export interface SourcePollClaim {
+  sourceId: string;
+  claimToken: string;
+  sourceUrl: string;
+  parserKey: string | null;
+  claimedAt: Date;
+  claimExpiresAt: Date;
+}
+
+export interface ClaimDueSourcesInput {
+  now: Date;
+  limit: number;
+  leaseMs: number;
+}
+
+export interface SourceSchedulerRegistry {
+  claimDueSources(input: ClaimDueSourcesInput): Promise<SourcePollClaim[]>;
+  releasePollClaim(sourceId: string, claimToken: string, nextCheckAt: Date): Promise<void>;
+}
+
+export interface SourcePollJobInput {
+  sourceId: string;
+  claimToken: string;
+}
+
+export interface SourcePollJobQueue {
+  enqueue(input: SourcePollJobInput): Promise<void>;
+}
+
+export interface ArtifactProcessingJobInput {
+  sourceId: string;
+  artifactId: string;
+  parserKey: string | null;
+}
+
+export interface ArtifactProcessingQueue {
+  enqueue(input: ArtifactProcessingJobInput): Promise<void>;
+}
+
+export interface ArtifactOutboxClaim extends ArtifactProcessingJobInput {
+  claimToken: string;
+  claimExpiresAt: Date;
+  enqueueAttempts: number;
+}
+
+export interface ClaimArtifactOutboxInput {
+  now: Date;
+  limit: number;
+  leaseMs: number;
+}
+
+export interface ArtifactOutboxRegistry {
+  claimPendingArtifactWork(input: ClaimArtifactOutboxInput): Promise<ArtifactOutboxClaim[]>;
+  markArtifactWorkEnqueued(artifactId: string, claimToken: string, enqueuedAt: Date): Promise<void>;
+  releaseArtifactWorkClaim(
+    artifactId: string,
+    claimToken: string,
+    nextAttemptAt: Date,
+    errorMessage: string,
+  ): Promise<void>;
 }
 
 export interface ArtifactPutInput {
