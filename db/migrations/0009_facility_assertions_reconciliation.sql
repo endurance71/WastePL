@@ -53,6 +53,28 @@ CREATE INDEX idx_facility_source_assertions_geom
 CREATE INDEX idx_facility_source_assertions_freshness
   ON facility_source_assertions(retrieved_at, static_freshness_seconds);
 
+CREATE VIEW facility_source_assertion_freshness AS
+SELECT
+  a.*,
+  CASE
+    WHEN a.retrieved_at + (a.static_freshness_seconds * interval '1 second') >= now()
+      THEN 'CURRENT'
+    ELSE 'STALE'
+  END AS static_freshness_state,
+  CASE
+    WHEN a.operational_status = 'UNKNOWN' THEN 'UNKNOWN'
+    WHEN a.operational_status_observed_at IS NULL OR a.operational_status_source_key IS NULL THEN 'UNKNOWN'
+    WHEN a.operational_status_observed_at + (a.status_freshness_seconds * interval '1 second') >= now()
+      THEN a.operational_status
+    ELSE 'UNKNOWN'
+  END AS effective_operational_status,
+  (
+    a.operational_status <> 'UNKNOWN'
+    AND a.operational_status_observed_at IS NOT NULL
+    AND a.operational_status_observed_at + (a.status_freshness_seconds * interval '1 second') < now()
+  ) AS operational_status_stale
+FROM facility_source_assertions a;
+
 CREATE TABLE facility_reconciliation_reviews (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   assertion_id uuid NOT NULL REFERENCES facility_source_assertions(id) ON DELETE CASCADE,
@@ -77,5 +99,7 @@ COMMENT ON COLUMN facility_source_assertions.fingerprint IS
   'Deterministic candidate fingerprint only; it is not a substitute for stable provider identity.';
 COMMENT ON COLUMN facility_source_assertions.reconciliation_state IS
   'UNMATCHED assertions may create a new canonical facility; REVIEW_REQUIRED must never be silently attached.';
+COMMENT ON VIEW facility_source_assertion_freshness IS
+  'Dynamic freshness projection. Stale source-backed operational assertions degrade to UNKNOWN.';
 COMMENT ON TABLE facility_reconciliation_reviews IS
   'Auditable queue for low-confidence or conflicting cross-source facility matches.';
