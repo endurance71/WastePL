@@ -40,6 +40,17 @@ export interface FacilitySourceRef {
   parserVersion: string | null;
 }
 
+export interface FacilityAssertionFreshnessRef {
+  assertionId: string;
+  sourceArtifactId: string;
+  sourceKey: string;
+  sourceAuthority: number;
+  retrievedAt: string;
+  staticFreshnessState: 'CURRENT' | 'STALE';
+  operationalStatusStale: boolean;
+  externalIds: unknown[];
+}
+
 export interface FacilityApiItem {
   id: string;
   canonicalKey: string | null;
@@ -75,6 +86,7 @@ export interface FacilityApiItem {
     openingHours: FacilitySourceRef | null;
     access: FacilitySourceRef | null;
     operationalStatus: FacilitySourceRef | null;
+    assertions: FacilityAssertionFreshnessRef[];
   };
 }
 
@@ -139,6 +151,12 @@ interface FacilityRow extends QueryResultRow {
   status_retrieved_at: Date | null;
   status_parser_key: string | null;
   status_parser_version: string | null;
+  assertion_count: number;
+  source_assertions: FacilityAssertionFreshnessRef[];
+  any_static_stale: boolean;
+  any_status_stale: boolean;
+  assertion_effective_status: string | null;
+  assertion_effective_observed_at: Date | null;
 }
 
 function sourceRef(
@@ -255,7 +273,13 @@ export class FacilitiesService {
         os.source_format AS status_format,
         oa.retrieved_at AS status_retrieved_at,
         oa.parser_key AS status_parser_key,
-        oa.parser_version AS status_parser_version
+        oa.parser_version AS status_parser_version,
+        COALESCE(assertion_meta.assertion_count, 0)::integer AS assertion_count,
+        COALESCE(assertion_meta.source_assertions, '[]'::jsonb) AS source_assertions,
+        COALESCE(assertion_meta.any_static_stale, false) AS any_static_stale,
+        COALESCE(assertion_meta.any_status_stale, false) AS any_status_stale,
+        effective_status.effective_operational_status AS assertion_effective_status,
+        effective_status.operational_status_observed_at AS assertion_effective_observed_at
       FROM facilities f
       LEFT JOIN municipalities m ON m.id = f.municipality_id
       JOIN source_artifacts pa ON pa.id = f.source_artifact_id
@@ -268,6 +292,38 @@ export class FacilitiesService {
       LEFT JOIN sources a_s ON a_s.id = aa.source_id
       LEFT JOIN source_artifacts oa ON oa.id = f.operational_status_source_artifact_id
       LEFT JOIN sources os ON os.id = oa.source_id
+      LEFT JOIN LATERAL (
+        SELECT
+          count(*)::integer AS assertion_count,
+          bool_or(af.static_freshness_state = 'STALE') AS any_static_stale,
+          bool_or(af.operational_status_stale) AS any_status_stale,
+          jsonb_agg(
+            jsonb_build_object(
+              'assertionId', af.id,
+              'sourceArtifactId', af.source_artifact_id,
+              'sourceKey', af.source_key,
+              'sourceAuthority', af.source_authority,
+              'retrievedAt', af.retrieved_at,
+              'staticFreshnessState', af.static_freshness_state,
+              'operationalStatusStale', af.operational_status_stale,
+              'externalIds', af.external_ids
+            )
+            ORDER BY af.source_authority DESC, af.retrieved_at DESC, af.id
+          ) AS source_assertions
+        FROM facility_source_assertion_freshness af
+        WHERE af.facility_id = f.id
+      ) assertion_meta ON true
+      LEFT JOIN LATERAL (
+        SELECT af.effective_operational_status, af.operational_status_observed_at
+        FROM facility_source_assertion_freshness af
+        WHERE af.facility_id = f.id
+          AND af.effective_operational_status <> 'UNKNOWN'
+        ORDER BY af.source_authority DESC,
+                 af.operational_status_observed_at DESC NULLS LAST,
+                 af.source_key ASC,
+                 af.id ASC
+        LIMIT 1
+      ) effective_status ON true
       WHERE ${where.join(' AND ')}
       ORDER BY ${orderExpression}
       LIMIT $${limitParam}
@@ -282,6 +338,16 @@ export class FacilitiesService {
         const warnings: string[] = [];
         if (row.lat === null || row.lon === null) warnings.push('COORDINATES_UNKNOWN');
         if (row.opening_hours === null) warnings.push('OPENING_HOURS_UNKNOWN');
+        if (row.any_static_stale) warnings.push('SOURCE_ASSERTION_STALE');
+        if (row.any_status_stale) warnings.push('OPERATIONAL_STATUS_STALE_IGNORED');
+
+        const hasAssertions = row.assertion_count > 0;
+        const operationalState = hasAssertions
+          ? (row.assertion_effective_status ?? 'UNKNOWN')
+          : row.operational_status;
+        const operationalObservedAt = hasAssertions
+          ? row.assertion_effective_observed_at?.toISOString() ?? null
+          : row.operational_status_observed_at?.toISOString() ?? null;
 
         return {
           id: row.id,
@@ -301,8 +367,8 @@ export class FacilitiesService {
             rules: row.access_rules ?? {},
           },
           operationalStatus: {
-            state: row.operational_status,
-            observedAt: row.operational_status_observed_at?.toISOString() ?? null,
+            state: operationalState,
+            observedAt: operationalObservedAt,
           },
           operatorName: row.operator_name,
           rulesUrl: row.rules_url,
@@ -325,6 +391,7 @@ export class FacilitiesService {
             openingHours: sourceRef(row.hours_artifact_id, row.hours_url, row.hours_format, row.hours_retrieved_at, row.hours_parser_key, row.hours_parser_version),
             access: sourceRef(row.access_artifact_id, row.access_url, row.access_format, row.access_retrieved_at, row.access_parser_key, row.access_parser_version),
             operationalStatus: sourceRef(row.status_artifact_id, row.status_url, row.status_format, row.status_retrieved_at, row.status_parser_key, row.status_parser_version),
+            assertions: row.source_assertions ?? [],
           },
         };
       }),
