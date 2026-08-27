@@ -14,6 +14,15 @@ export interface PgkKoszalinPszokInput {
   faq: HtmlArtifactInput;
 }
 
+type Weekday =
+  | 'MONDAY'
+  | 'TUESDAY'
+  | 'WEDNESDAY'
+  | 'THURSDAY'
+  | 'FRIDAY'
+  | 'SATURDAY'
+  | 'SUNDAY';
+
 export interface NormalizedFacilityV02 {
   schemaVersion: '0.2.0';
   key: string;
@@ -28,7 +37,7 @@ export interface NormalizedFacilityV02 {
   openingHours: {
     timezone: 'Europe/Warsaw';
     weekly: Array<{
-      day: 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+      day: Weekday;
       intervals: Array<{ opens: string; closes: string }>;
     }>;
     exceptions: [];
@@ -51,7 +60,7 @@ export interface NormalizedFacilityV02 {
   rulesUrl: string;
   sourceKey: string;
   quality: {
-    verificationStatus: 'OFFICIAL_SOURCE';
+    verificationStatus: 'OFFICIAL_SOURCE' | 'REVIEW_REQUIRED';
     confidence: number;
     retrievedAt: string;
     warnings: string[];
@@ -66,7 +75,6 @@ function textFromHtml(html: string): string {
     .replace(/&nbsp;|&#160;/gi, ' ')
     .replace(/&ndash;|&#8211;/gi, '–')
     .replace(/&mdash;|&#8212;/gi, '—')
-    .replace(/&oacute;/gi, 'ó')
     .replace(/&oacute;/gi, 'ó')
     .replace(/&[a-z]+;/gi, ' ')
     .replace(/\s+/g, ' ')
@@ -104,15 +112,77 @@ function latestRetrievedAt(...values: string[]): string {
     .toISOString();
 }
 
+function openingHours(sourceKey: string): NormalizedFacilityV02['openingHours'] {
+  return {
+    timezone: 'Europe/Warsaw',
+    weekly: [
+      { day: 'MONDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'TUESDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'WEDNESDAY', intervals: [{ opens: '10:00', closes: '18:00' }] },
+      { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'FRIDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '13:00' }] },
+      { day: 'SUNDAY', intervals: [] },
+    ],
+    exceptions: [],
+    sourceKey,
+  };
+}
+
+function accessRules(
+  mainSourceKey: string,
+  faqSourceKey: string,
+  includePublishedLimits: boolean,
+): NormalizedFacilityV02['access'] {
+  return {
+    scope: 'MUNICIPALITY_RESIDENTS',
+    requiresProof: true,
+    quantityLimits: includePublishedLimits
+      ? [
+          {
+            material: 'TYRES',
+            limit: '8 sztuk na gospodarstwo domowe',
+            period: 'YEAR',
+            sourceKey: faqSourceKey,
+          },
+          {
+            material: 'CONSTRUCTION',
+            limit: '100 kg łącznie na gospodarstwo domowe',
+            period: 'YEAR',
+            sourceKey: faqSourceKey,
+          },
+        ]
+      : [],
+    notes: [
+      'Dokument potwierdzający uprawnienie do korzystania z PSZOK jest wymagany zgodnie z typem zabudowy.',
+    ],
+    sourceKey: mainSourceKey,
+  };
+}
+
+function unknownOperationalStatus(): NormalizedFacilityV02['operationalStatus'] {
+  return {
+    state: 'UNKNOWN',
+    observedAt: null,
+    sourceKey: null,
+    note: 'Opublikowane godziny nie są źródłem bieżącego statusu operacyjnego.',
+  };
+}
+
 export class PgkKoszalinPszokHtmlAdapter {
   readonly parserKey = 'pgk-koszalin-pszok-html';
-  readonly parserVersion = '1.0.0';
+  readonly parserVersion = '1.1.0';
 
   parse(input: PgkKoszalinPszokInput): NormalizedFacilityV02 {
+    return this.parseAll(input)[0]!;
+  }
+
+  parseAll(input: PgkKoszalinPszokInput): NormalizedFacilityV02[] {
     const mainText = textFromHtml(input.main.html);
     const faqText = textFromHtml(input.faq.html);
 
     requireText(mainText, /PSZOK\s*[–—-]\s*ul\.\s*Komunalna\s*5/i, 'Komunalna 5 location missing');
+    requireText(mainText, /PSZOK\s*[–—-]\s*ul\.\s*Na\s*Skwierzynkę\s*2/i, 'Na Skwierzynkę 2 location missing');
     requireText(mainText, /Poniedziałek.*wtorek.*czwartek.*piątek.*8[:.]?00.*16[:.]?00/i, 'weekday hours missing');
     requireText(mainText, /Środa.*10[:.]?00.*18[:.]?00/i, 'Wednesday hours missing');
     requireText(mainText, /Sobota.*8[:.]?00.*13[:.]?00/i, 'Saturday hours missing');
@@ -128,7 +198,10 @@ export class PgkKoszalinPszokHtmlAdapter {
       throw new Error('PGK PSZOK adapter: accepted-material extraction unexpectedly sparse');
     }
 
-    return {
+    const retrievedAt = latestRetrievedAt(input.main.retrievedAt, input.faq.retrievedAt);
+    const operatorName = 'Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie';
+
+    const komunalna: NormalizedFacilityV02 = {
       schemaVersion: '0.2.0',
       key: 'pl-3261011-pszok-komunalna-5',
       kind: 'PSZOK',
@@ -139,47 +212,45 @@ export class PgkKoszalinPszokHtmlAdapter {
       externalIds: [],
       acceptedMaterials,
       acceptedContainers: [],
-      openingHours: {
-        timezone: 'Europe/Warsaw',
-        weekly: [
-          { day: 'MONDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-          { day: 'TUESDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-          { day: 'WEDNESDAY', intervals: [{ opens: '10:00', closes: '18:00' }] },
-          { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-          { day: 'FRIDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-          { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '13:00' }] },
-          { day: 'SUNDAY', intervals: [] },
-        ],
-        exceptions: [],
-        sourceKey: input.main.sourceKey,
-      },
-      access: {
-        scope: 'MUNICIPALITY_RESIDENTS',
-        requiresProof: true,
-        quantityLimits: [
-          { material: 'TYRES', limit: '8 sztuk na gospodarstwo domowe', period: 'YEAR', sourceKey: input.faq.sourceKey },
-          { material: 'CONSTRUCTION', limit: '100 kg łącznie na gospodarstwo domowe', period: 'YEAR', sourceKey: input.faq.sourceKey },
-        ],
-        notes: [
-          'Dokument potwierdzający uprawnienie do korzystania z PSZOK jest wymagany zgodnie z typem zabudowy.',
-        ],
-        sourceKey: input.main.sourceKey,
-      },
-      operationalStatus: {
-        state: 'UNKNOWN',
-        observedAt: null,
-        sourceKey: null,
-        note: 'Opublikowane godziny nie są źródłem bieżącego statusu operacyjnego.',
-      },
-      operatorName: 'Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie',
+      openingHours: openingHours(input.main.sourceKey),
+      access: accessRules(input.main.sourceKey, input.faq.sourceKey, true),
+      operationalStatus: unknownOperationalStatus(),
+      operatorName,
       rulesUrl: 'https://www.pgkkoszalin.pl/wp-content/uploads/2025/06/PSZOK-Komunalna-5.pdf',
       sourceKey: input.main.sourceKey,
       quality: {
         verificationStatus: 'OFFICIAL_SOURCE',
         confidence: 0.99,
-        retrievedAt: latestRetrievedAt(input.main.retrievedAt, input.faq.retrievedAt),
+        retrievedAt,
         warnings: [],
       },
     };
+
+    const skwierzynke: NormalizedFacilityV02 = {
+      schemaVersion: '0.2.0',
+      key: 'pl-3261011-pszok-na-skwierzynke-2',
+      kind: 'PSZOK',
+      name: 'PSZOK – ul. Na Skwierzynkę 2',
+      address: 'ul. Na Skwierzynkę 2, Koszalin',
+      location: null,
+      locationSourceKey: null,
+      externalIds: [],
+      acceptedMaterials: [],
+      acceptedContainers: [],
+      openingHours: openingHours(input.main.sourceKey),
+      access: accessRules(input.main.sourceKey, input.faq.sourceKey, false),
+      operationalStatus: unknownOperationalStatus(),
+      operatorName,
+      rulesUrl: input.main.url,
+      sourceKey: input.main.sourceKey,
+      quality: {
+        verificationStatus: 'REVIEW_REQUIRED',
+        confidence: 0.8,
+        retrievedAt,
+        warnings: ['TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE'],
+      },
+    };
+
+    return [komunalna, skwierzynke];
   }
 }
