@@ -26,6 +26,8 @@ ETag and Last-Modified are preserved when sources provide them. HTTP 304 and rep
 - `openapi/wastepl-v0.1.yaml` — HTTP API contract
 - `db/migrations/0001_init.sql` — canonical database schema
 - `db/migrations/0002_source_ingestion_audit.sql` — ingestion audit/polling schema
+- `db/migrations/0003_pilot_address_slice.sql` — TERYT-backed pilot address/service-area slice
+- `db/migrations/0004_pilot_schedule_slice.sql` — fixture-derived pilot schedule/provenance slice
 - `docs/adr/` — architecture decisions
 - `docs/sprint-01.md` — first sprint scope
 
@@ -58,15 +60,25 @@ Health check:
 curl http://localhost:3000/v1/health
 ```
 
-Expected shape:
+Resolve a canonical pilot address:
 
-```json
-{
-  "status": "ok",
-  "service": "wastepl",
-  "time": "2026-08-27T15:00:00.000Z"
-}
+```bash
+curl 'http://localhost:3000/v1/addresses/resolve?query=1%20Maja%203'
 ```
+
+Get a collection schedule by free-text address:
+
+```bash
+curl 'http://localhost:3000/v1/collection?address=1%20Maja%203&from=2026-08-26&days=30'
+```
+
+The collection response always includes source URL/format and quality metadata (`verificationStatus`, `confidence`, `retrievedAt`, warnings). Ambiguous top-ranked service-area matches return HTTP 409 instead of silently selecting a schedule.
+
+## Pilot data integrity
+
+The pilot TERC/SIMC identifiers are loaded from official TERYT reference data. `prg_id` and unverified ULIC values remain `NULL` until WastePL imports them from an authoritative PRG/TERYT feed; the project does not fabricate official identifiers.
+
+The schedule rows in migration `0004` are materialized from the deterministic Issue #3 regression fixtures and are explicitly marked `fixtureDerived` in `source_artifacts.parse_report`. They are suitable for the PoC vertical and CI, but are not represented as raw production downloads of the complete upstream PDFs.
 
 ## Verification
 
@@ -77,4 +89,4 @@ pnpm typecheck
 pnpm test
 ```
 
-CI starts PostGIS, Redis and MinIO, applies all pending migrations to an empty database, builds the monorepo, runs typechecks and unit/integration tests, verifies immutable object storage and smoke-tests `/v1/health`.
+CI starts PostGIS, Redis and MinIO, applies all pending migrations to an empty database, builds the monorepo, runs typechecks and unit/integration/E2E tests, verifies immutable object storage and smoke-tests `/v1/health`.
