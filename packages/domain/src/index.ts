@@ -41,5 +41,6 @@ export const SERVICE_AREA_SPECIFICITY = [
   'MUNICIPALITY',
 ] as const;
 
+export * from './deposit-source-policy.js';
 export * from './facility.js';
 export * from './service-area.js';
