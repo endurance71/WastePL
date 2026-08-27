@@ -1,11 +1,42 @@
 name: ci
+
 on:
   pull_request:
   push:
     branches: [main]
+
 jobs:
-  contracts:
+  verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: wastepl
+          POSTGRES_PASSWORD: wastepl
+          POSTGRES_DB: wastepl
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wastepl -d wastepl"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://wastepl:wastepl@localhost:5432/wastepl
+      REDIS_URL: redis://localhost:6379
+      PORT: 3000
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -13,5 +44,31 @@ jobs:
           node-version: 22
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
-      - run: node -e "JSON.parse(require('fs').readFileSync('schemas/wastepl-v0.1.schema.json','utf8')); console.log('JSON Schema parses')"
+      - run: pnpm contracts:check
+      - run: pnpm db:migrate
+      - run: pnpm build
+      - run: pnpm typecheck
       - run: pnpm test
+      - name: Smoke-test API health endpoint
+        run: |
+          pnpm --filter @wastepl/api start > /tmp/wastepl-api.log 2>&1 &
+          API_PID=$!
+          node - <<'NODE'
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          for (let attempt = 1; attempt <= 20; attempt += 1) {
+            try {
+              const response = await fetch('http://127.0.0.1:3000/v1/health');
+              if (response.ok) {
+                const body = await response.json();
+                if (body.status !== 'ok') throw new Error(`Unexpected body: ${JSON.stringify(body)}`);
+                console.log(body);
+                process.exit(0);
+              }
+            } catch (error) {
+              if (attempt === 20) throw error;
+            }
+            await sleep(500);
+          }
+          throw new Error('API did not become healthy');
+          NODE
+          kill "$API_PID"
