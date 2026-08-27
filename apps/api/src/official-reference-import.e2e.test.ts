@@ -135,8 +135,8 @@ integrationDescribe('official TERYT/PRG reference import', () => {
 
     const resolver = new PgServiceAreaResolver(pool);
     const resolution = await resolver.resolveByAddressId(originalAddress3Id, new Date('2026-08-27T12:00:00Z'));
-    expect(resolution).toMatchObject({ status: 'RESOLVED' });
-    if (resolution.status === 'RESOLVED') {
+    expect(resolution).toMatchObject({ status: 'MATCHED' });
+    if (resolution.status === 'MATCHED') {
       expect(resolution.serviceArea.externalKey).toBe('koszalin-bio-środa');
     }
 
