@@ -1,0 +1,118 @@
+{
+  "version": "facilities-pilot-2026.1",
+  "threshold": 0.99,
+  "researchCheckpoint": "2026-08-27",
+  "coverage": {
+    "realPszokEntities": 2,
+    "publishableRealPins": 1,
+    "reviewRequiredWithoutTrustedCoordinates": 1,
+    "verifiedDepositLocationCases": 0,
+    "depositCoverageNote": "No official nationwide or operator-provided Koszalin point-location feed was available in the research checkpoint. Synthetic deposit scenarios are regression-only and are excluded from real-pin correctness."
+  },
+  "sources": {
+    "pgkMain": {
+      "url": "https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-koszalin/",
+      "fixture": "../../../worker/test/fixtures/pgk-koszalin-pszok-main.html",
+      "parserKey": "pgk-koszalin-pszok-html",
+      "parserVersion": "1.0.0"
+    },
+    "pgkFaq": {
+      "url": "https://www.pgkkoszalin.pl/najczesciej-zadawane-pytania-f-a-q/",
+      "fixture": "../../../worker/test/fixtures/pgk-koszalin-pszok-faq.html",
+      "parserKey": "pgk-koszalin-pszok-html",
+      "parserVersion": "1.0.0"
+    }
+  },
+  "entities": [
+    {
+      "id": "pszok-komunalna-5",
+      "expectedDisposition": "PUBLISHED_PIN",
+      "evidenceSources": ["pgkMain", "pgkFaq"],
+      "expected": {
+        "canonicalKey": "golden-pl-3261011-pszok-komunalna-5",
+        "kind": "PSZOK",
+        "name": "PSZOK – ul. Komunalna 5",
+        "address": "ul. Komunalna 5, Koszalin",
+        "location": { "lat": 54.212266, "lon": 16.183616 },
+        "acceptedMaterials": [
+          "PAPER",
+          "GLASS",
+          "METALS_PLASTICS",
+          "BIO",
+          "BULKY",
+          "TEXTILES",
+          "ELECTRONICS",
+          "BATTERIES",
+          "MEDICINES",
+          "TYRES",
+          "CONSTRUCTION",
+          "RUBBLE",
+          "HAZARDOUS"
+        ],
+        "acceptedContainers": [],
+        "openingHours": {
+          "timezone": "Europe/Warsaw",
+          "weekly": [
+            { "day": "MONDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+            { "day": "TUESDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+            { "day": "WEDNESDAY", "intervals": [{ "opens": "10:00", "closes": "18:00" }] },
+            { "day": "THURSDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+            { "day": "FRIDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
+            { "day": "SATURDAY", "intervals": [{ "opens": "08:00", "closes": "13:00" }] },
+            { "day": "SUNDAY", "intervals": [] }
+          ],
+          "exceptions": []
+        },
+        "access": {
+          "scope": "MUNICIPALITY_RESIDENTS",
+          "requiresProof": true,
+          "quantityLimits": [
+            { "material": "TYRES", "limit": "8 sztuk na gospodarstwo domowe", "period": "YEAR", "sourceKey": "pgk-koszalin-pszok-faq" },
+            { "material": "CONSTRUCTION", "limit": "100 kg łącznie na gospodarstwo domowe", "period": "YEAR", "sourceKey": "pgk-koszalin-pszok-faq" }
+          ]
+        },
+        "operationalStatus": { "state": "UNKNOWN", "observedAt": null },
+        "verificationStatus": "OFFICIAL_SOURCE",
+        "confidence": 0.99,
+        "assertionSourceKeys": ["pgk-koszalin-pszok-main", "pgk-koszalin-pszok-faq"]
+      }
+    },
+    {
+      "id": "pszok-na-skwierzynke-2",
+      "expectedDisposition": "REVIEW_REQUIRED",
+      "evidenceSources": ["pgkMain"],
+      "expected": {
+        "kind": "PSZOK",
+        "name": "PSZOK – ul. Na Skwierzynkę 2",
+        "address": "ul. Na Skwierzynkę 2, Koszalin",
+        "location": null,
+        "reason": "TRUSTED_COORDINATES_NOT_PUBLISHED_IN_GOLDEN_SOURCE"
+      }
+    }
+  ],
+  "completeCases": [
+    { "id": "komunalna-kind", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&limit=200" },
+    { "id": "komunalna-tyres", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&material=TYRES&limit=200" },
+    { "id": "komunalna-construction", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&material=CONSTRUCTION&limit=200" },
+    { "id": "komunalna-medicines", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&material=MEDICINES&limit=200" },
+    { "id": "komunalna-textiles", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&material=TEXTILES&limit=200" },
+    { "id": "komunalna-bbox", "entityId": "pszok-komunalna-5", "query": "bbox=16.18,54.21,16.19,54.22&kind=PSZOK&limit=200" },
+    { "id": "komunalna-radius", "entityId": "pszok-komunalna-5", "query": "lat=54.212266&lon=16.183616&radiusMeters=30&kind=PSZOK&limit=200" },
+    { "id": "komunalna-paper", "entityId": "pszok-komunalna-5", "query": "terc=3261011&kind=PSZOK&material=PAPER&limit=200" }
+  ],
+  "regressionScenarios": [
+    {
+      "id": "duplicate-source-assertions-one-pin",
+      "type": "SOURCE_DUPLICATE",
+      "expectedCanonicalPins": 1,
+      "note": "Main PGK page and FAQ assertions must remain two provenance assertions attached to one canonical PSZOK pin."
+    },
+    {
+      "id": "rvm-manual-same-venue-review",
+      "type": "SYNTHETIC_DEPOSIT_CONFLICT",
+      "countsTowardRealCorrectness": false,
+      "expected": "REVIEW_REQUIRED",
+      "note": "Regression-only: same-venue RVM and manual return must never be silently collapsed."
+    }
+  ]
+}
