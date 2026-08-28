@@ -11,7 +11,7 @@
 
 ## Tychowo
 
-### Official parent
+### Tychowo official parent
 
 `https://tychowo.pl/cms/2151/harmonogram-odbioru-odpadow-komunalnych-`
 
@@ -24,7 +24,7 @@ The current municipal schedule page exposes exactly two 2026 attachments. This i
 2. Hard-to-reach/colonial properties:
    `https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianakopia_harmonogram_tychowo_2026_%E2%80%94_kolonijne.pdf`
 
-### Proven source semantics
+### Tychowo proven source semantics
 
 The main PDF is text-bearing and explicitly distinguishes at least:
 
@@ -62,7 +62,7 @@ The adapter should obtain locality SIMC mappings from the imported TERYT backbon
 
 ## Będzino
 
-### Official parent
+### Będzino official parent
 
 `https://bip.bedzino.pl/?id=6920&type=article`
 
@@ -90,7 +90,7 @@ Additional June/H1 artifacts still listed by BIP:
 13. `https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Barnin%2C%20B%C4%99dzino%2C%20Mi%C5%82ogoszcz%2C%20Tymie%C5%84%2C%20Uliszki%2C%20Zagaje.pdf`
 14. `https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Barninek%2C%20Dobies%C5%82awiec%20oraz%20Podamirowo.pdf`
 
-### Proven source semantics
+### Będzino proven source semantics
 
 Indexed Będzino PDFs explicitly label a grouped column as `odpady segregowane (plastik, szkło, papier, biodegradowalne)`. Unlike a source that only says `odpady segregowane`, this parenthetical list gives evidence for the four represented canonical streams. The adapter may emit the same date for the four source-backed fractions only when this exact enumerating label is present.
 
