@@ -43,6 +43,9 @@ interface PublicationRow extends QueryResultRow {
   events_removed: number;
   events_unchanged: number;
 }
+interface TimestampRow extends QueryResultRow {
+  publication_time: Date;
+}
 
 export interface CollectionPublicationDiff {
   serviceAreasAdded: number;
@@ -84,7 +87,9 @@ function normalizedLabel(value: string): string {
     .toLocaleLowerCase('pl-PL');
 }
 
-function eventKey(event: Pick<NormalizedCollectionEvent, 'serviceAreaKey' | 'fraction' | 'date' | 'status' | 'note'>): string {
+function eventKey(
+  event: Pick<NormalizedCollectionEvent, 'serviceAreaKey' | 'fraction' | 'date' | 'status' | 'note'>,
+): string {
   return [event.serviceAreaKey, event.fraction, event.date, event.status, event.note ?? ''].join('|');
 }
 
@@ -92,7 +97,10 @@ function rowEventKey(row: EventLogicalRow): string {
   return [row.external_key, row.fraction_code, row.collection_date, row.status, row.note ?? ''].join('|');
 }
 
-function countDiff(oldValues: Set<string>, newValues: Set<string>): { added: number; removed: number; unchanged: number } {
+function countDiff(
+  oldValues: Set<string>,
+  newValues: Set<string>,
+): { added: number; removed: number; unchanged: number } {
   let unchanged = 0;
   for (const value of newValues) if (oldValues.has(value)) unchanged += 1;
   return {
@@ -123,7 +131,11 @@ function mapPublication(row: PublicationRow, replayed: boolean): CollectionPubli
 export class PgCollectionPublisher {
   constructor(private readonly pool: Pool) {}
 
-  async publish(sourceId: string, artifactId: string, dataset: NormalizedDataset): Promise<CollectionPublicationDiff> {
+  async publish(
+    sourceId: string,
+    artifactId: string,
+    dataset: NormalizedDataset,
+  ): Promise<CollectionPublicationDiff> {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
@@ -162,12 +174,15 @@ export class PgCollectionPublisher {
       [sourceId],
     );
     const source = sourceResult.rows[0];
-    if (!source) throw new CollectionPublicationError(`Source ${sourceId} not found`, 'SOURCE_NOT_FOUND');
+    if (!source) {
+      throw new CollectionPublicationError(`Source ${sourceId} not found`, 'SOURCE_NOT_FOUND');
+    }
     if (!source.municipality_id || source.terc !== dataset.municipality.terc) {
-      throw new CollectionPublicationError('Normalized municipality does not match persisted source municipality', 'SOURCE_MUNICIPALITY_MISMATCH', {
-        persistedTerc: source.terc,
-        datasetTerc: dataset.municipality.terc,
-      });
+      throw new CollectionPublicationError(
+        'Normalized municipality does not match persisted source municipality',
+        'SOURCE_MUNICIPALITY_MISMATCH',
+        { persistedTerc: source.terc, datasetTerc: dataset.municipality.terc },
+      );
     }
 
     const artifactResult = await client.query<ArtifactRow>(
@@ -178,7 +193,9 @@ export class PgCollectionPublisher {
       [artifactId],
     );
     const artifact = artifactResult.rows[0];
-    if (!artifact) throw new CollectionPublicationError(`Artifact ${artifactId} not found`, 'ARTIFACT_NOT_FOUND');
+    if (!artifact) {
+      throw new CollectionPublicationError(`Artifact ${artifactId} not found`, 'ARTIFACT_NOT_FOUND');
+    }
     if (artifact.source_id !== sourceId) {
       throw new CollectionPublicationError('Artifact belongs to another source', 'ARTIFACT_SOURCE_MISMATCH');
     }
@@ -190,14 +207,18 @@ export class PgCollectionPublisher {
       normalizedSource.artifact.parserKey !== artifact.parser_key ||
       normalizedSource.url !== source.source_url
     ) {
-      throw new CollectionPublicationError('Normalized dataset provenance does not match the persisted source artifact', 'ARTIFACT_DATASET_MISMATCH', {
-        artifactSha256: artifact.sha256,
-        datasetSha256: normalizedSource?.artifact.sha256 ?? null,
-        artifactParserKey: artifact.parser_key,
-        datasetParserKey: normalizedSource?.artifact.parserKey ?? null,
-        persistedUrl: source.source_url,
-        datasetUrl: normalizedSource?.url ?? null,
-      });
+      throw new CollectionPublicationError(
+        'Normalized dataset provenance does not match the persisted source artifact',
+        'ARTIFACT_DATASET_MISMATCH',
+        {
+          artifactSha256: artifact.sha256,
+          datasetSha256: normalizedSource?.artifact.sha256 ?? null,
+          artifactParserKey: artifact.parser_key,
+          datasetParserKey: normalizedSource?.artifact.parserKey ?? null,
+          persistedUrl: source.source_url,
+          datasetUrl: normalizedSource?.url ?? null,
+        },
+      );
     }
 
     await this.validateCoverage(client, source.municipality_id, dataset.serviceAreas);
@@ -224,12 +245,18 @@ export class PgCollectionPublisher {
        FROM service_areas sa
        JOIN collection_events ce ON ce.service_area_id = sa.id
        WHERE sa.source_id = $1
-         AND sa.municipality_id = $2`,
+         AND sa.municipality_id = $2
+         AND ce.valid_to IS NULL`,
       [sourceId, source.municipality_id],
     );
     const oldEventKeys = new Set(oldEventsResult.rows.map(rowEventKey));
     const newEventKeys = new Set(dataset.collectionEvents.map(eventKey));
     const eventDiff = countDiff(oldEventKeys, newEventKeys);
+
+    const timestamp = await client.query<TimestampRow>(
+      'SELECT transaction_timestamp() AS publication_time',
+    );
+    const publicationTime = timestamp.rows[0]!.publication_time;
 
     const areaIdByKey = new Map<string, string>();
     for (const area of dataset.serviceAreas) {
@@ -242,11 +269,15 @@ export class PgCollectionPublisher {
       );
       const current = conflict.rows[0];
       if (current?.source_id && current.source_id !== sourceId) {
-        throw new CollectionPublicationError(`Service area ${area.key} belongs to another source`, 'SERVICE_AREA_OWNERSHIP_CONFLICT', {
-          serviceAreaKey: area.key,
-          currentSourceId: current.source_id,
-          publishingSourceId: sourceId,
-        });
+        throw new CollectionPublicationError(
+          `Service area ${area.key} belongs to another source`,
+          'SERVICE_AREA_OWNERSHIP_CONFLICT',
+          {
+            serviceAreaKey: area.key,
+            currentSourceId: current.source_id,
+            publishingSourceId: sourceId,
+          },
+        );
       }
 
       const upsert = await client.query<IdRow>(
@@ -277,8 +308,6 @@ export class PgCollectionPublisher {
       .filter((area) => !newAreaKeys.has(area.external_key))
       .map((area) => area.id);
     if (removedAreaIds.length > 0) {
-      await client.query('DELETE FROM service_area_rules WHERE service_area_id = ANY($1::uuid[])', [removedAreaIds]);
-      await client.query('DELETE FROM collection_events WHERE service_area_id = ANY($1::uuid[])', [removedAreaIds]);
       await client.query(
         `UPDATE service_areas
          SET active = false, published_from_artifact_id = $2
@@ -293,21 +322,30 @@ export class PgCollectionPublisher {
     );
     const ids = allSourceAreaIds.rows.map((row) => row.id);
     if (ids.length > 0) {
-      await client.query('DELETE FROM collection_events WHERE service_area_id = ANY($1::uuid[])', [ids]);
+      await client.query(
+        `UPDATE collection_events
+         SET valid_to = $2
+         WHERE service_area_id = ANY($1::uuid[])
+           AND valid_to IS NULL`,
+        [ids, publicationTime],
+      );
     }
 
     for (const event of dataset.collectionEvents) {
       const areaId = areaIdByKey.get(event.serviceAreaKey);
       if (!areaId) {
-        throw new CollectionPublicationError(`Event references missing service area ${event.serviceAreaKey}`, 'EVENT_SERVICE_AREA_MISSING', {
-          serviceAreaKey: event.serviceAreaKey,
-        });
+        throw new CollectionPublicationError(
+          `Event references missing service area ${event.serviceAreaKey}`,
+          'EVENT_SERVICE_AREA_MISSING',
+          { serviceAreaKey: event.serviceAreaKey },
+        );
       }
       await client.query(
         `INSERT INTO collection_events (
            service_area_id, fraction_code, collection_date, status, note,
-           source_artifact_id, verification_status, confidence, fingerprint
-         ) VALUES ($1,$2,$3::date,$4,$5,$6,$7,$8,$9)`,
+           source_artifact_id, verification_status, confidence, fingerprint,
+           valid_from, valid_to
+         ) VALUES ($1,$2,$3::date,$4,$5,$6,$7,$8,$9,$10,NULL)`,
         [
           areaId,
           event.fraction,
@@ -318,6 +356,7 @@ export class PgCollectionPublisher {
           event.quality.verificationStatus,
           event.quality.confidence,
           fingerprint(event.serviceAreaKey, event),
+          publicationTime,
         ],
       );
     }
@@ -329,7 +368,7 @@ export class PgCollectionPublisher {
            extraction_confidence = $4,
            status = 'PUBLISHED',
            parse_report = $5::jsonb,
-           published_at = now()
+           published_at = $6
        WHERE id = $1`,
       [
         artifactId,
@@ -341,26 +380,25 @@ export class PgCollectionPublisher {
           municipalityTerc: dataset.municipality.terc,
           serviceAreaCount: dataset.serviceAreas.length,
           eventCount: dataset.collectionEvents.length,
-          diff: {
-            serviceAreas: areaDiff,
-            events: eventDiff,
-          },
+          diff: { serviceAreas: areaDiff, events: eventDiff },
         }),
+        publicationTime,
       ],
     );
 
     const publication = await client.query<PublicationRow>(
       `INSERT INTO collection_publications (
-         source_id, source_artifact_id, municipality_id,
+         source_id, source_artifact_id, municipality_id, published_at,
          service_areas_added, service_areas_removed, service_areas_unchanged,
          events_added, events_removed, events_unchanged, metadata
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb)
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
        RETURNING service_areas_added, service_areas_removed, service_areas_unchanged,
                  events_added, events_removed, events_unchanged`,
       [
         sourceId,
         artifactId,
         source.municipality_id,
+        publicationTime,
         areaDiff.added,
         areaDiff.removed,
         areaDiff.unchanged,
@@ -391,36 +429,54 @@ export class PgCollectionPublisher {
     return mapPublication(publication.rows[0]!, false);
   }
 
-  private async validateCoverage(client: PoolClient, municipalityId: string, areas: NormalizedServiceArea[]): Promise<void> {
+  private async validateCoverage(
+    client: PoolClient,
+    municipalityId: string,
+    areas: NormalizedServiceArea[],
+  ): Promise<void> {
     for (const area of areas) {
       for (const rule of area.coverage) {
         if (rule.type === 'LOCALITY') {
           if (!rule.simc) {
-            throw new CollectionPublicationError(`LOCALITY rule in ${area.key} has no SIMC`, 'LOCALITY_NOT_FOUND', { serviceAreaKey: area.key });
+            throw new CollectionPublicationError(
+              `LOCALITY rule in ${area.key} has no SIMC`,
+              'LOCALITY_NOT_FOUND',
+              { serviceAreaKey: area.key },
+            );
           }
           const result = await client.query<IdRow>(
             'SELECT id FROM localities WHERE municipality_id = $1 AND simc = $2 AND active = true',
             [municipalityId, rule.simc],
           );
           if (result.rows.length !== 1) {
-            throw new CollectionPublicationError(`Locality ${rule.simc} not found in source municipality`, 'LOCALITY_NOT_FOUND', {
-              serviceAreaKey: area.key,
-              simc: rule.simc,
-            });
+            throw new CollectionPublicationError(
+              `Locality ${rule.simc} not found in source municipality`,
+              'LOCALITY_NOT_FOUND',
+              { serviceAreaKey: area.key, simc: rule.simc },
+            );
           }
           continue;
         }
         if (rule.type === 'EXPLICIT_ADDRESS') {
           if (!rule.explicitAddress) {
-            throw new CollectionPublicationError(`EXPLICIT_ADDRESS rule in ${area.key} has no address`, 'ADDRESS_NOT_FOUND');
+            throw new CollectionPublicationError(
+              `EXPLICIT_ADDRESS rule in ${area.key} has no address`,
+              'ADDRESS_NOT_FOUND',
+            );
           }
-          await this.resolveExplicitAddress(client, municipalityId, area.key, rule.explicitAddress);
+          await this.resolveExplicitAddress(
+            client,
+            municipalityId,
+            area.key,
+            rule.explicitAddress,
+          );
           continue;
         }
-        throw new CollectionPublicationError(`Coverage rule ${rule.type} is not supported by the collection publisher yet`, 'UNSUPPORTED_COVERAGE_RULE', {
-          serviceAreaKey: area.key,
-          ruleType: rule.type,
-        });
+        throw new CollectionPublicationError(
+          `Coverage rule ${rule.type} is not supported by the collection publisher yet`,
+          'UNSUPPORTED_COVERAGE_RULE',
+          { serviceAreaKey: area.key, ruleType: rule.type },
+        );
       }
     }
   }
@@ -444,7 +500,12 @@ export class PgCollectionPublisher {
       return;
     }
     if (rule.type === 'EXPLICIT_ADDRESS') {
-      const addressId = await this.resolveExplicitAddress(client, municipalityId, 'unknown', rule.explicitAddress!);
+      const addressId = await this.resolveExplicitAddress(
+        client,
+        municipalityId,
+        'unknown',
+        rule.explicitAddress!,
+      );
       await client.query(
         `INSERT INTO service_area_rules (service_area_id, rule_type, address_id, priority)
          VALUES ($1, 'EXPLICIT_ADDRESS', $2, $3)`,
@@ -452,7 +513,10 @@ export class PgCollectionPublisher {
       );
       return;
     }
-    throw new CollectionPublicationError(`Unsupported coverage rule ${rule.type}`, 'UNSUPPORTED_COVERAGE_RULE');
+    throw new CollectionPublicationError(
+      `Unsupported coverage rule ${rule.type}`,
+      'UNSUPPORTED_COVERAGE_RULE',
+    );
   }
 
   private async resolveExplicitAddress(
@@ -468,19 +532,26 @@ export class PgCollectionPublisher {
       [municipalityId],
     );
     const target = normalizedLabel(explicitAddress);
-    const matches = candidates.rows.filter((row) => normalizedLabel(row.canonical_text) === target);
+    const matches = candidates.rows.filter(
+      (row) => normalizedLabel(row.canonical_text) === target,
+    );
     if (matches.length === 0) {
-      throw new CollectionPublicationError(`Address ${explicitAddress} was not found in authoritative address data`, 'ADDRESS_NOT_FOUND', {
-        serviceAreaKey,
-        explicitAddress,
-      });
+      throw new CollectionPublicationError(
+        `Address ${explicitAddress} was not found in authoritative address data`,
+        'ADDRESS_NOT_FOUND',
+        { serviceAreaKey, explicitAddress },
+      );
     }
     if (matches.length > 1) {
-      throw new CollectionPublicationError(`Address ${explicitAddress} resolved ambiguously`, 'ADDRESS_AMBIGUOUS', {
-        serviceAreaKey,
-        explicitAddress,
-        candidateIds: matches.map((row) => row.id),
-      });
+      throw new CollectionPublicationError(
+        `Address ${explicitAddress} resolved ambiguously`,
+        'ADDRESS_AMBIGUOUS',
+        {
+          serviceAreaKey,
+          explicitAddress,
+          candidateIds: matches.map((row) => row.id),
+        },
+      );
     }
     return matches[0]!.id;
   }
