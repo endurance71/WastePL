@@ -12,7 +12,7 @@ Ta fala zwiększa liczbę gmin z co najmniej jednym aktywnym typem danych, ale *
 
 ## Bobolice — TERC 3209033
 
-### Harmonogram 2026
+### Harmonogram Bobolice 2026
 
 - Parent: `https://bobolice.pl/cms/5665`
 - Kształt: `MIXED_MEDIA`
@@ -34,7 +34,7 @@ Bieżąca publikacja 2026 była wielokrotnie aktualizowana, a w połowie roku zm
 
 ## Sianów — TERC 3209073
 
-### Harmonogram II półrocze 2026
+### Harmonogram Sianów — II półrocze 2026
 
 - Parent: `https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/harmonogram-odbioru-odpadow/`
 - Kształt: `MULTI_ROUTE_PDF_SET`
@@ -46,7 +46,7 @@ Parent publikuje osobne PDF-y dla tras 1–15, tras S1–S3 oraz W1–W5. Exact 
 
 ## Świeszyno — TERC 3209082
 
-### Harmonogram 2026
+### Harmonogram Świeszyno 2026
 
 - Parent: `https://swieszyno.pl/harmonogram-wywozu-odpadow-komunalnych-na-rok-2026/`
 - Kształt: `ATTACHMENT_INDEX`
@@ -68,7 +68,7 @@ Strona publikuje Chałupy 13B, operatora EKOSAN Sp. z o.o., dostęp dla mieszka�
 
 ## Będzino — TERC 3209012
 
-### Harmonogram II półrocze 2026
+### Harmonogram Będzino — II półrocze 2026
 
 - Parent: `https://bip.bedzino.pl/?id=6920&type=article`
 - Kształt: `MULTI_ROUTE_PDF_SET`
@@ -80,7 +80,7 @@ BIP publikuje wiele osobnych plików dla tras, miejscowości i nieruchomości tr
 
 ## Polanów — TERC 3209063
 
-### Harmonogram 2026
+### Harmonogram Polanów 2026
 
 - Registry parent: `https://bip.polanow.pl/zalacznik/c12f707570cc18225e6954fa8a79780d/70/2660/`
 - Kształt: `ATTACHMENT_INDEX`
@@ -92,7 +92,7 @@ Aktualne strony gminy/BIP wskazują harmonogram II półrocza, ale exact H2 atta
 
 ## Tychowo — TERC 3201043
 
-### Harmonogram 2026
+### Harmonogram Tychowo 2026
 
 - Parent: `https://tychowo.pl/wiadomosci/128301/harmomogram-odbioru-odpadow-komunalnych-na-2026-r-`
 - Kształt: `ATTACHMENT_INDEX`
