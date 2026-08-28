@@ -37,6 +37,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://wastepl:wastepl@localhost:5432/wastepl
+      PRODUCTION_GATE_DATABASE_URL: postgresql://wastepl:wastepl@localhost:5432/wastepl_production_gate
       REDIS_URL: redis://localhost:6379
       S3_ENDPOINT: http://localhost:9000
       S3_REGION: eu-central-1
@@ -75,6 +76,8 @@ jobs:
       - run: pnpm test
       - name: Run pilot readiness gates
         run: pnpm pilot:readiness
+      - name: Run fixture-independent production pilot gate
+        run: pnpm pilot:production-gate
       - name: Upload pilot readiness reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -84,6 +87,13 @@ jobs:
             apps/worker/test-results/pilot-readiness-report.json
             apps/worker/test-results/pilot-readiness-2026.2-report.json
           if-no-files-found: warn
+      - name: Upload production pilot readiness report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-pilot-readiness-report
+          path: apps/worker/test-results/production-pilot-readiness-report.json
+          if-no-files-found: error
       - name: Upload golden mismatch report
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,9 +1,13 @@
 import type { Pool, QueryResultRow } from 'pg';
+import { PgkKoszalinPdfTextAdapter } from '../adapters/pdf-text/pgk-koszalin-adapter.js';
+import {
+  PdfTextExtractionError,
+  textFromPdfTextArtifact,
+} from '../adapters/pdf-text/pdf-text-extractor.js';
 import {
   PdfTextParseError,
   type PdfTextAdapter,
 } from '../adapters/pdf-text/types.js';
-import { PgkKoszalinPdfTextAdapter } from '../adapters/pdf-text/pgk-koszalin-adapter.js';
 import {
   PermanentArtifactParseError,
   type ArtifactProcessorResult,
@@ -55,7 +59,20 @@ export class PgkKoszalinCollectionArtifactHandler implements ArtifactHandler {
       });
     }
 
-    const text = input.body.toString('utf8');
+    let text: string;
+    try {
+      text = await textFromPdfTextArtifact(input.body);
+    } catch (error) {
+      if (error instanceof PdfTextExtractionError) {
+        throw new PermanentArtifactParseError(error.message, {
+          code: error.code,
+          metadata: { sourceKey: source.source_key },
+          cause: error,
+        });
+      }
+      throw error;
+    }
+
     if (!this.adapter.supports(text)) {
       throw new PermanentArtifactParseError('Artifact does not match the registered PDF_TEXT adapter', {
         code: 'UNSUPPORTED_TEMPLATE',
