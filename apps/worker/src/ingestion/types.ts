@@ -32,6 +32,11 @@ export interface SourceArtifactRecord {
   retrievedAt: Date;
 }
 
+export interface ArtifactProcessingRecord extends SourceArtifactRecord {
+  parserKey: string | null;
+  status: string;
+}
+
 export interface InsertSourceArtifactResult {
   artifact: SourceArtifactRecord;
   created: boolean;
@@ -116,6 +121,7 @@ export interface SourceProcessingStateUpdate {
 
 export interface SourceRegistry {
   getSourceById(sourceId: string): Promise<SourceRecord | null>;
+  getArtifactForProcessing(artifactId: string): Promise<ArtifactProcessingRecord | null>;
   findArtifactByHash(sourceId: string, sha256: string): Promise<SourceArtifactRecord | null>;
   insertArtifact(input: InsertSourceArtifactInput): Promise<InsertSourceArtifactResult>;
   markArtifactParsed(update: ArtifactParseUpdate): Promise<void>;
