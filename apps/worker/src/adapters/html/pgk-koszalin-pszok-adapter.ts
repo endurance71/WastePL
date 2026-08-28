@@ -44,20 +44,20 @@ export interface NormalizedFacilityV02 {
     sourceKey: string;
   };
   access: {
-    scope: 'MUNICIPALITY_RESIDENTS';
-    requiresProof: true;
+    scope: 'OPEN_TO_ALL' | 'MUNICIPALITY_RESIDENTS' | 'MUNICIPALITY_PROPERTY_OWNERS' | 'OTHER' | 'UNKNOWN';
+    requiresProof: boolean | null;
     quantityLimits: Array<{ material: string; limit: string; period: string | null; sourceKey: string }>;
     notes: string[];
-    sourceKey: string;
+    sourceKey: string | null;
   };
   operationalStatus: {
     state: 'UNKNOWN';
     observedAt: null;
     sourceKey: null;
-    note: string;
+    note: string | null;
   };
-  operatorName: string;
-  rulesUrl: string;
+  operatorName: string | null;
+  rulesUrl: string | null;
   sourceKey: string;
   quality: {
     verificationStatus: 'OFFICIAL_SOURCE' | 'REVIEW_REQUIRED';

@@ -131,6 +131,7 @@ export class PgSourceManifestSync {
 
     const active = isManifestSourceActiveOn(source, asOf);
     const bundle = source.bundle ?? null;
+    const assessment = source.assessment ?? null;
     const values = [
       municipalityId,
       source.ownerType,
@@ -151,6 +152,11 @@ export class PgSourceManifestSync {
       bundle?.role ?? null,
       bundle ? JSON.stringify(bundle.requiredRoles) : null,
       bundle?.freshnessMinutes ?? null,
+      assessment?.shape ?? null,
+      assessment?.evidenceStatus ?? null,
+      assessment?.activationBlocker ?? null,
+      assessment?.assessedAt ?? null,
+      JSON.stringify(assessment?.childArtifactUrls ?? []),
     ];
 
     const current = existing.rows[0];
@@ -161,10 +167,11 @@ export class PgSourceManifestSync {
            reuse_basis, parser_key, poll_interval_minutes, active,
            source_key, data_type, manifest_status, manifest_version, active_from, active_to,
            bundle_key, bundle_role, bundle_required_roles, bundle_freshness_minutes,
+           source_shape, evidence_status, activation_blocker, assessed_at, child_artifact_urls,
            next_check_at
          ) VALUES (
            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
-           $16,$17,$18::jsonb,$19,
+           $16,$17,$18::jsonb,$19,$20,$21,$22,$23::timestamptz,$24::jsonb,
            CASE WHEN $9::boolean THEN now() ELSE NULL END
          )`,
         values,
@@ -199,12 +206,17 @@ export class PgSourceManifestSync {
            bundle_role = $17,
            bundle_required_roles = $18::jsonb,
            bundle_freshness_minutes = $19,
+           source_shape = $20,
+           evidence_status = $21,
+           activation_blocker = $22,
+           assessed_at = $23::timestamptz,
+           child_artifact_urls = $24::jsonb,
            next_check_at = CASE
              WHEN $9::boolean AND active = false THEN now()
              WHEN $9::boolean THEN next_check_at
              ELSE NULL
            END
-       WHERE id = $20`,
+       WHERE id = $25`,
       [...values, current.id],
     );
   }

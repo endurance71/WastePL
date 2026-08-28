@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -7,19 +8,42 @@ const integrationDescribe = databaseUrl ? describe : describe.skip;
 
 integrationDescribe('facility v0.2 PostgreSQL invariants', () => {
   let pool: InstanceType<typeof Pool>;
+  let sourceId: string;
   let artifactId: string;
 
   beforeAll(async () => {
     pool = new Pool({ connectionString: databaseUrl });
-    const artifact = await pool.query<{ id: string }>(
-      'SELECT id FROM source_artifacts ORDER BY retrieved_at DESC, id LIMIT 1',
+    const suffix = randomUUID();
+    const source = await pool.query<{ id: string }>(
+      `INSERT INTO sources (
+         owner_type, owner_name, source_url, source_format, parser_key, active
+       ) VALUES (
+         'MUNICIPALITY', 'Facility contract DB test', $1, 'HTML',
+         'facility-contract-test', false
+       )
+       RETURNING id`,
+      [`https://example.invalid/facility-contract-${suffix}`],
     );
-    artifactId = artifact.rows[0]?.id ?? '';
-    if (!artifactId) throw new Error('Expected a source artifact from pilot migrations');
+    sourceId = source.rows[0]!.id;
+
+    const artifact = await pool.query<{ id: string }>(
+      `INSERT INTO source_artifacts (
+         source_id, retrieved_at, sha256, storage_uri, parser_key, parser_version,
+         extraction_confidence, status, parse_report
+       ) VALUES (
+         $1, '2026-08-28T10:00:00Z', $2, $3, 'facility-contract-test',
+         'integration-1', 1, 'PUBLISHED', '{"fixture":"facility-contract"}'::jsonb
+       )
+       RETURNING id`,
+      [sourceId, `facility-contract-${suffix}`, `fixture://facility-contract/${suffix}`],
+    );
+    artifactId = artifact.rows[0]!.id;
   });
 
   afterAll(async () => {
+    if (!pool) return;
     await pool.query(`DELETE FROM facilities WHERE canonical_key LIKE 'db-contract-%'`);
+    if (sourceId) await pool.query('DELETE FROM sources WHERE id = $1', [sourceId]);
     await pool.end();
   });
 

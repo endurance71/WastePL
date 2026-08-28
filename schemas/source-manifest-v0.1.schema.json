@@ -47,6 +47,32 @@
         "freshnessMinutes": { "type": "integer", "minimum": 60, "maximum": 10080 }
       }
     },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shape", "evidenceStatus", "activationBlocker", "assessedAt", "childArtifactUrls", "notes"],
+      "properties": {
+        "shape": {
+          "enum": [
+            "DIRECT_CONTENT",
+            "ATTACHMENT_INDEX",
+            "MULTI_ROUTE_PDF_SET",
+            "IMAGE_ONLY_OR_OCR_REQUIRED",
+            "MIXED_MEDIA",
+            "UNSUPPORTED_OR_AMBIGUOUS"
+          ]
+        },
+        "evidenceStatus": { "enum": ["VERIFIED", "PARTIAL", "MISSING"] },
+        "activationBlocker": { "type": ["string", "null"] },
+        "assessedAt": { "type": "string", "format": "date-time" },
+        "childArtifactUrls": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "format": "uri", "pattern": "^https://" }
+        },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    },
     "source": {
       "type": "object",
       "additionalProperties": false,
@@ -68,6 +94,12 @@
           "oneOf": [
             { "type": "null" },
             { "$ref": "#/$defs/bundle" }
+          ]
+        },
+        "assessment": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/assessment" }
           ]
         }
       }

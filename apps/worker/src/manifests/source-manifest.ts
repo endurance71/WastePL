@@ -4,12 +4,29 @@ import manifestSchema from '../../../../schemas/source-manifest-v0.1.schema.json
 export type ManifestDataType = 'COLLECTION_SCHEDULE' | 'PSZOK' | 'ALERTS' | 'OTHER';
 export type ManifestSourceStatus = 'ACTIVE' | 'PLANNED';
 export type ManifestSourceFormat = 'PDF_TEXT' | 'HTML' | 'PDF' | 'JSON' | 'CSV' | 'XLSX' | 'GML' | 'OTHER';
+export type ManifestSourceShape =
+  | 'DIRECT_CONTENT'
+  | 'ATTACHMENT_INDEX'
+  | 'MULTI_ROUTE_PDF_SET'
+  | 'IMAGE_ONLY_OR_OCR_REQUIRED'
+  | 'MIXED_MEDIA'
+  | 'UNSUPPORTED_OR_AMBIGUOUS';
+export type ManifestEvidenceStatus = 'VERIFIED' | 'PARTIAL' | 'MISSING';
 
 export interface SourceManifestBundle {
   key: string;
   role: string;
   requiredRoles: string[];
   freshnessMinutes: number;
+}
+
+export interface SourceManifestAssessment {
+  shape: ManifestSourceShape;
+  evidenceStatus: ManifestEvidenceStatus;
+  activationBlocker: string | null;
+  assessedAt: string;
+  childArtifactUrls: string[];
+  notes: string;
 }
 
 export interface SourceManifestSource {
@@ -26,6 +43,7 @@ export interface SourceManifestSource {
   activeFrom: string | null;
   activeTo: string | null;
   bundle?: SourceManifestBundle | null;
+  assessment?: SourceManifestAssessment | null;
 }
 
 export interface SourceManifestMunicipality {
@@ -45,6 +63,7 @@ export interface SourceManifest {
 const SUPPORTED_PARSERS = new Map<string, ManifestSourceFormat>([
   ['pgk-koszalin-pdf-text', 'PDF_TEXT'],
   ['pgk-koszalin-pszok-html', 'HTML'],
+  ['municipal-pszok-html', 'HTML'],
 ]);
 
 const require = createRequire(import.meta.url);
@@ -69,6 +88,36 @@ function assertDateRange(source: SourceManifestSource): void {
   if (!source.activeFrom || !source.activeTo) return;
   if (source.activeFrom > source.activeTo) {
     throw new Error(`Manifest source ${source.key} has activeFrom after activeTo`);
+  }
+}
+
+function assertAssessmentSemantics(source: SourceManifestSource): void {
+  const assessment = source.assessment ?? null;
+  if (!assessment) return;
+
+  const duplicateChildUrl = duplicate(assessment.childArtifactUrls);
+  if (duplicateChildUrl) {
+    throw new Error(`Manifest source ${source.key} has duplicate child artifact URL ${duplicateChildUrl}`);
+  }
+
+  if (source.status === 'PLANNED' && !assessment.activationBlocker) {
+    throw new Error(`PLANNED source ${source.key} assessment requires activationBlocker`);
+  }
+  if (source.status === 'ACTIVE') {
+    if (assessment.activationBlocker !== null) {
+      throw new Error(`ACTIVE source ${source.key} assessment must not contain activationBlocker`);
+    }
+    if (assessment.evidenceStatus !== 'VERIFIED') {
+      throw new Error(`ACTIVE source ${source.key} assessment requires VERIFIED evidence`);
+    }
+  }
+
+  if (
+    ['ATTACHMENT_INDEX', 'MULTI_ROUTE_PDF_SET', 'MIXED_MEDIA'].includes(assessment.shape)
+    && assessment.evidenceStatus === 'VERIFIED'
+    && assessment.childArtifactUrls.length === 0
+  ) {
+    throw new Error(`Manifest source ${source.key} verified ${assessment.shape} assessment requires childArtifactUrls`);
   }
 }
 
@@ -138,6 +187,7 @@ export function validateSourceManifest(value: unknown): asserts value is SourceM
 
   for (const source of sources) {
     assertDateRange(source);
+    assertAssessmentSemantics(source);
     if (source.status === 'PLANNED') {
       if (source.parserKey !== null) {
         throw new Error(`PLANNED source ${source.key} must not claim a parser key`);

@@ -9,7 +9,9 @@
     "start": "node dist/main.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "readiness": "tsx src/readiness/pilot-readiness.ts"
+    "readiness:2026.1": "tsx src/readiness/pilot-readiness.ts",
+    "readiness:2026.2": "tsx src/readiness/pilot-readiness-2026.2.ts",
+    "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"
   },
   "dependencies": {
     "@wastepl/domain": "workspace:*",
