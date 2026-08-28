@@ -31,6 +31,12 @@ describe('source manifest v0.1', () => {
     expect(new Set(sources.map((source) => source.url)).size).toBe(sources.length);
     expect(sources.filter((source) => source.status === 'ACTIVE').every((source) => source.parserKey)).toBe(true);
     expect(sources.filter((source) => source.status === 'PLANNED').every((source) => source.parserKey === null)).toBe(true);
+
+    const bundleMembers = sources.filter((source) => source.bundle?.key === 'koszalin-pszok');
+    expect(bundleMembers).toHaveLength(2);
+    expect(bundleMembers.map((source) => source.bundle!.role).sort()).toEqual(['faq', 'main']);
+    expect(bundleMembers.every((source) => source.bundle!.freshnessMinutes === 2880)).toBe(true);
+    expect(bundleMembers.every((source) => [...source.bundle!.requiredRoles].sort().join(',') === 'faq,main')).toBe(true);
   });
 
   it('rejects duplicate municipality TERC, source keys and URLs', () => {
@@ -60,5 +66,25 @@ describe('source manifest v0.1', () => {
     const source = plannedWithParser.municipalities.find((entry) => entry.terc === '3209073')!.sources[0]!;
     source.parserKey = 'pgk-koszalin-pszok-html';
     expect(() => validateSourceManifest(plannedWithParser)).toThrow(/PLANNED source .* must not claim a parser key/);
+  });
+
+  it('rejects inconsistent or incomplete bundle declarations', () => {
+    const inconsistentFreshness = structuredClone(parseSourceManifest(loadPilot()));
+    const koszalinFreshness = inconsistentFreshness.municipalities.find((entry) => entry.terc === '3261011')!;
+    const faqFreshness = koszalinFreshness.sources.find((source) => source.key === 'koszalin-pszok-faq')!;
+    faqFreshness.bundle!.freshnessMinutes = 1440;
+    expect(() => validateSourceManifest(inconsistentFreshness)).toThrow(/inconsistent freshnessMinutes/);
+
+    const duplicateRole = structuredClone(parseSourceManifest(loadPilot()));
+    const koszalinDuplicate = duplicateRole.municipalities.find((entry) => entry.terc === '3261011')!;
+    const faqDuplicate = koszalinDuplicate.sources.find((source) => source.key === 'koszalin-pszok-faq')!;
+    faqDuplicate.bundle!.role = 'main';
+    expect(() => validateSourceManifest(duplicateRole)).toThrow(/duplicate role main/);
+
+    const missingMember = structuredClone(parseSourceManifest(loadPilot()));
+    const koszalinMissing = missingMember.municipalities.find((entry) => entry.terc === '3261011')!;
+    const faqIndex = koszalinMissing.sources.findIndex((source) => source.key === 'koszalin-pszok-faq');
+    koszalinMissing.sources.splice(faqIndex, 1);
+    expect(() => validateSourceManifest(missingMember)).toThrow(/missing source roles: faq/);
   });
 });
