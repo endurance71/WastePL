@@ -2,12 +2,19 @@ import { Worker, type Job } from 'bullmq';
 import { Redis } from 'ioredis';
 import pg from 'pg';
 import { INGESTION_QUEUE } from '@wastepl/domain';
+import { createArtifactProcessingWorker } from './ingestion/artifact-processing.js';
+import { MinioArtifactReader } from './ingestion/artifact-reader.js';
 import { MinioArtifactStore } from './ingestion/artifact-store.js';
 import {
   BullMqArtifactProcessingQueue,
   BullMqSourcePollQueue,
 } from './ingestion/bullmq-queues.js';
+import {
+  DispatchingArtifactProcessor,
+  type ArtifactHandler,
+} from './ingestion/dispatching-artifact-processor.js';
 import { HttpSourceFetcher } from './ingestion/http-source-fetcher.js';
+import { PgArtifactProcessingLookup } from './ingestion/pg-artifact-processing-lookup.js';
 import { SourceIngestionService } from './ingestion/source-ingestion-service.js';
 import { PgSourceRegistry } from './ingestion/source-registry.js';
 import {
@@ -53,6 +60,17 @@ export function createIngestionWorker(
       return result;
     },
     { connection, concurrency: 4 },
+  );
+}
+
+export function createArtifactRuntimeProcessor(
+  pool: InstanceType<typeof Pool>,
+  handlers: ArtifactHandler[] = [],
+): DispatchingArtifactProcessor {
+  return new DispatchingArtifactProcessor(
+    new PgArtifactProcessingLookup(pool),
+    new MinioArtifactReader(),
+    handlers,
   );
 }
 
@@ -118,17 +136,30 @@ export async function bootstrapWorker(): Promise<void> {
   const artifactStore = new MinioArtifactStore();
   const fetcher = new HttpSourceFetcher();
   const ingestionService = new SourceIngestionService(registry, artifactStore, fetcher);
-  const worker = createIngestionWorker(redisConnection, ingestionService);
+  const ingestionWorker = createIngestionWorker(redisConnection, ingestionService);
   const sourceQueue = new BullMqSourcePollQueue(redisConnection);
   const artifactQueue = new BullMqArtifactProcessingQueue(redisConnection);
   const sourceScheduler = new SourceScheduler(registry, sourceQueue);
   const artifactOutbox = new ArtifactOutboxDispatcher(registry, artifactQueue);
   const maintenanceLoop = startMaintenanceLoop(sourceScheduler, artifactOutbox);
 
-  worker.on('ready', () =>
+  // The queue consumer is production-wired now, but remains disabled by default until
+  // Sprint 04 registers the first canonical publisher handlers. Enabling it with no
+  // handlers is intentionally fail-visible: persisted unknown parser keys become
+  // PARSE_FAILED rather than being guessed or silently ignored.
+  const artifactProcessingEnabled = process.env.ARTIFACT_PROCESSING_ENABLED === 'true';
+  const artifactWorker = artifactProcessingEnabled
+    ? createArtifactProcessingWorker(
+        redisConnection,
+        registry,
+        createArtifactRuntimeProcessor(pool),
+      )
+    : null;
+
+  ingestionWorker.on('ready', () =>
     console.log(JSON.stringify({ level: 'info', event: 'worker.ready', queue: INGESTION_QUEUE })),
   );
-  worker.on('failed', (job, error) =>
+  ingestionWorker.on('failed', (job, error) =>
     console.error(
       JSON.stringify({
         level: 'error',
@@ -139,13 +170,30 @@ export async function bootstrapWorker(): Promise<void> {
       }),
     ),
   );
+  artifactWorker?.on('ready', () =>
+    console.log(JSON.stringify({ level: 'info', event: 'artifact.worker.ready' })),
+  );
+  artifactWorker?.on('failed', (job, error) =>
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        event: 'artifact.worker.job_failed',
+        jobId: job?.id ?? null,
+        sourceId: job?.data.sourceId ?? null,
+        artifactId: job?.data.artifactId ?? null,
+        parserKey: job?.data.parserKey ?? null,
+        error: error.message,
+      }),
+    ),
+  );
 
   let shuttingDown = false;
   const shutdown = async (): Promise<void> => {
     if (shuttingDown) return;
     shuttingDown = true;
     await maintenanceLoop.stop();
-    await worker.close();
+    await ingestionWorker.close();
+    if (artifactWorker) await artifactWorker.close();
     await sourceQueue.close();
     await artifactQueue.close();
     await pool.end();

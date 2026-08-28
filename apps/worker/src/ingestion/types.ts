@@ -32,6 +32,15 @@ export interface SourceArtifactRecord {
   retrievedAt: Date;
 }
 
+export interface ArtifactProcessingRecord extends SourceArtifactRecord {
+  parserKey: string | null;
+  status: string;
+}
+
+export interface ArtifactProcessingLookup {
+  getArtifactForProcessing(artifactId: string): Promise<ArtifactProcessingRecord | null>;
+}
+
 export interface InsertSourceArtifactResult {
   artifact: SourceArtifactRecord;
   created: boolean;
