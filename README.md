@@ -31,9 +31,10 @@ ETag and Last-Modified are preserved when sources provide them. HTTP 304 and rep
 - `db/migrations/0004_pilot_schedule_slice.sql` — fixture-derived pilot schedule/provenance slice
 - `db/migrations/0005_golden_pilot_addresses.sql` — golden pilot address expansion
 - `db/migrations/0006_facility_contract_v02.sql` — source-backed facility semantics
+- `docs/README.md` — canonical documentation map and governance
+- `docs/current-status.md` — verified project status, metrics and risks
 - `docs/adr/` — architecture decisions
-- `docs/sprint-01.md` — first sprint scope
-- `docs/google-drive/` — versioned snapshots of the WastePL source documentation from Google Drive
+- `docs/sprint-01.md` — historical first-sprint scope
 
 Facility contract v0.2 keeps `UNKNOWN` distinct from unavailable/closed, permits missing coordinates instead of fabricated pins, separates facility kind from accepted material/container capabilities, and requires provenance for structured hours, access claims and non-unknown operational status.
 
@@ -89,6 +90,7 @@ The schedule rows in migration `0004` are materialized from the deterministic Is
 ## Verification
 
 ```bash
+pnpm docs:check
 pnpm contracts:check
 pnpm build
 pnpm typecheck
