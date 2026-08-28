@@ -69,7 +69,7 @@ integrationDescribe('PgSourceManifestSync', () => {
   });
 
   afterAll(async () => {
-    await pool.query('DELETE FROM sources WHERE manifest_version = $1', [`${manifestId}@2026.1`]);
+    await pool.query('DELETE FROM sources WHERE manifest_version LIKE $1', [`${manifestId}%`]);
     if (insertedMunicipalities.length) {
       await pool.query('DELETE FROM municipalities WHERE terc = ANY($1::text[])', [insertedMunicipalities]);
     }
@@ -106,6 +106,87 @@ integrationDescribe('PgSourceManifestSync', () => {
     expect(after.rows.map((row) => [row.source_key, row.id])).toEqual(
       before.rows.map((row) => [row.source_key, row.id]),
     );
+  });
+
+  it('persists deterministic multi-artifact bundle metadata', async () => {
+    const bundleManifestId = `${manifestId}-bundle`;
+    const bundleManifest: SourceManifest = {
+      schemaVersion: '0.1.0',
+      manifestId: bundleManifestId,
+      version: '2026.1',
+      generatedAt: '2026-08-27T20:30:00Z',
+      municipalities: [
+        {
+          terc: '3261011',
+          name: 'Koszalin',
+          sources: [
+            {
+              key: `${bundleManifestId}-main`,
+              dataType: 'PSZOK',
+              url: `${sourcePrefix}/bundle-main`,
+              format: 'HTML',
+              status: 'ACTIVE',
+              parserKey: 'pgk-koszalin-pszok-html',
+              pollIntervalMinutes: 1440,
+              ownerType: 'OTHER_OFFICIAL',
+              ownerName: 'Bundle manifest integration',
+              reuseNotes: 'Synthetic bundle main source.',
+              activeFrom: null,
+              activeTo: null,
+              bundle: {
+                key: `${bundleManifestId}-pszok`,
+                role: 'main',
+                requiredRoles: ['main', 'faq'],
+                freshnessMinutes: 2880,
+              },
+            },
+            {
+              key: `${bundleManifestId}-faq`,
+              dataType: 'PSZOK',
+              url: `${sourcePrefix}/bundle-faq`,
+              format: 'HTML',
+              status: 'ACTIVE',
+              parserKey: 'pgk-koszalin-pszok-html',
+              pollIntervalMinutes: 1440,
+              ownerType: 'OTHER_OFFICIAL',
+              ownerName: 'Bundle manifest integration',
+              reuseNotes: 'Synthetic bundle FAQ source.',
+              activeFrom: null,
+              activeTo: null,
+              bundle: {
+                key: `${bundleManifestId}-pszok`,
+                role: 'faq',
+                requiredRoles: ['main', 'faq'],
+                freshnessMinutes: 2880,
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await sync.sync(bundleManifest, new Date('2026-08-27T20:30:00Z'));
+    expect(result).toMatchObject({ municipalityCount: 1, sourceCount: 2, activeCount: 2, plannedCount: 0 });
+
+    const rows = await pool.query<{
+      source_key: string;
+      bundle_key: string;
+      bundle_role: string;
+      bundle_required_roles: string[];
+      bundle_freshness_minutes: number;
+    }>(
+      `SELECT source_key, bundle_key, bundle_role, bundle_required_roles, bundle_freshness_minutes
+       FROM sources
+       WHERE manifest_version = $1
+       ORDER BY bundle_role`,
+      [`${bundleManifestId}@2026.1`],
+    );
+
+    expect(rows.rows).toHaveLength(2);
+    expect(rows.rows.map((row) => row.bundle_role)).toEqual(['faq', 'main']);
+    expect(rows.rows.every((row) => row.bundle_key === `${bundleManifestId}-pszok`)).toBe(true);
+    expect(rows.rows.every((row) => row.bundle_freshness_minutes === 2880)).toBe(true);
+    expect(rows.rows.every((row) => [...row.bundle_required_roles].sort().join(',') === 'faq,main')).toBe(true);
   });
 
   it('reports municipality/data-type coverage for one manifest version and never schedules unsupported PLANNED formats', async () => {
