@@ -3,6 +3,7 @@ import { Redis } from 'ioredis';
 import pg from 'pg';
 import { INGESTION_QUEUE } from '@wastepl/domain';
 import { PgkKoszalinCollectionArtifactHandler } from './collections/collection-artifact-handler.js';
+import { MunicipalPszokArtifactHandler } from './facilities/municipal-pszok-artifact-handler.js';
 import { PgkKoszalinPszokBundleArtifactHandler } from './facilities/pgk-koszalin-pszok-bundle-artifact-handler.js';
 import { createArtifactProcessingWorker } from './ingestion/artifact-processing.js';
 import { MinioArtifactReader } from './ingestion/artifact-reader.js';
@@ -73,6 +74,7 @@ export function createArtifactRuntimeProcessor(
   const runtimeHandlers = handlers ?? [
     new PgkKoszalinCollectionArtifactHandler(pool),
     new PgkKoszalinPszokBundleArtifactHandler(pool, reader),
+    new MunicipalPszokArtifactHandler(pool),
   ];
 
   return new DispatchingArtifactProcessor(
@@ -151,9 +153,9 @@ export async function bootstrapWorker(): Promise<void> {
   const artifactOutbox = new ArtifactOutboxDispatcher(registry, artifactQueue);
   const maintenanceLoop = startMaintenanceLoop(sourceScheduler, artifactOutbox);
 
-  // Collection publication and the PGK Koszalin multi-artifact PSZOK coordinator are
-  // registered. Processing remains opt-in until the fixture-independent production
-  // gate is green. Unsupported parser keys remain fail-visible and never guess data.
+  // Collection publication, the PGK Koszalin multi-artifact PSZOK coordinator and
+  // explicitly profiled single-source municipal PSZOK handlers are registered.
+  // Processing remains opt-in until the fixture-independent production gate is green.
   const artifactProcessingEnabled = process.env.ARTIFACT_PROCESSING_ENABLED === 'true';
   const artifactWorker = artifactProcessingEnabled
     ? createArtifactProcessingWorker(
