@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm --parallel --filter './apps/*' dev",
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "pnpm --filter @wastepl/domain test && pnpm --filter @wastepl/worker test && pnpm --filter @wastepl/api test",
     "typecheck": "pnpm -r typecheck",
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:structural": "WASTEPL_MIGRATION_PROFILE=structural node scripts/migrate.mjs",
