@@ -128,7 +128,6 @@ async function manifestRows(pool: InstanceType<typeof Pool>): Promise<SourceRow[
 async function main(): Promise<void> {
   const pool = new Pool({ connectionString: databaseUrl });
   const failures: string[] = [];
-  const artifactIds = new Map<string, string>();
   let report: Record<string, unknown> = {
     gateVersion: '2026.2-v1',
     manifest: { id: manifest.manifestId, version: manifest.version },
@@ -139,10 +138,18 @@ async function main(): Promise<void> {
   try {
     const sync = new PgSourceManifestSync(pool);
     const syncResult = await sync.sync(manifest, asOf);
+    const coverage = await sync.coverage(manifest.manifestId, manifest.version);
     if (syncResult.municipalityCount !== 8) failures.push(`expected 8 municipalities, got ${syncResult.municipalityCount}`);
     if (syncResult.sourceCount !== 13) failures.push(`expected 13 source identities, got ${syncResult.sourceCount}`);
     if (syncResult.activeCount !== 6) failures.push(`expected 6 ACTIVE sources, got ${syncResult.activeCount}`);
     if (syncResult.plannedCount !== 7) failures.push(`expected 7 PLANNED sources, got ${syncResult.plannedCount}`);
+
+    for (const profile of NEW_ACTIVE) {
+      const row = coverage.find((entry) => entry.terc === profile.terc && entry.dataType === 'PSZOK');
+      if (!row || row.activeEntries !== 1 || row.schedulableEntries !== 1) {
+        failures.push(`${profile.sourceKey} is not visible as one schedulable PSZOK coverage entry`);
+      }
+    }
 
     let sources = await manifestRows(pool);
     const activeScheduleTercs = [...new Set(
@@ -202,7 +209,6 @@ async function main(): Promise<void> {
         failures.push(`${profile.sourceKey} initial ingestion was ${first.outcome}`);
         continue;
       }
-      artifactIds.set(profile.sourceKey, first.artifactId);
       const firstProcess = await processArtifactJob(registry, processor, {
         sourceId: source.id,
         artifactId: first.artifactId,
@@ -241,7 +247,6 @@ async function main(): Promise<void> {
         failures.push(`${profile.sourceKey} changed artifact did not create a new immutable version`);
         continue;
       }
-      artifactIds.set(`${profile.sourceKey}:v2`, changed.artifactId);
       const changedProcess = await processArtifactJob(registry, processor, {
         sourceId: source.id,
         artifactId: changed.artifactId,
@@ -327,6 +332,7 @@ async function main(): Promise<void> {
       },
       generatedAt: new Date().toISOString(),
       status: failures.length === 0 ? 'PASS' : 'FAIL',
+      coverage,
       scheduleCoverage: {
         activeMunicipalityCount: activeScheduleTercs.length,
         tercs: activeScheduleTercs,
