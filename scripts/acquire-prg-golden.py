@@ -173,9 +173,14 @@ def acquire_koszalin_exact() -> list[dict[str, object]]:
     for query in KOSZALIN_EXACT:
         payload = fetch_uug(query)
         candidates = normalize_uug_results(payload)
-        exact = [row for row in candidates if str(row.get("teryt", "")) == "326101"]
+        # UUG intentionally returns fuzzy alternatives. For golden evidence we
+        # accept only a full-confidence exact address in the requested TERYT.
+        exact = [
+            row for row in candidates
+            if str(row.get("teryt", "")) == "326101" and str(row.get("accuracy", "")) == "1"
+        ]
         if len(exact) != 1:
-            raise RuntimeError(f"UUG query {query!r} did not resolve uniquely to Koszalin: {exact}")
+            raise RuntimeError(f"UUG query {query!r} did not resolve to one exact Koszalin address: {exact}")
         uug = exact[0]
         filters = {
             "teryt": str(uug.get("teryt", "")),
