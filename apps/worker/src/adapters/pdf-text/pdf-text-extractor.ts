@@ -29,50 +29,43 @@ function lineBreak(previousY: number | null, nextY: number | null): boolean {
 export async function textFromPdfTextArtifact(body: Buffer): Promise<string> {
   if (!isPdf(body)) return body.toString('utf8');
 
+  let loadingTask: Awaited<ReturnType<typeof import('pdfjs-dist/legacy/build/pdf.mjs')['getDocument']>> | null = null;
   try {
     const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const loadingTask = getDocument({
-      data: new Uint8Array(body),
-      isEvalSupported: false,
-      useWorkerFetch: false,
-    });
+    loadingTask = getDocument({ data: new Uint8Array(body) });
     const document = await loadingTask.promise;
     const pages: string[] = [];
 
-    try {
-      for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-        const page = await document.getPage(pageNumber);
-        const content = await page.getTextContent();
-        const lines: string[] = [];
-        let current = '';
-        let previousY: number | null = null;
+    for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const lines: string[] = [];
+      let current = '';
+      let previousY: number | null = null;
 
-        const flush = () => {
-          const line = current.replace(/\s+/g, ' ').trim();
-          if (line) lines.push(line);
-          current = '';
-        };
+      const flush = () => {
+        const line = current.replace(/\s+/g, ' ').trim();
+        if (line) lines.push(line);
+        current = '';
+      };
 
-        for (const item of content.items) {
-          if (!('str' in item)) continue;
-          const transform = 'transform' in item && Array.isArray(item.transform)
-            ? item.transform
-            : null;
-          const y = transform && Number.isFinite(Number(transform[5]))
-            ? Number(transform[5])
-            : null;
+      for (const item of content.items) {
+        if (!('str' in item)) continue;
+        const transform = 'transform' in item && Array.isArray(item.transform)
+          ? item.transform
+          : null;
+        const y = transform && Number.isFinite(Number(transform[5]))
+          ? Number(transform[5])
+          : null;
 
-          if (lineBreak(previousY, y)) flush();
-          const value = item.str.replace(/\s+/g, ' ').trim();
-          if (value) current += `${current ? ' ' : ''}${value}`;
-          if ('hasEOL' in item && item.hasEOL) flush();
-          previousY = y;
-        }
-        flush();
-        if (lines.length > 0) pages.push(lines.join('\n'));
+        if (lineBreak(previousY, y)) flush();
+        const value = item.str.replace(/\s+/g, ' ').trim();
+        if (value) current += `${current ? ' ' : ''}${value}`;
+        if ('hasEOL' in item && item.hasEOL) flush();
+        previousY = y;
       }
-    } finally {
-      await document.destroy();
+      flush();
+      if (lines.length > 0) pages.push(lines.join('\n'));
     }
 
     const text = pages.join('\n').trim();
@@ -87,5 +80,7 @@ export async function textFromPdfTextArtifact(body: Buffer): Promise<string> {
       'PDF_EXTRACTION_FAILED',
       { cause: error },
     );
+  } finally {
+    if (loadingTask) await loadingTask.destroy().catch(() => undefined);
   }
 }
