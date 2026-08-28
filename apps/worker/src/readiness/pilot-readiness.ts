@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import pg, { type QueryResultRow } from 'pg';
 import pilotManifestJson from '../../../../manifests/pilot-koszalin-region-2026.1.json' with { type: 'json' };
 import { MinioArtifactStore } from '../ingestion/artifact-store.js';
+import { PgBundleAwareSourceRegistry } from '../ingestion/bundle-aware-source-registry.js';
 import { SourceFetchError } from '../ingestion/http-source-fetcher.js';
 import { SourceIngestionService } from '../ingestion/source-ingestion-service.js';
-import { PgSourceRegistry } from '../ingestion/source-registry.js';
 import type { FetchedSource, SourceFetcher, SourceRecord } from '../ingestion/types.js';
 import { PgSourceManifestSync } from '../manifests/source-manifest-sync.js';
 import { parseSourceManifest, type SourceManifest } from '../manifests/source-manifest.js';
@@ -48,6 +48,10 @@ interface ManifestSourceRow extends QueryResultRow {
   last_error_code: string | null;
   last_error_message: string | null;
   poll_interval_minutes: number;
+  bundle_key: string | null;
+  bundle_role: string | null;
+  bundle_required_roles: unknown;
+  bundle_freshness_minutes: number | null;
 }
 
 interface CountRow extends QueryResultRow { count: string }
@@ -161,7 +165,8 @@ async function manifestSources(pool: InstanceType<typeof Pool>): Promise<Manifes
          s.parser_key, s.manifest_status, s.active, s.last_sha256,
          s.last_success_at, s.last_failure_at, s.last_checked_at, s.next_check_at,
          s.health_status, s.consecutive_failures, s.last_error_code,
-         s.last_error_message, s.poll_interval_minutes
+         s.last_error_message, s.poll_interval_minutes,
+         s.bundle_key, s.bundle_role, s.bundle_required_roles, s.bundle_freshness_minutes
        FROM sources s
        JOIN municipalities m ON m.id = s.municipality_id
        WHERE s.manifest_version = $1
@@ -175,7 +180,7 @@ async function main(): Promise<void> {
   const pool = new Pool({ connectionString: databaseUrl });
   const failures: string[] = [];
   let report: Record<string, unknown> = {
-    gateVersion: '0.1.0',
+    gateVersion: '0.2.0',
     manifest: { id: manifest.manifestId, version: manifest.version },
     generatedAt: new Date().toISOString(),
     status: 'FAILED',
@@ -207,9 +212,28 @@ async function main(): Promise<void> {
     }
     if (activeSources.length === 0) failures.push('manifest has no schedulable ACTIVE sources');
 
+    const bundleGroups = new Map<string, ManifestSourceRow[]>();
+    for (const source of activeSources) {
+      if (!source.bundle_key) continue;
+      const key = `${source.terc}:${source.bundle_key}`;
+      const members = bundleGroups.get(key) ?? [];
+      members.push(source);
+      bundleGroups.set(key, members);
+    }
+    for (const [key, members] of bundleGroups) {
+      const roles = members.map((member) => member.bundle_role).filter((role): role is string => Boolean(role)).sort();
+      const configuredRoles = members[0]?.bundle_required_roles;
+      const required = Array.isArray(configuredRoles)
+        ? configuredRoles.filter((role): role is string => typeof role === 'string').sort()
+        : [];
+      if (roles.join('|') !== required.join('|')) {
+        failures.push(`active bundle ${key} source roles do not match required roles`);
+      }
+    }
+
     const fetcher = new DeterministicPilotFetcher();
     for (const source of activeSources) fetcher.setBody(source.id, await fixtureBody(source));
-    const registry = new PgSourceRegistry(pool);
+    const registry = new PgBundleAwareSourceRegistry(pool);
     const ingestion = new SourceIngestionService(registry, new MinioArtifactStore(), fetcher);
     const activeIds = activeSources.map((source) => source.id);
 
@@ -341,6 +365,20 @@ async function main(): Promise<void> {
     );
 
     sources = await manifestSources(pool);
+    const waitingBundles = sources
+      .filter((source) => source.active && source.health_status === 'WAITING_FOR_COMPANION')
+      .map((source) => ({
+        sourceKey: source.source_key,
+        terc: source.terc,
+        bundleKey: source.bundle_key,
+        bundleRole: source.bundle_role,
+        requiredRoles: source.bundle_required_roles,
+        freshnessMinutes: source.bundle_freshness_minutes,
+      }));
+    if (waitingBundles.length > 0) {
+      failures.push(`active bundle sources still waiting for companion: ${waitingBundles.map((item) => item.sourceKey).join(', ')}`);
+    }
+
     const staleSources = sources
       .filter((source) => {
         if (!source.active) return false;
@@ -364,7 +402,7 @@ async function main(): Promise<void> {
 
     const currentChangedSource = await registry.getSourceById(changedSource.id);
     report = {
-      gateVersion: '0.1.0',
+      gateVersion: '0.2.0',
       manifest: {
         id: manifest.manifestId,
         version: manifest.version,
@@ -383,6 +421,16 @@ async function main(): Promise<void> {
         rejected: referenceImport.rejected,
       },
       coverage,
+      bundleHealth: {
+        configured: [...bundleGroups.entries()].map(([key, members]) => ({
+          key,
+          memberSourceKeys: members.map((member) => member.source_key).sort(),
+          roles: members.map((member) => member.bundle_role).sort(),
+          requiredRoles: members[0]?.bundle_required_roles ?? [],
+          freshnessMinutes: members[0]?.bundle_freshness_minutes ?? null,
+        })),
+        waiting: waitingBundles,
+      },
       deterministicIngestion: {
         activeSourceKeys: activeSources.map((source) => source.source_key),
         artifactsBefore,
@@ -429,6 +477,10 @@ async function main(): Promise<void> {
         lastSuccessAt: source.last_success_at?.toISOString() ?? null,
         lastFailureAt: source.last_failure_at?.toISOString() ?? null,
         lastErrorCode: source.last_error_code,
+        bundleKey: source.bundle_key,
+        bundleRole: source.bundle_role,
+        bundleRequiredRoles: source.bundle_required_roles,
+        bundleFreshnessMinutes: source.bundle_freshness_minutes,
       })),
       goldenGates: {
         collection: scheduleGolden,
