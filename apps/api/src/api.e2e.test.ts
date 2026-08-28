@@ -37,7 +37,7 @@ integrationDescribe('WastePL API vertical slice', () => {
     expect(body.items[0].score).toBe(0.9);
   });
 
-  it('returns the Koszalin BIO schedule with provenance', async () => {
+  it('returns the Koszalin BIO schedule with immutable artifact provenance', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/v1/collection?address=1%20Maja%203&from=2026-08-26&days=8',
@@ -52,10 +52,16 @@ integrationDescribe('WastePL API vertical slice', () => {
       { date: '2026-08-26', fraction: 'BIO', status: 'SCHEDULED' },
       { date: '2026-09-02', fraction: 'BIO', status: 'SCHEDULED' },
     ]);
-    expect(body.source).toEqual({
+    expect(body.source).toMatchObject({
       url: 'https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/bio.pdf',
       format: 'PDF_TEXT',
+      sha256: '33deb436560d6df5ef7b8fc2834b5fd64b339261ed8d189e35610ceacfc029c5',
+      parserKey: 'pgk-koszalin-pdf-text',
+      parserVersion: '0.1.0',
     });
+    expect(body.source.artifactId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
     expect(body.quality).toMatchObject({
       verificationStatus: 'OFFICIAL_SOURCE',
       confidence: 0.995,
@@ -79,6 +85,11 @@ integrationDescribe('WastePL API vertical slice', () => {
       date: '2026-01-13',
       fraction: 'MIXED',
       status: 'SCHEDULED',
+    });
+    expect(body.source).toMatchObject({
+      sha256: '7d12baebbd6e2342b0426c11e4d7c6aa6f03811a8e1b44494b862d86fcb357f1',
+      parserKey: 'pgk-koszalin-pdf-text',
+      parserVersion: '0.1.0',
     });
     expect(body.quality.confidence).toBe(0.99);
   });
