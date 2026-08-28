@@ -31,6 +31,22 @@
         }
       }
     },
+    "bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "role", "requiredRoles", "freshnessMinutes"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,127}$" },
+        "role": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$" },
+        "requiredRoles": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$" }
+        },
+        "freshnessMinutes": { "type": "integer", "minimum": 60, "maximum": 10080 }
+      }
+    },
     "source": {
       "type": "object",
       "additionalProperties": false,
@@ -47,7 +63,13 @@
         "ownerName": { "type": "string", "minLength": 1 },
         "reuseNotes": { "type": "string", "minLength": 1 },
         "activeFrom": { "type": ["string", "null"], "format": "date" },
-        "activeTo": { "type": ["string", "null"], "format": "date" }
+        "activeTo": { "type": ["string", "null"], "format": "date" },
+        "bundle": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/bundle" }
+          ]
+        }
       }
     }
   }
