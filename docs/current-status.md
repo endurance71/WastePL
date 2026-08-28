@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-28 w PR `#58`; pełny CI run `33173175360` przeszedł przed aktualizacją statusu.
+> Zweryfikowano: 2026-08-28, commit `4c44d6c5f53c07e6bd1dc7a98a80ff980ef4f121` (PR `#58`, pełny CI run `33173175360`).
 
 ## Etap
 
