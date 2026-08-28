@@ -33,6 +33,7 @@ ETag and Last-Modified are preserved when sources provide them. HTTP 304 and rep
 - `db/migrations/0006_facility_contract_v02.sql` — source-backed facility semantics
 - `docs/adr/` — architecture decisions
 - `docs/sprint-01.md` — first sprint scope
+- `docs/google-drive/` — versioned snapshots of the WastePL source documentation from Google Drive
 
 Facility contract v0.2 keeps `UNKNOWN` distinct from unavailable/closed, permits missing coordinates instead of fabricated pins, separates facility kind from accepted material/container capabilities, and requires provenance for structured hours, access claims and non-unknown operational status.
 
