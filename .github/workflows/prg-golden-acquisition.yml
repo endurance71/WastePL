@@ -1,0 +1,28 @@
+name: prg-golden-acquisition
+
+on:
+  push:
+    branches:
+      - data/prg-golden-acquisition-20260828
+
+permissions:
+  contents: read
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Acquire official PRG evidence
+        run: python scripts/acquire-prg-golden.py
+      - name: Upload raw PRG acquisition evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: prg-golden-acquisition-20260828
+          path: tmp/prg-acquisition/
+          if-no-files-found: error
+          retention-days: 7
