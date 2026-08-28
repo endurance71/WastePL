@@ -1,10 +1,10 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-28, commit `85820c13a938cd2b175b6dbd86d3e5b0d8defb51` (PR `#56`).
+> Zweryfikowano: 2026-08-28, commit `a3ea0a42a3f0c21c7a500cbbc1ac30aad383407c` (`main`).
 
 ## Etap
 
-Sprinty 01–03 są ukończone. W Sprincie 04 scalono runtime przetwarzania artefaktów (S04-01) oraz automatyczne, transakcyjne publikowanie harmonogramów kolekcji z historią wersji i publicznym provenance (S04-02). S04-03 — koordynacja wieloartefaktowych źródeł facilities — jest zaimplementowane i przeszło pełny CI w PR `#56`; do `main` trafi po zakończeniu review/merge.
+Sprinty 01–03 są ukończone. W Sprincie 04 scalono runtime przetwarzania artefaktów (S04-01), automatyczne transakcyjne publikowanie harmonogramów kolekcji z historią wersji i publicznym provenance (S04-02) oraz deterministyczną koordynację wieloartefaktowych źródeł facilities (S04-03 / `#48`).
 
 Production handlery `pgk-koszalin-pdf-text` oraz `pgk-koszalin-pszok-html` są zarejestrowane w artifact runtime. `ARTIFACT_PROCESSING_ENABLED` pozostaje jednak domyślnie wyłączone do czasu przejścia fixture-independent pilot production gate. WastePL nadal jest PoC/pilotem infrastruktury danych, a nie ukończonym produktem dla ośmiu gmin.
 
@@ -43,7 +43,7 @@ Rozbieżność 30 vs 100 pozostaje jawna i zamierzona: 30 adresów to istniejąc
 
 ## CI i bramki
 
-PR `#56` przeszedł kompletny workflow CI `33162321872`: docs/contracts, migracje na pustym PostGIS, build, strict typecheck, wszystkie testy, readiness 0.2, golden collection, golden facilities oraz API smoke test.
+S04-03 przeszło dwa kompletne workflow CI przed merge; finalny run `33162475302` zakończył się powodzeniem we wszystkich 39 krokach: docs/contracts, migracje na pustym PostGIS, build, strict typecheck, wszystkie testy, readiness 0.2, golden collection, golden facilities oraz API smoke test. PR `#56` został następnie scalony do `main` jako `a3ea0a42a3f0c21c7a500cbbc1ac30aad383407c`, a issue `#48` zamknięto jako completed.
 
 Testy S04-03 obejmują m.in.:
 
@@ -72,11 +72,11 @@ Nakładające się zadania zostały skonsolidowane: `#40–#43` zamknięto jako 
 
 ## Następne kroki
 
-1. Scalić zweryfikowane S04-03 / `#48` po finalnym review PR `#56`.
-2. Zrealizować `#49`: ocena wszystkich sześciu pozostałych gmin i aktywacja co najmniej dwóch kolejnych bez zgadywania danych.
-3. Przygotować manifest 2026.2 (`#44`) wyłącznie dla faktycznie wspieranych źródeł.
-4. Przeprowadzić fixture-independent pilot production gate (`#45`) od clean DB przez realne źródła/artifacts do consumer API.
-5. Rozszerzyć walidację do minimum 100 realnych adresów w ośmiu gminach przed pilotem konsumenckim.
+1. Zrealizować `#49`: ocena wszystkich sześciu pozostałych gmin i aktywacja co najmniej dwóch kolejnych bez zgadywania danych.
+2. Przygotować manifest 2026.2 (`#44`) wyłącznie dla faktycznie wspieranych źródeł.
+3. Przeprowadzić fixture-independent pilot production gate (`#45`) od clean DB przez realne źródła/artifacts do consumer API.
+4. Rozszerzyć walidację do minimum 100 realnych adresów w ośmiu gminach przed pilotem konsumenckim.
+5. Dopiero po potwierdzeniu jakości i ekonomiki onboardingu rozszerzać consumer PWA (`#51`).
 
 ## Import referencyjny PRG/TERYT
 
