@@ -12,17 +12,29 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(new URL(relativePath, import.meta.url), 'utf8'));
 }
 
-const [schemaV01, facilitySchemaV02, openApi, internalOpenApi, compatV01, pszokV02, rvmV02, manualV02] =
-  await Promise.all([
-    readJson('../schemas/wastepl-v0.1.schema.json'),
-    readJson('../schemas/wastepl-facility-v0.2.schema.json'),
-    readFile(new URL('../openapi/wastepl-v0.1.yaml', import.meta.url), 'utf8').then(YAML.parse),
-    readFile(new URL('../openapi/wastepl-internal-v0.1.yaml', import.meta.url), 'utf8').then(YAML.parse),
-    readJson('../schemas/examples/v0.1-compat.json'),
-    readJson('../schemas/examples/v0.2/pszok.json'),
-    readJson('../schemas/examples/v0.2/deposit-rvm.json'),
-    readJson('../schemas/examples/v0.2/deposit-manual.json'),
-  ]);
+const [
+  schemaV01,
+  facilitySchemaV02,
+  sourceManifestSchemaV01,
+  openApi,
+  internalOpenApi,
+  compatV01,
+  pszokV02,
+  rvmV02,
+  manualV02,
+  pilotSourceManifest,
+] = await Promise.all([
+  readJson('../schemas/wastepl-v0.1.schema.json'),
+  readJson('../schemas/wastepl-facility-v0.2.schema.json'),
+  readJson('../schemas/source-manifest-v0.1.schema.json'),
+  readFile(new URL('../openapi/wastepl-v0.1.yaml', import.meta.url), 'utf8').then(YAML.parse),
+  readFile(new URL('../openapi/wastepl-internal-v0.1.yaml', import.meta.url), 'utf8').then(YAML.parse),
+  readJson('../schemas/examples/v0.1-compat.json'),
+  readJson('../schemas/examples/v0.2/pszok.json'),
+  readJson('../schemas/examples/v0.2/deposit-rvm.json'),
+  readJson('../schemas/examples/v0.2/deposit-manual.json'),
+  readJson('../manifests/pilot-koszalin-region-2026.1.json'),
+]);
 
 if (schemaV01.$schema !== 'https://json-schema.org/draft/2020-12/schema') {
   throw new Error('WastePL JSON Schema v0.1 must use draft 2020-12');
@@ -35,6 +47,12 @@ if (facilitySchemaV02.$schema !== 'https://json-schema.org/draft/2020-12/schema'
 }
 if (facilitySchemaV02.properties?.schemaVersion?.const !== '0.2.0') {
   throw new Error('WastePL facility schema version must be 0.2.0');
+}
+if (sourceManifestSchemaV01.$schema !== 'https://json-schema.org/draft/2020-12/schema') {
+  throw new Error('WastePL source manifest schema v0.1 must use draft 2020-12');
+}
+if (sourceManifestSchemaV01.properties?.schemaVersion?.const !== '0.1.0') {
+  throw new Error('WastePL source manifest schema version must stay 0.1.0');
 }
 if (openApi.openapi !== '3.1.0') {
   throw new Error('WastePL OpenAPI document must use OpenAPI 3.1.0');
@@ -97,6 +115,7 @@ addFormats(ajv);
 
 const validateV01 = ajv.compile(schemaV01);
 const validateFacilityV02 = ajv.compile(facilitySchemaV02);
+const validateSourceManifestV01 = ajv.compile(sourceManifestSchemaV01);
 
 function assertValid(validate, value, label) {
   if (validate(value)) return;
@@ -111,10 +130,74 @@ function assertInvalid(validate, value, label) {
   throw new Error(`${label} must be rejected by the schema`);
 }
 
+function findDuplicate(values) {
+  const seen = new Set();
+  for (const value of values) {
+    if (seen.has(value)) return value;
+    seen.add(value);
+  }
+  return null;
+}
+
+function assertPilotManifestSemantics(manifest) {
+  if (manifest.manifestId !== 'pilot-koszalin-region' || manifest.version !== '2026.1') {
+    throw new Error('Pilot source manifest identity must stay pilot-koszalin-region@2026.1');
+  }
+  if (manifest.municipalities.length !== 8) {
+    throw new Error(`Pilot source manifest must contain exactly 8 municipalities, got ${manifest.municipalities.length}`);
+  }
+
+  const expectedTercs = [
+    '3201043',
+    '3209012',
+    '3209033',
+    '3209042',
+    '3209063',
+    '3209073',
+    '3209082',
+    '3261011',
+  ];
+  const actualTercs = manifest.municipalities.map((entry) => entry.terc).sort();
+  if (JSON.stringify(actualTercs) !== JSON.stringify(expectedTercs)) {
+    throw new Error(`Pilot source manifest TERC set changed unexpectedly: ${actualTercs.join(', ')}`);
+  }
+
+  const sources = manifest.municipalities.flatMap((municipality) => municipality.sources);
+  const duplicateKey = findDuplicate(sources.map((source) => source.key));
+  if (duplicateKey) throw new Error(`Duplicate source key in pilot manifest: ${duplicateKey}`);
+  const duplicateUrl = findDuplicate(sources.map((source) => source.url));
+  if (duplicateUrl) throw new Error(`Duplicate source URL in pilot manifest: ${duplicateUrl}`);
+
+  const supportedParsers = new Map([
+    ['pgk-koszalin-pdf-text', 'PDF_TEXT'],
+    ['pgk-koszalin-pszok-html', 'HTML'],
+  ]);
+  for (const source of sources) {
+    if (source.activeFrom && source.activeTo && source.activeFrom > source.activeTo) {
+      throw new Error(`Pilot source ${source.key} has activeFrom after activeTo`);
+    }
+    if (source.status === 'PLANNED') {
+      if (source.parserKey !== null) {
+        throw new Error(`PLANNED pilot source ${source.key} must not claim a parser`);
+      }
+      continue;
+    }
+    const supportedFormat = supportedParsers.get(source.parserKey);
+    if (!supportedFormat) {
+      throw new Error(`ACTIVE pilot source ${source.key} references unsupported parser ${source.parserKey}`);
+    }
+    if (supportedFormat !== source.format) {
+      throw new Error(`ACTIVE pilot source ${source.key} format does not match parser ${source.parserKey}`);
+    }
+  }
+}
+
 assertValid(validateV01, compatV01, 'v0.1 compatibility fixture');
 assertValid(validateFacilityV02, pszokV02, 'v0.2 PSZOK fixture');
 assertValid(validateFacilityV02, rvmV02, 'v0.2 RVM fixture');
 assertValid(validateFacilityV02, manualV02, 'v0.2 manual-return fixture');
+assertValid(validateSourceManifestV01, pilotSourceManifest, 'pilot source manifest v0.1');
+assertPilotManifestSemantics(pilotSourceManifest);
 
 const operationalWithoutProvenance = structuredClone(rvmV02);
 operationalWithoutProvenance.operationalStatus.observedAt = null;
@@ -143,4 +226,4 @@ const rvmWithIsWorking = structuredClone(rvmV02);
 rvmWithIsWorking.isWorking = true;
 assertInvalid(validateFacilityV02, rvmWithIsWorking, 'unproven isWorking boolean');
 
-console.log('WastePL contracts OK (public API + internal data-ops API + dataset/facility schemas)');
+console.log('WastePL contracts OK (public/internal APIs + dataset/facility schemas + 8-municipality source manifest)');
