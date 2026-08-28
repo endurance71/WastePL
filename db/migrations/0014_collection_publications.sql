@@ -61,6 +61,10 @@ CREATE TABLE IF NOT EXISTS collection_publications (
 CREATE INDEX IF NOT EXISTS idx_collection_publications_source_published
   ON collection_publications(source_id, published_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_collection_events_current_area_date
+  ON collection_events(service_area_id, collection_date)
+  WHERE valid_to IS NULL;
+
 COMMENT ON COLUMN service_areas.source_id IS
   'Source that owns runtime replacement of this canonical collection service area.';
 COMMENT ON COLUMN service_areas.published_from_artifact_id IS
