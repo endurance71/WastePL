@@ -41,6 +41,13 @@ const SEGREGATED_FRACTIONS: WasteFractionCode[] = [
   'BIO',
 ];
 
+const MANOWO_LOCALITY_SIMC: Record<string, string> = {
+  Bonin: '0308040',
+  Dęborogi: '0308212',
+  Policko: '0308229',
+  Wyszebórz: '0308206',
+};
+
 function cleanLines(text: string): string[] {
   return text
     .replace(/\u00a0/g, ' ')
@@ -146,15 +153,21 @@ function parseManowo(input: PdfTextArtifactInput, parserKey: string, parserVersi
     .map((value) => value.trim())
     .filter(Boolean);
 
+  for (const locality of localities) {
+    if (!MANOWO_LOCALITY_SIMC[locality]) {
+      throw new PdfTextParseError(`Missing authoritative SIMC mapping for ${locality}`, 'MISSING_METADATA', localityLine);
+    }
+  }
+
   const serviceAreaKey = 'manowo-bonin-deborogi-policko-wyszeborz';
   const serviceArea: NormalizedServiceArea = {
     key: serviceAreaKey,
     name: `Gmina Manowo: ${localities.join(', ')}`,
     buildingType: null,
     coverage: localities.map((name) => ({
-      type: 'EXPLICIT_ADDRESS',
+      type: 'LOCALITY',
       priority: 50,
-      explicitAddress: `${name}, gmina Manowo`,
+      simc: MANOWO_LOCALITY_SIMC[name]!,
     })),
   };
 
@@ -180,20 +193,19 @@ function parseManowo(input: PdfTextArtifactInput, parserKey: string, parserVersi
     throw new PdfTextParseError('No Manowo monthly schedule rows found', 'UNSUPPORTED_TEMPLATE');
   }
 
-  const coverageWarning = ['COVERAGE_AWAITING_TERYT_RESOLUTION'];
   const collectionEvents: NormalizedCollectionEvent[] = [];
   for (const row of rows) {
     for (const day of row.mixed) {
-      collectionEvents.push(event(input, serviceAreaKey, 'MIXED', isoDate(2026, row.month, day), 0.99, coverageWarning));
+      collectionEvents.push(event(input, serviceAreaKey, 'MIXED', isoDate(2026, row.month, day), 0.99));
     }
     for (const day of row.segregated) {
       const date = isoDate(2026, row.month, day);
       for (const fraction of SEGREGATED_FRACTIONS) {
-        collectionEvents.push(event(input, serviceAreaKey, fraction, date, 0.99, coverageWarning));
+        collectionEvents.push(event(input, serviceAreaKey, fraction, date, 0.99));
       }
     }
     for (const day of row.bulky) {
-      collectionEvents.push(event(input, serviceAreaKey, 'BULKY', isoDate(2026, row.month, day), 0.99, coverageWarning));
+      collectionEvents.push(event(input, serviceAreaKey, 'BULKY', isoDate(2026, row.month, day), 0.99));
     }
   }
 

@@ -151,6 +151,17 @@ components:
         date: { type: string, format: date }
         fraction: { type: string }
         status: { type: string, enum: [SCHEDULED, CHANGED, CANCELLED, COMPLETED] }
+    CollectionSourceRef:
+      type: object
+      additionalProperties: false
+      required: [artifactId, sha256, url, format, parserKey, parserVersion]
+      properties:
+        artifactId: { type: string, format: uuid }
+        sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+        url: { type: string, format: uri }
+        format: { type: string }
+        parserKey: { type: [string, 'null'] }
+        parserVersion: { type: [string, 'null'] }
     CollectionScheduleResponse:
       type: object
       required: [address, municipality, serviceArea, events, source, quality]
@@ -166,12 +177,7 @@ components:
         events:
           type: array
           items: { $ref: '#/components/schemas/CollectionEvent' }
-        source:
-          type: object
-          required: [url, format]
-          properties:
-            url: { type: string, format: uri }
-            format: { type: string }
+        source: { $ref: '#/components/schemas/CollectionSourceRef' }
         quality:
           type: object
           required: [verificationStatus, confidence, retrievedAt]

@@ -2,6 +2,7 @@ import { Worker, type Job } from 'bullmq';
 import { Redis } from 'ioredis';
 import pg from 'pg';
 import { INGESTION_QUEUE } from '@wastepl/domain';
+import { PgkKoszalinCollectionArtifactHandler } from './collections/collection-artifact-handler.js';
 import { createArtifactProcessingWorker } from './ingestion/artifact-processing.js';
 import { MinioArtifactReader } from './ingestion/artifact-reader.js';
 import { MinioArtifactStore } from './ingestion/artifact-store.js';
@@ -65,7 +66,7 @@ export function createIngestionWorker(
 
 export function createArtifactRuntimeProcessor(
   pool: InstanceType<typeof Pool>,
-  handlers: ArtifactHandler[] = [],
+  handlers: ArtifactHandler[] = [new PgkKoszalinCollectionArtifactHandler(pool)],
 ): DispatchingArtifactProcessor {
   return new DispatchingArtifactProcessor(
     new PgArtifactProcessingLookup(pool),
@@ -143,10 +144,9 @@ export async function bootstrapWorker(): Promise<void> {
   const artifactOutbox = new ArtifactOutboxDispatcher(registry, artifactQueue);
   const maintenanceLoop = startMaintenanceLoop(sourceScheduler, artifactOutbox);
 
-  // The queue consumer is production-wired now, but remains disabled by default until
-  // Sprint 04 registers the first canonical publisher handlers. Enabling it with no
-  // handlers is intentionally fail-visible: persisted unknown parser keys become
-  // PARSE_FAILED rather than being guessed or silently ignored.
+  // The first canonical collection publisher is registered, but processing remains
+  // opt-in until the Sprint 04 replacement/history and fixture-independent gates are
+  // green. Unsupported parser keys remain fail-visible and never guess data.
   const artifactProcessingEnabled = process.env.ARTIFACT_PROCESSING_ENABLED === 'true';
   const artifactWorker = artifactProcessingEnabled
     ? createArtifactProcessingWorker(
