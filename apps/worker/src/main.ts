@@ -3,9 +3,11 @@ import { Redis } from 'ioredis';
 import pg from 'pg';
 import { INGESTION_QUEUE } from '@wastepl/domain';
 import { PgkKoszalinCollectionArtifactHandler } from './collections/collection-artifact-handler.js';
+import { PgkKoszalinPszokBundleArtifactHandler } from './facilities/pgk-koszalin-pszok-bundle-artifact-handler.js';
 import { createArtifactProcessingWorker } from './ingestion/artifact-processing.js';
 import { MinioArtifactReader } from './ingestion/artifact-reader.js';
 import { MinioArtifactStore } from './ingestion/artifact-store.js';
+import { PgBundleAwareSourceRegistry } from './ingestion/bundle-aware-source-registry.js';
 import {
   BullMqArtifactProcessingQueue,
   BullMqSourcePollQueue,
@@ -17,7 +19,6 @@ import {
 import { HttpSourceFetcher } from './ingestion/http-source-fetcher.js';
 import { PgArtifactProcessingLookup } from './ingestion/pg-artifact-processing-lookup.js';
 import { SourceIngestionService } from './ingestion/source-ingestion-service.js';
-import { PgSourceRegistry } from './ingestion/source-registry.js';
 import {
   ArtifactOutboxDispatcher,
   SourceScheduler,
@@ -66,12 +67,18 @@ export function createIngestionWorker(
 
 export function createArtifactRuntimeProcessor(
   pool: InstanceType<typeof Pool>,
-  handlers: ArtifactHandler[] = [new PgkKoszalinCollectionArtifactHandler(pool)],
+  handlers?: ArtifactHandler[],
 ): DispatchingArtifactProcessor {
+  const reader = new MinioArtifactReader();
+  const runtimeHandlers = handlers ?? [
+    new PgkKoszalinCollectionArtifactHandler(pool),
+    new PgkKoszalinPszokBundleArtifactHandler(pool, reader),
+  ];
+
   return new DispatchingArtifactProcessor(
     new PgArtifactProcessingLookup(pool),
-    new MinioArtifactReader(),
-    handlers,
+    reader,
+    runtimeHandlers,
   );
 }
 
@@ -133,7 +140,7 @@ export async function bootstrapWorker(): Promise<void> {
     connectionString:
       process.env.DATABASE_URL ?? 'postgresql://wastepl:wastepl@localhost:5432/wastepl',
   });
-  const registry = new PgSourceRegistry(pool);
+  const registry = new PgBundleAwareSourceRegistry(pool);
   const artifactStore = new MinioArtifactStore();
   const fetcher = new HttpSourceFetcher();
   const ingestionService = new SourceIngestionService(registry, artifactStore, fetcher);
@@ -144,9 +151,9 @@ export async function bootstrapWorker(): Promise<void> {
   const artifactOutbox = new ArtifactOutboxDispatcher(registry, artifactQueue);
   const maintenanceLoop = startMaintenanceLoop(sourceScheduler, artifactOutbox);
 
-  // The first canonical collection publisher is registered, but processing remains
-  // opt-in until the Sprint 04 replacement/history and fixture-independent gates are
-  // green. Unsupported parser keys remain fail-visible and never guess data.
+  // Collection publication and the PGK Koszalin multi-artifact PSZOK coordinator are
+  // registered. Processing remains opt-in until the fixture-independent production
+  // gate is green. Unsupported parser keys remain fail-visible and never guess data.
   const artifactProcessingEnabled = process.env.ARTIFACT_PROCESSING_ENABLED === 'true';
   const artifactWorker = artifactProcessingEnabled
     ? createArtifactProcessingWorker(

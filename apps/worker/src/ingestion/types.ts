@@ -5,7 +5,8 @@ export type SourceHealthStatus =
   | 'UNCHANGED'
   | 'FETCH_FAILED'
   | 'PARSE_FAILED'
-  | 'REVIEW_REQUIRED';
+  | 'REVIEW_REQUIRED'
+  | 'WAITING_FOR_COMPANION';
 
 export interface SourceRecord {
   id: string;
@@ -47,6 +48,7 @@ export interface InsertSourceArtifactResult {
 }
 
 export type FetchOutcome = 'FETCHED' | 'NOT_MODIFIED' | 'DEDUPLICATED' | 'FAILED';
+export type SourceProcessingOutcome = 'PUBLISHED' | 'REVIEW_REQUIRED' | 'WAITING_FOR_COMPANION' | 'PARSE_FAILED';
 
 export interface SourceFetchAttemptInput {
   sourceId: string;
@@ -104,7 +106,7 @@ export interface SourceProcessingAttemptInput {
   artifactId: string;
   startedAt: Date;
   completedAt: Date;
-  outcome: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'PARSE_FAILED';
+  outcome: SourceProcessingOutcome;
   parserKey: string | null;
   errorCode: string | null;
   errorMessage: string | null;
@@ -116,7 +118,7 @@ export interface SourceProcessingStateUpdate {
   artifactId: string;
   startedAt: Date;
   completedAt: Date;
-  outcome: 'PUBLISHED' | 'REVIEW_REQUIRED' | 'PARSE_FAILED';
+  outcome: SourceProcessingOutcome;
   parserKey: string | null;
   errorCode: string | null;
   errorMessage: string | null;

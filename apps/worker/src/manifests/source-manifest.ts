@@ -5,6 +5,13 @@ export type ManifestDataType = 'COLLECTION_SCHEDULE' | 'PSZOK' | 'ALERTS' | 'OTH
 export type ManifestSourceStatus = 'ACTIVE' | 'PLANNED';
 export type ManifestSourceFormat = 'PDF_TEXT' | 'HTML' | 'PDF' | 'JSON' | 'CSV' | 'XLSX' | 'GML' | 'OTHER';
 
+export interface SourceManifestBundle {
+  key: string;
+  role: string;
+  requiredRoles: string[];
+  freshnessMinutes: number;
+}
+
 export interface SourceManifestSource {
   key: string;
   dataType: ManifestDataType;
@@ -18,6 +25,7 @@ export interface SourceManifestSource {
   reuseNotes: string;
   activeFrom: string | null;
   activeTo: string | null;
+  bundle?: SourceManifestBundle | null;
 }
 
 export interface SourceManifestMunicipality {
@@ -64,6 +72,50 @@ function assertDateRange(source: SourceManifestSource): void {
   }
 }
 
+function assertBundleSemantics(manifest: SourceManifest): void {
+  for (const municipality of manifest.municipalities) {
+    const groups = new Map<string, SourceManifestSource[]>();
+    for (const source of municipality.sources) {
+      if (!source.bundle) continue;
+      const list = groups.get(source.bundle.key) ?? [];
+      list.push(source);
+      groups.set(source.bundle.key, list);
+    }
+
+    for (const [bundleKey, members] of groups) {
+      const first = members[0]!.bundle!;
+      const requiredRoles = [...first.requiredRoles].sort();
+      if (new Set(requiredRoles).size !== requiredRoles.length || requiredRoles.length < 2) {
+        throw new Error(`Manifest bundle ${bundleKey} must define at least two unique requiredRoles`);
+      }
+
+      const duplicateRole = duplicate(members.map((member) => member.bundle!.role));
+      if (duplicateRole) {
+        throw new Error(`Manifest bundle ${bundleKey} has duplicate role ${duplicateRole}`);
+      }
+
+      for (const member of members) {
+        const bundle = member.bundle!;
+        if (bundle.freshnessMinutes !== first.freshnessMinutes) {
+          throw new Error(`Manifest bundle ${bundleKey} has inconsistent freshnessMinutes`);
+        }
+        if ([...bundle.requiredRoles].sort().join('|') !== requiredRoles.join('|')) {
+          throw new Error(`Manifest bundle ${bundleKey} has inconsistent requiredRoles`);
+        }
+        if (!requiredRoles.includes(bundle.role)) {
+          throw new Error(`Manifest bundle ${bundleKey} role ${bundle.role} is not required`);
+        }
+      }
+
+      const presentRoles = new Set(members.map((member) => member.bundle!.role));
+      const missingRoles = requiredRoles.filter((role) => !presentRoles.has(role));
+      if (missingRoles.length > 0) {
+        throw new Error(`Manifest bundle ${bundleKey} is missing source roles: ${missingRoles.join(', ')}`);
+      }
+    }
+  }
+}
+
 export function validateSourceManifest(value: unknown): asserts value is SourceManifest {
   if (!validateSchema(value)) {
     const details = (validateSchema.errors ?? [])
@@ -106,6 +158,8 @@ export function validateSourceManifest(value: unknown): asserts value is SourceM
       );
     }
   }
+
+  assertBundleSemantics(manifest);
 }
 
 export function parseSourceManifest(value: unknown): SourceManifest {

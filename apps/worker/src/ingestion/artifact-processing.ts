@@ -8,7 +8,11 @@ import type {
   StructuredLogger,
 } from './types.js';
 
-export type ArtifactProcessingOutcome = 'PUBLISHED' | 'REVIEW_REQUIRED' | 'PARSE_FAILED';
+export type ArtifactProcessingOutcome =
+  | 'PUBLISHED'
+  | 'REVIEW_REQUIRED'
+  | 'WAITING_FOR_COMPANION'
+  | 'PARSE_FAILED';
 
 export interface ArtifactProcessorResult {
   outcome: Exclude<ArtifactProcessingOutcome, 'PARSE_FAILED'>;

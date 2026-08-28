@@ -34,7 +34,13 @@
           "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
           "reuseNotes": "Official PGK PSZOK page; paired with the official FAQ source by the existing PGK Koszalin facility bundle adapter.",
           "activeFrom": null,
-          "activeTo": null
+          "activeTo": null,
+          "bundle": {
+            "key": "koszalin-pszok",
+            "role": "main",
+            "requiredRoles": ["main", "faq"],
+            "freshnessMinutes": 2880
+          }
         },
         {
           "key": "koszalin-pszok-faq",
@@ -48,7 +54,13 @@
           "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
           "reuseNotes": "Official PGK FAQ supplying accepted-material and quantity-limit claims for the PSZOK bundle.",
           "activeFrom": null,
-          "activeTo": null
+          "activeTo": null,
+          "bundle": {
+            "key": "koszalin-pszok",
+            "role": "faq",
+            "requiredRoles": ["main", "faq"],
+            "freshnessMinutes": 2880
+          }
         }
       ]
     },
