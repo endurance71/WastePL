@@ -39,7 +39,12 @@ describe('PgkKoszalinPdfTextAdapter', () => {
       municipalityType: 'RURAL',
     });
     expect(first.serviceAreas).toHaveLength(1);
-    expect(first.serviceAreas[0]?.coverage).toHaveLength(4);
+    expect(first.serviceAreas[0]?.coverage).toEqual([
+      { type: 'LOCALITY', priority: 50, simc: '0308040' },
+      { type: 'LOCALITY', priority: 50, simc: '0308212' },
+      { type: 'LOCALITY', priority: 50, simc: '0308229' },
+      { type: 'LOCALITY', priority: 50, simc: '0308206' },
+    ]);
     expect(first.collectionEvents).toHaveLength(66);
     expect(new Set(first.collectionEvents.map((entry) => entry.fraction))).toEqual(
       new Set(['MIXED', 'METALS_PLASTICS', 'GLASS', 'PAPER', 'BIO', 'BULKY']),
