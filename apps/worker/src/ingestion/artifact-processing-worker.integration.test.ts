@@ -13,7 +13,6 @@ import {
 import { sha256Hex } from './hash.js';
 import { PgArtifactProcessingLookup } from './pg-artifact-processing-lookup.js';
 import { PgSourceRegistry } from './source-registry.js';
-import { ArtifactOutboxDispatcher } from './source-scheduler.js';
 
 const { Pool } = pg;
 const databaseUrl = process.env.DATABASE_URL;
@@ -37,7 +36,7 @@ integrationDescribe('artifact processing worker runtime', () => {
       `INSERT INTO sources (
          municipality_id, owner_type, owner_name, source_url, source_format,
          reuse_basis, parser_key, active
-       ) VALUES ($1, 'OTHER', 'Artifact worker integration', $2, 'HTML',
+       ) VALUES ($1, 'MUNICIPAL_COMPANY', 'Artifact worker integration', $2, 'HTML',
          'CI deterministic artifact processing test', 'test-runtime-parser', false)
        RETURNING id`,
       [municipality.rows[0].id, sourceUrl],
@@ -46,7 +45,7 @@ integrationDescribe('artifact processing worker runtime', () => {
   });
 
   afterAll(async () => {
-    if (pool) await pool.query('DELETE FROM sources WHERE id = $1', [sourceId]);
+    if (pool && sourceId) await pool.query('DELETE FROM sources WHERE id = $1', [sourceId]);
     if (redis) await redis.quit();
     if (pool) await pool.end();
   });
@@ -71,6 +70,13 @@ integrationDescribe('artifact processing worker runtime', () => {
     });
     expect(inserted.created).toBe(true);
 
+    const outbox = await pool.query<{ count: string }>(
+      'SELECT count(*)::text AS count FROM artifact_processing_outbox WHERE artifact_id = $1',
+      [inserted.artifact.id],
+    );
+    expect(Number(outbox.rows[0]?.count ?? 0)).toBe(1);
+
+    let handlerCalls = 0;
     let resolveHandler!: () => void;
     const handlerCalled = new Promise<void>((resolve) => {
       resolveHandler = resolve;
@@ -78,6 +84,7 @@ integrationDescribe('artifact processing worker runtime', () => {
     const handler: ArtifactHandler = {
       parserKey: 'test-runtime-parser',
       async process(input) {
+        handlerCalls += 1;
         expect(input.body.equals(body)).toBe(true);
         expect(input.artifact.id).toBe(inserted.artifact.id);
         expect(input.artifact.sha256).toBe(sha256);
@@ -99,11 +106,13 @@ integrationDescribe('artifact processing worker runtime', () => {
     const processor = new DispatchingArtifactProcessor(lookup, reader, [handler]);
     const worker = createArtifactProcessingWorker(redis, registry, processor);
     const queue = new BullMqArtifactProcessingQueue(redis);
-    const dispatcher = new ArtifactOutboxDispatcher(registry, queue, { batchSize: 20 });
 
     try {
-      const dispatchResult = await dispatcher.runOnce();
-      expect(dispatchResult.enqueued).toBeGreaterThanOrEqual(1);
+      await queue.enqueue({
+        sourceId,
+        artifactId: inserted.artifact.id,
+        parserKey: 'test-runtime-parser',
+      });
       await Promise.race([
         handlerCalled,
         new Promise<never>((_, reject) =>
@@ -142,19 +151,17 @@ integrationDescribe('artifact processing worker runtime', () => {
         health_status: 'HEALTHY',
       });
 
-      await queue.enqueue({
-        sourceId,
-        artifactId: inserted.artifact.id,
-        parserKey: 'test-runtime-parser',
+      await expect(
+        processor.process({
+          sourceId,
+          artifactId: inserted.artifact.id,
+          parserKey: 'test-runtime-parser',
+        }),
+      ).resolves.toMatchObject({
+        outcome: 'PUBLISHED',
+        metadata: { replaySkipped: true },
       });
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const replay = await pool.query<{ count: string }>(
-        `SELECT count(*)::text AS count
-         FROM source_processing_attempts
-         WHERE artifact_id = $1 AND outcome = 'PUBLISHED'`,
-        [inserted.artifact.id],
-      );
-      expect(Number(replay.rows[0]?.count ?? 0)).toBeGreaterThanOrEqual(1);
+      expect(handlerCalls).toBe(1);
     } finally {
       await worker.close();
       await queue.close();
