@@ -68,7 +68,7 @@ function parseBobolice(input: HtmlArtifactInput, text: string): NormalizedFacili
   requireText(text, /Poniedziałek\s*:?\s*10[:.]30\s*[–—-]\s*16[:.]30/i, input.sourceKey, 'Monday opening hours missing');
   requireText(text, /Środa\s*:?\s*10[:.]30\s*[–—-]\s*16[:.]30/i, input.sourceKey, 'Wednesday opening hours missing');
   requireText(text, /Sobota\s*:?\s*8[:.]30\s*[–—-]\s*14[:.]30/i, input.sourceKey, 'Saturday opening hours missing');
-  requireText(text, /właścicieli nieruchomości zamieszkałych/i, input.sourceKey, 'access scope statement missing');
+  requireText(text, /właściciel(?:e|i).*nieruchomości zamieszkałych/i, input.sourceKey, 'access scope statement missing');
 
   return {
     schemaVersion: '0.2.0',
