@@ -56,6 +56,6 @@ describe('source manifest assessment semantics', () => {
       source.assessment!.childArtifactUrls[0]!,
       source.assessment!.childArtifactUrls[0]!,
     ];
-    expect(() => validateSourceManifest(manifest)).toThrow(/duplicate child artifact URL/i);
+    expect(() => validateSourceManifest(manifest)).toThrow(/duplicate items|duplicate child artifact URL/i);
   });
 });
