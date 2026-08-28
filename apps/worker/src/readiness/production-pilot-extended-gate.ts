@@ -26,6 +26,11 @@ interface SourceRow extends QueryResultRow {
 
 interface CountRow extends QueryResultRow { count: string }
 
+interface AccessStateRow extends QueryResultRow {
+  access_source_artifact_id: string | null;
+  access_rules: Record<string, unknown>;
+}
+
 function gateDatabaseUrl(): string {
   if (process.env.PRODUCTION_GATE_DATABASE_URL) return process.env.PRODUCTION_GATE_DATABASE_URL;
   const base = new URL(
@@ -140,12 +145,39 @@ async function main(): Promise<void> {
       throw new Error('Facility companion change did not preserve new artifact provenance assertion history');
     }
 
-    const faqProvenance = await pool.query<{ access_source_artifact_id: string | null } & QueryResultRow>(
-      `SELECT access_source_artifact_id
+    // The main page is deliberately the source of the aggregate access policy
+    // (scope/proof). FAQ owns accepted-material and quantity-limit claims, so a
+    // changed FAQ must create a new bound assertion without stealing the main
+    // page's aggregate access_source_artifact_id.
+    const changedFaqAssertionCount = await scalarCount(
+      pool,
+      `SELECT count(*)::text AS count
+       FROM facility_source_assertions a
+       JOIN facilities f ON f.id = a.facility_id
+       WHERE f.canonical_key = 'pl-3261011-pszok-komunalna-5'
+         AND a.source_artifact_id = $1
+         AND a.source_key = 'koszalin-pszok-faq'
+         AND a.reconciliation_state = 'CANONICAL'`,
+      [changed.artifactId],
+    );
+    if (changedFaqAssertionCount !== 1) {
+      throw new Error(`Changed FAQ artifact expected one canonical FAQ assertion, got ${changedFaqAssertionCount}`);
+    }
+
+    const accessState = await pool.query<AccessStateRow>(
+      `SELECT access_source_artifact_id, access_rules
        FROM facilities WHERE canonical_key = 'pl-3261011-pszok-komunalna-5' LIMIT 1`,
     );
-    if (faqProvenance.rows[0]?.access_source_artifact_id !== changed.artifactId) {
-      throw new Error('Changed FAQ artifact did not become canonical access provenance for Komunalna 5');
+    const access = accessState.rows[0];
+    if (!access?.access_source_artifact_id) throw new Error('Komunalna 5 aggregate access provenance missing');
+    if (access.access_source_artifact_id === changed.artifactId) {
+      throw new Error('FAQ artifact incorrectly replaced main-page aggregate access provenance');
+    }
+    const limits = Array.isArray(access.access_rules?.quantityLimits)
+      ? access.access_rules.quantityLimits as Array<Record<string, unknown>>
+      : [];
+    if (limits.length !== 2 || limits.some((limit) => limit.sourceKey !== 'pgk-koszalin-pszok-faq')) {
+      throw new Error(`Canonical quantity limits lost FAQ claim attribution: ${JSON.stringify(limits)}`);
     }
 
     const duplicateCurrentEvents = await scalarCount(
@@ -228,7 +260,9 @@ async function main(): Promise<void> {
       canonicalFacilityCountStable: true,
       assertionsBefore,
       assertionsAfter,
-      canonicalAccessProvenanceUpdated: true,
+      changedFaqCanonicalAssertionCount: changedFaqAssertionCount,
+      aggregateAccessProvenanceRemainedMain: true,
+      quantityLimitClaimAttribution: 'pgk-koszalin-pszok-faq',
     };
     report.duplicateChecks = {
       duplicateCurrentCollectionEvents: duplicateCurrentEvents,
