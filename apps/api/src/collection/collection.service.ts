@@ -16,6 +16,10 @@ interface EventRow extends QueryResultRow {
 }
 
 interface ProvenanceRow extends QueryResultRow {
+  artifact_id: string;
+  sha256: string;
+  parser_key: string | null;
+  parser_version: string | null;
   source_url: string;
   source_format: string;
   verification_status: 'VERIFIED' | 'OFFICIAL_SOURCE' | 'UNVERIFIED' | 'REVIEW_REQUIRED';
@@ -38,6 +42,10 @@ export interface CollectionScheduleResponse {
   source: {
     url: string;
     format: string;
+    artifactId: string;
+    sha256: string;
+    parserKey: string | null;
+    parserVersion: string | null;
   };
   quality: {
     verificationStatus: 'VERIFIED' | 'OFFICIAL_SOURCE' | 'UNVERIFIED' | 'REVIEW_REQUIRED';
@@ -157,6 +165,10 @@ export class CollectionService {
 
     const provenanceResult = await this.database.pool.query<ProvenanceRow>(
       `SELECT
+         art.id AS artifact_id,
+         art.sha256,
+         COALESCE(art.parser_key, s.parser_key) AS parser_key,
+         art.parser_version,
          s.source_url,
          s.source_format,
          ce.verification_status,
@@ -197,6 +209,10 @@ export class CollectionService {
       source: {
         url: provenance.source_url,
         format: provenance.source_format,
+        artifactId: provenance.artifact_id,
+        sha256: provenance.sha256,
+        parserKey: provenance.parser_key,
+        parserVersion: provenance.parser_version,
       },
       quality: {
         verificationStatus: provenance.verification_status,
