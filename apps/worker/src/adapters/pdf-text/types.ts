@@ -19,6 +19,7 @@ export interface NormalizedQuality {
 export interface CoverageRule {
   type: 'MUNICIPALITY' | 'LOCALITY' | 'STREET' | 'NUMBER_RANGE' | 'EXPLICIT_NUMBERS' | 'EXPLICIT_ADDRESS' | 'EXCLUDE';
   priority: number;
+  simc?: string | null;
   explicitAddress?: string;
 }
 
