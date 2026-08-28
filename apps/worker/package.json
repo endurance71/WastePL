@@ -12,6 +12,7 @@
     "readiness:2026.1": "tsx src/readiness/pilot-readiness.ts",
     "readiness:2026.2": "tsx src/readiness/pilot-readiness-2026.2.ts",
     "readiness:production-runtime": "tsx src/readiness/production-pilot-gate.ts",
+    "readiness:production-extended": "tsx src/readiness/production-pilot-extended-gate.ts",
     "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"
   },
   "dependencies": {
