@@ -148,6 +148,7 @@ export class CollectionService {
          status
        FROM collection_events
        WHERE service_area_id = $1
+         AND valid_to IS NULL
          AND collection_date >= $2::date
          AND collection_date < $3::date
        ORDER BY collection_date, fraction_code, id`,
@@ -165,6 +166,7 @@ export class CollectionService {
        JOIN source_artifacts art ON art.id = ce.source_artifact_id
        JOIN sources s ON s.id = art.source_id
        WHERE ce.service_area_id = $1
+         AND ce.valid_to IS NULL
        ORDER BY art.retrieved_at DESC, ce.collection_date DESC, ce.id
        LIMIT 1`,
       [resolution.serviceArea.id],
