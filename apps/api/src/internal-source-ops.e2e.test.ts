@@ -15,8 +15,12 @@ integrationDescribe('internal source-ops API', () => {
   let app: NestFastifyApplication;
   let sourceId: string;
   let artifactId: string;
+  const coverageSourceIds: string[] = [];
   const sourceKey = `source-ops-e2e-${Date.now()}`;
   const sourceUrl = `https://example.invalid/wastepl/${sourceKey}`;
+  const coveragePrefix = `source-ops-coverage-${Date.now()}`;
+  const oldManifest = 'source-ops-e2e@2099.1';
+  const latestManifest = 'source-ops-e2e@2099.10';
   const secretStorageUri = 's3://do-not-expose-bucket/private/source-object';
   const secretRawError = 'SECRET upstream body contained credentials-like diagnostic text';
 
@@ -49,6 +53,34 @@ integrationDescribe('internal source-ops API', () => {
       [municipalityId, sourceUrl, sourceKey, secretRawError],
     );
     sourceId = source.rows[0]!.id;
+
+    const coverageSources = await pool.query<{ id: string }>(
+      `INSERT INTO sources (
+         municipality_id, owner_type, owner_name, source_url, source_format,
+         parser_key, poll_interval_minutes, active, source_key, data_type,
+         manifest_status, manifest_version, health_status, consecutive_failures,
+         last_checked_at, next_check_at
+       ) VALUES
+         ($1, 'MUNICIPALITY', 'Coverage old active', $2, 'HTML', 'coverage-e2e-parser', 1440,
+          true, $3, 'ALERTS', 'ACTIVE', $4, 'HEALTHY', 0, now(), now() + interval '1 day'),
+         ($1, 'MUNICIPALITY', 'Coverage latest active', $5, 'HTML', 'coverage-e2e-parser', 1440,
+          true, $6, 'ALERTS', 'ACTIVE', $7, 'HEALTHY', 0, now(), now() + interval '1 day'),
+         ($1, 'MUNICIPALITY', 'Coverage latest planned', $8, 'HTML', NULL, 1440,
+          false, $9, 'ALERTS', 'PLANNED', $7, 'UNKNOWN', 0, NULL, NULL)
+       RETURNING id`,
+      [
+        municipalityId,
+        `https://example.invalid/wastepl/${coveragePrefix}-old-active`,
+        `${coveragePrefix}-old-active`,
+        oldManifest,
+        `https://example.invalid/wastepl/${coveragePrefix}-latest-active`,
+        `${coveragePrefix}-latest-active`,
+        latestManifest,
+        `https://example.invalid/wastepl/${coveragePrefix}-latest-planned`,
+        `${coveragePrefix}-latest-planned`,
+      ],
+    );
+    coverageSourceIds.push(...coverageSources.rows.map((row) => row.id));
 
     const artifact = await pool.query<{ id: string }>(
       `INSERT INTO source_artifacts (
@@ -87,6 +119,9 @@ integrationDescribe('internal source-ops API', () => {
       await pool.query('DELETE FROM artifact_processing_outbox WHERE source_id = $1', [sourceId]);
       await pool.query('DELETE FROM source_artifacts WHERE source_id = $1', [sourceId]);
       await pool.query('DELETE FROM sources WHERE id = $1', [sourceId]);
+      if (coverageSourceIds.length > 0) {
+        await pool.query('DELETE FROM sources WHERE id = ANY($1::uuid[])', [coverageSourceIds]);
+      }
       await pool.end();
     }
     delete process.env.WASTEPL_ADMIN_API_KEY;
@@ -151,7 +186,7 @@ integrationDescribe('internal source-ops API', () => {
     expect(response.body).not.toContain('storage_uri');
   });
 
-  it('keeps PLANNED sources distinct and defaults coverage to the latest manifest version', async () => {
+  it('keeps PLANNED sources distinct and defaults coverage to the naturally latest manifest version', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/internal/v1/source-ops/coverage',
@@ -159,42 +194,39 @@ integrationDescribe('internal source-ops API', () => {
     });
     expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
-    expect(body.manifestVersion).toBe('pilot-koszalin-region@2026.2');
-
-    const koszalinCollection = body.rows.find(
-      (row: { terc: string; dataType: string }) =>
-        row.terc === '3261011' && row.dataType === 'COLLECTION_SCHEDULE',
-    );
-    expect(koszalinCollection).toMatchObject({
+    expect(body.manifestVersion).toBe(latestManifest);
+    expect(body.rows).toHaveLength(1);
+    expect(body.rows[0]).toMatchObject({
       terc: '3261011',
       municipalityName: 'Koszalin',
-      dataType: 'COLLECTION_SCHEDULE',
+      dataType: 'ALERTS',
       activeEntries: 1,
-      schedulableEntries: 1,
-    });
-
-    const boboliceCollection = body.rows.find(
-      (row: { terc: string; dataType: string }) =>
-        row.terc === '3209033' && row.dataType === 'COLLECTION_SCHEDULE',
-    );
-    expect(boboliceCollection).toMatchObject({
-      activeEntries: 0,
       plannedEntries: 1,
-      schedulableEntries: 0,
+      schedulableEntries: 1,
+      healthyEntries: 1,
+      failingEntries: 0,
+      staleEntries: 0,
     });
   });
 
-  it('supports explicit historical manifest coverage without mixing versions', async () => {
+  it('supports an explicit older manifest without mixing newer rows', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/internal/v1/source-ops/coverage?manifestVersion=pilot-koszalin-region@2026.1',
+      url: `/internal/v1/source-ops/coverage?manifestVersion=${oldManifest}`,
       headers,
     });
     expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
-    expect(body.manifestVersion).toBe('pilot-koszalin-region@2026.1');
-    expect(body.rows.length).toBeGreaterThan(0);
-    expect(body.rows.every((row: { terc: string }) => /^\d{7}$/.test(row.terc))).toBe(true);
+    expect(body.manifestVersion).toBe(oldManifest);
+    expect(body.rows).toHaveLength(1);
+    expect(body.rows[0]).toMatchObject({
+      terc: '3261011',
+      dataType: 'ALERTS',
+      activeEntries: 1,
+      plannedEntries: 0,
+      schedulableEntries: 1,
+      healthyEntries: 1,
+    });
   });
 
   it('summarizes source health, processing and review queues in one request', async () => {
@@ -241,5 +273,13 @@ integrationDescribe('internal source-ops API', () => {
     });
     expect(invalidStale.statusCode).toBe(400);
     expect(invalidStale.json()).toMatchObject({ code: 'INVALID_BOOLEAN' });
+
+    const invalidManifest = await app.inject({
+      method: 'GET',
+      url: '/internal/v1/source-ops/coverage?manifestVersion=not-a-version',
+      headers,
+    });
+    expect(invalidManifest.statusCode).toBe(400);
+    expect(invalidManifest.json()).toMatchObject({ code: 'INVALID_MANIFEST_VERSION' });
   });
 });
