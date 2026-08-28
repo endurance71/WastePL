@@ -15,6 +15,7 @@ import type {
   ArtifactHandlerInput,
 } from '../ingestion/dispatching-artifact-processor.js';
 import { PgBundleAwareSourceRegistry } from '../ingestion/bundle-aware-source-registry.js';
+import type { SourceProcessingStateUpdate } from '../ingestion/types.js';
 
 interface BundleSourceRow extends QueryResultRow {
   id: string;
@@ -41,6 +42,16 @@ interface BundleMember {
   source: BundleSourceRow;
   artifact: BundleArtifactRow;
   body: Buffer;
+}
+
+interface PszokBundleOrchestrator {
+  ingest(
+    input: Parameters<PgkKoszalinPszokIngestionOrchestrator['ingest']>[0],
+  ): ReturnType<PgkKoszalinPszokIngestionOrchestrator['ingest']>;
+}
+
+interface BundleStateRegistry {
+  markSourceProcessingState(update: SourceProcessingStateUpdate): Promise<void>;
 }
 
 function requiredRoles(value: unknown): string[] {
@@ -71,15 +82,17 @@ function artifactRow(input: ArtifactHandlerInput): BundleArtifactRow {
 
 export class PgkKoszalinPszokBundleArtifactHandler implements ArtifactHandler {
   readonly parserKey = 'pgk-koszalin-pszok-html';
-  private readonly registry: PgBundleAwareSourceRegistry;
-  private readonly orchestrator: PgkKoszalinPszokIngestionOrchestrator;
+  private readonly registry: BundleStateRegistry;
+  private readonly orchestrator: PszokBundleOrchestrator;
 
   constructor(
     private readonly pool: Pool,
     private readonly reader: ArtifactReader,
+    orchestrator?: PszokBundleOrchestrator,
+    registry?: BundleStateRegistry,
   ) {
-    this.registry = new PgBundleAwareSourceRegistry(pool);
-    this.orchestrator = new PgkKoszalinPszokIngestionOrchestrator(pool);
+    this.registry = registry ?? new PgBundleAwareSourceRegistry(pool);
+    this.orchestrator = orchestrator ?? new PgkKoszalinPszokIngestionOrchestrator(pool);
   }
 
   async process(input: ArtifactHandlerInput): Promise<ArtifactProcessorResult> {
