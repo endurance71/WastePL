@@ -1,10 +1,10 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-28, commit `7d4897ad8536ab8fda8fc88580c5bb2ae574307b` (PR `#59`, pełny CI run `33182354045`, run #104).
+> Zweryfikowano: 2026-08-28, commit `6cf403ae9df025fec1d824879f993b0bf16cadaf` (PR `#59`, pełny CI run `33184860676`, run #106; merge `138ff721c6232cdd89c5c4e97321829dbbeda826`).
 
 ## Etap
 
-Sprinty 01–03 są ukończone. W Sprincie 04 dostarczono runtime przetwarzania artefaktów (S04-01), automatyczne transakcyjne publikowanie harmonogramów z historią wersji i publicznym provenance (S04-02), deterministyczną koordynację wieloartefaktowych źródeł facilities (S04-03), drugą falę źródeł z wersjonowanym manifestem `pilot-koszalin-region@2026.2` oraz fixture-independent pilot production gate `#45`.
+Sprinty 01–03 są ukończone. W Sprincie 04 dostarczono runtime przetwarzania artefaktów (S04-01), automatyczne transakcyjne publikowanie harmonogramów z historią wersji i publicznym provenance (S04-02), deterministyczną koordynację wieloartefaktowych źródeł facilities (S04-03), drugą falę źródeł z wersjonowanym manifestem `pilot-koszalin-region@2026.2` oraz fixture-independent pilot production gate `#45`. PR `#59` został scalony do `main`, a issue `#45` zamknęło się automatycznie.
 
 Production handlery `pgk-koszalin-pdf-text`, `pgk-koszalin-pszok-html` i `municipal-pszok-html` są zarejestrowane w artifact runtime. Surowe źródła `PDF_TEXT` przechodzą przez ekstrakcję tekstu z raw PDF przed deterministycznym adapterem. Fixture-independent gate potwierdza, że testowany zakres pilota można odbudować na osobnej czystej bazie przez rzeczywistą ścieżkę runtime bez preseedowanych canonical collection/facility rows. `ARTIFACT_PROCESSING_ENABLED` pozostaje domyślnie opt-in do czasu osobnej decyzji deployment/staging; przejście gate nie jest równoznaczne z uruchomieniem zewnętrznego pilota.
 
@@ -54,7 +54,7 @@ Gate uruchamia osobną bazę `wastepl_production_gate` i stosuje structural migr
 
 `reference import → manifest 2026.2 → source fixtures → immutable artifacts → durable outbox → BullMQ workers → production parser handlers → canonical publish/review → consumer API`.
 
-Pełny CI run `33182354045` potwierdził:
+Pełny CI run `33184860676` potwierdził:
 
 - wszystkie 6 źródeł `ACTIVE` zostało pobranych i przetworzonych przez rzeczywisty artifact runtime;
 - raw PDF harmonogramów jest parsowany przez warstwę ekstrakcji PDF, a nie traktowany jako gotowy UTF-8 fixture;
@@ -68,7 +68,7 @@ Pełny CI run `33182354045` potwierdził:
 - consumer API na runtime-produced danych osiąga `30/30` collection i `8/8` facilities;
 - smoke test `/v1/health` przechodzi po pełnym gate.
 
-Raport `production-pilot-readiness-report.json` jest archiwizowany przez CI również w przypadku failure. Zielony run #104 zarchiwizował artifact `production-pilot-readiness-report` (artifact ID `9690282397`).
+Raport `production-pilot-readiness-report.json` został zarchiwizowany w runie #106 jako artifact `9691292505` (`sha256:92bda71c260b32e49a7031c78a41cdc71da656fcff4bc0093edff8f82c79665f`).
 
 PASS oznacza fixture-independent runtime readiness wyłącznie dla testowanego zakresu. Nie oznacza kompletnego pokrycia ośmiu gmin ani gotowości ogólnopolskiej.
 
@@ -80,7 +80,7 @@ Szczegółowy assessment znajduje się w [pilot-source-wave-2-assessment.md](res
 
 ## CI i bramki
 
-Pełny run CI `33182354045` dla PR `#59` przeszedł wszystkie etapy:
+Pełny run CI `33184860676` dla finalnego headu PR `#59` przeszedł wszystkie etapy:
 
 - documentation check i contracts;
 - migracje `0001–0016` na zwykłej bazie testowej;
@@ -111,16 +111,15 @@ Golden gates potwierdzają stabilność znanego zestawu regresyjnego i rzeczywis
 
 ## Porządek backlogu
 
-Nakładające się zadania `#40–#43` zostały zamknięte jako duplikaty po przeniesieniu kryteriów do kanonicznych `#46–#49`. Rollout źródeł `2026.2` został scalony wcześniej. `#45` ma kompletną implementację i zielony fixture-independent gate w PR `#59`.
+Nakładające się zadania `#40–#43` zostały zamknięte jako duplikaty po przeniesieniu kryteriów do kanonicznych `#46–#49`. Rollout źródeł `2026.2` został scalony wcześniej. `#45` jest ukończone i zamknięte po merge PR `#59`.
 
 ## Następne kroki
 
-1. Scalić PR `#59` po finalnym doc-inclusive CI i zamknąć `#45`.
-2. Uruchomić osobny staging/live-source soak dla sześciu aktywnych źródeł, bez przenoszenia zależności od stron JST do deterministycznego CI.
-3. Rozszerzyć realne harmonogramy kolejnych gmin, zaczynając od najlepiej udokumentowanych Tychowo/Będzino, przy jednoczesnym pomiarze czasu onboardingu, reuse adapterów i manual-review rate.
-4. Rozszerzyć walidację do minimum 100 realnych adresów w pilocie.
-5. Dostarczyć source-ops/coverage API `#50`.
-6. Dopiero po tych krokach rozwijać consumer PWA `#51`.
+1. Uruchomić osobny staging/live-source soak dla sześciu aktywnych źródeł, bez przenoszenia zależności od stron JST do deterministycznego CI.
+2. Rozszerzyć realne harmonogramy kolejnych gmin, zaczynając od najlepiej udokumentowanych Tychowo/Będzino, przy jednoczesnym pomiarze czasu onboardingu, reuse adapterów i manual-review rate.
+3. Rozszerzyć walidację do minimum 100 realnych adresów w pilocie.
+4. Dostarczyć source-ops/coverage API `#50`.
+5. Dopiero po tych krokach rozwijać consumer PWA `#51`.
 
 ## Import referencyjny PRG/TERYT
 
