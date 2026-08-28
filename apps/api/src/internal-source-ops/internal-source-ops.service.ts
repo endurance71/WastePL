@@ -115,6 +115,26 @@ function dbDate(value: string | Date | null): string | null {
   return value.toISOString().slice(0, 10);
 }
 
+function compareManifestVersions(left: string, right: string): number {
+  const pattern = /^(.*)@(\d+(?:\.\d+)*)$/;
+  const leftMatch = pattern.exec(left);
+  const rightMatch = pattern.exec(right);
+  if (!leftMatch || !rightMatch) return left.localeCompare(right);
+
+  const prefixCompare = leftMatch[1]!.localeCompare(rightMatch[1]!);
+  if (prefixCompare !== 0) return prefixCompare;
+
+  const leftParts = leftMatch[2]!.split('.').map(Number);
+  const rightParts = rightMatch[2]!.split('.').map(Number);
+  const length = Math.max(leftParts.length, rightParts.length);
+  for (let index = 0; index < length; index += 1) {
+    const leftPart = leftParts[index] ?? 0;
+    const rightPart = rightParts[index] ?? 0;
+    if (leftPart !== rightPart) return leftPart - rightPart;
+  }
+  return 0;
+}
+
 function mapSource(row: SourceOpsRow) {
   return {
     id: row.id,
@@ -363,12 +383,11 @@ export class InternalSourceOpsService {
 
   private async latestManifestVersion(): Promise<string | null> {
     const result = await this.db.pool.query<{ manifest_version: string } & QueryResultRow>(
-      `SELECT manifest_version
+      `SELECT DISTINCT manifest_version
        FROM sources
-       WHERE manifest_version IS NOT NULL
-       ORDER BY manifest_version DESC
-       LIMIT 1`,
+       WHERE manifest_version IS NOT NULL`,
     );
-    return result.rows[0]?.manifest_version ?? null;
+    const versions = result.rows.map((row) => row.manifest_version).sort(compareManifestVersions);
+    return versions.at(-1) ?? null;
   }
 }
