@@ -12,6 +12,7 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "db:migrate": "node scripts/migrate.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
     "contracts:check": "node scripts/check-contracts.mjs",
     "pilot:readiness": "pnpm --filter @wastepl/worker readiness",
     "infra:up": "docker compose up -d --wait",
