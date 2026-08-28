@@ -66,6 +66,78 @@ paths:
         '200': { description: Decision committed transactionally and audited }
         '400': { description: Invalid decision/evidence }
         '409': { description: Review already resolved }
+  /internal/v1/source-ops/sources:
+    get:
+      operationId: listInternalSourceOps
+      x-wastepl-internal: true
+      description: List registry sources with safe operational health, latest immutable artifact metadata and latest processing outcome. Storage URIs, credentials and raw error messages are never returned.
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+        - in: query
+          name: terc
+          schema: { type: string, pattern: '^\d{7}$' }
+        - in: query
+          name: dataType
+          schema: { $ref: '#/components/schemas/SourceDataType' }
+        - in: query
+          name: manifestStatus
+          schema: { $ref: '#/components/schemas/ManifestStatus' }
+        - in: query
+          name: healthStatus
+          schema: { $ref: '#/components/schemas/SourceHealthStatus' }
+        - in: query
+          name: sourceKey
+          schema: { type: string, pattern: '^[a-z0-9][a-z0-9-]{1,127}$' }
+        - in: query
+          name: stale
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Deterministically ordered source operational state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceOpsListResponse'
+        '400': { description: Invalid filter or pagination }
+        '401': { description: Admin authentication required }
+  /internal/v1/source-ops/coverage:
+    get:
+      operationId: getInternalPilotCoverage
+      x-wastepl-internal: true
+      description: Municipality/data-type manifest coverage for one version. If omitted, the latest registry manifest version is used.
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+        - in: query
+          name: manifestVersion
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9-]+@[0-9]{4}(?:\.[0-9]+)+$'
+      responses:
+        '200':
+          description: ACTIVE, PLANNED, schedulable, healthy, failing and stale coverage counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverageResponse'
+        '400': { description: Invalid manifest version }
+        '401': { description: Admin authentication required }
+  /internal/v1/source-ops/summary:
+    get:
+      operationId: getInternalSourceOpsSummary
+      x-wastepl-internal: true
+      description: Compact pilot operations summary across source health, outbox processing and pending review queues.
+      parameters:
+        - $ref: '#/components/parameters/ActorHeader'
+      responses:
+        '200':
+          description: Safe aggregate operations summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceOpsSummary'
+        '401': { description: Admin authentication required }
 components:
   securitySchemes:
     WastePLAdminKey:
@@ -88,3 +160,158 @@ components:
       name: id
       required: true
       schema: { type: string, format: uuid }
+    Limit:
+      in: query
+      name: limit
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    Offset:
+      in: query
+      name: offset
+      schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
+  schemas:
+    SourceDataType:
+      type: string
+      enum: [COLLECTION_SCHEDULE, PSZOK, ALERTS, OTHER]
+    ManifestStatus:
+      type: [string, 'null']
+      enum: [ACTIVE, PLANNED, null]
+    SourceHealthStatus:
+      type: string
+      enum: [UNKNOWN, FETCHED, HEALTHY, UNCHANGED, FETCH_FAILED, PARSE_FAILED, REVIEW_REQUIRED, WAITING_FOR_COMPANION]
+    MunicipalityRef:
+      type: [object, 'null']
+      properties:
+        terc: { type: string, pattern: '^\d{7}$' }
+        name: { type: [string, 'null'] }
+    LatestArtifact:
+      type: [object, 'null']
+      description: Safe immutable artifact metadata. storage_uri is intentionally absent.
+      properties:
+        id: { type: string, format: uuid }
+        sha256: { type: [string, 'null'], pattern: '^[0-9a-f]{64}$' }
+        status: { type: [string, 'null'] }
+        parserKey: { type: [string, 'null'] }
+        parserVersion: { type: [string, 'null'] }
+        retrievedAt: { type: [string, 'null'], format: date-time }
+        publishedAt: { type: [string, 'null'], format: date-time }
+    LatestProcessing:
+      type: [object, 'null']
+      description: Safe processing result. Raw internal error messages are intentionally absent.
+      properties:
+        outcome: { type: string, enum: [PUBLISHED, REVIEW_REQUIRED, WAITING_FOR_COMPANION, PARSE_FAILED] }
+        parserKey: { type: [string, 'null'] }
+        errorCode: { type: [string, 'null'] }
+        completedAt: { type: [string, 'null'], format: date-time }
+    SourceOpsItem:
+      type: object
+      required: [id, sourceKey, municipality, dataType, manifest, source, health, latestArtifact, latestProcessing]
+      properties:
+        id: { type: string, format: uuid }
+        sourceKey: { type: [string, 'null'] }
+        municipality: { $ref: '#/components/schemas/MunicipalityRef' }
+        dataType:
+          anyOf:
+            - $ref: '#/components/schemas/SourceDataType'
+            - type: 'null'
+        manifest:
+          type: object
+          properties:
+            status: { $ref: '#/components/schemas/ManifestStatus' }
+            version: { type: [string, 'null'] }
+            activeFrom: { type: [string, 'null'], format: date }
+            activeTo: { type: [string, 'null'], format: date }
+            schedulable: { type: boolean }
+        source:
+          type: object
+          description: Public source metadata only; never storage credentials.
+          properties:
+            url: { type: string, format: uri }
+            format: { type: string }
+            ownerType: { type: string }
+            ownerName: { type: [string, 'null'] }
+            parserKey: { type: [string, 'null'] }
+            pollIntervalMinutes: { type: integer, minimum: 1 }
+            assessment:
+              type: object
+              properties:
+                shape: { type: [string, 'null'] }
+                evidenceStatus: { type: [string, 'null'] }
+                activationBlocker: { type: [string, 'null'] }
+                assessedAt: { type: [string, 'null'], format: date-time }
+            bundle:
+              type: [object, 'null']
+              properties:
+                key: { type: string }
+                role: { type: [string, 'null'] }
+                requiredRoles: { type: array, items: { type: string } }
+                freshnessMinutes: { type: [integer, 'null'] }
+        health:
+          type: object
+          required: [status, stale, consecutiveFailures, lastCheckedAt, nextPollAt, lastSuccessAt, lastFailureAt, lastErrorCode]
+          properties:
+            status: { $ref: '#/components/schemas/SourceHealthStatus' }
+            stale: { type: boolean }
+            consecutiveFailures: { type: integer, minimum: 0 }
+            lastCheckedAt: { type: [string, 'null'], format: date-time }
+            nextPollAt: { type: [string, 'null'], format: date-time }
+            lastSuccessAt: { type: [string, 'null'], format: date-time }
+            lastFailureAt: { type: [string, 'null'], format: date-time }
+            lastErrorCode: { type: [string, 'null'] }
+        latestArtifact: { $ref: '#/components/schemas/LatestArtifact' }
+        latestProcessing: { $ref: '#/components/schemas/LatestProcessing' }
+    SourceOpsListResponse:
+      type: object
+      required: [items, total, limit, offset]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/SourceOpsItem' } }
+        total: { type: integer, minimum: 0 }
+        limit: { type: integer, minimum: 1 }
+        offset: { type: integer, minimum: 0 }
+    CoverageRow:
+      type: object
+      required: [terc, municipalityName, dataType, activeEntries, plannedEntries, schedulableEntries, healthyEntries, failingEntries, staleEntries]
+      properties:
+        terc: { type: string, pattern: '^\d{7}$' }
+        municipalityName: { type: string }
+        dataType: { $ref: '#/components/schemas/SourceDataType' }
+        activeEntries: { type: integer, minimum: 0 }
+        plannedEntries: { type: integer, minimum: 0 }
+        schedulableEntries: { type: integer, minimum: 0 }
+        healthyEntries: { type: integer, minimum: 0 }
+        failingEntries: { type: integer, minimum: 0 }
+        staleEntries: { type: integer, minimum: 0 }
+    CoverageResponse:
+      type: object
+      required: [manifestVersion, rows]
+      properties:
+        manifestVersion: { type: [string, 'null'] }
+        rows: { type: array, items: { $ref: '#/components/schemas/CoverageRow' } }
+    SourceOpsSummary:
+      type: object
+      required: [generatedAt, sources, processing, reviews]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        sources:
+          type: object
+          required: [total, active, planned, healthy, failing, reviewRequired, waitingForCompanion, stale]
+          properties:
+            total: { type: integer, minimum: 0 }
+            active: { type: integer, minimum: 0 }
+            planned: { type: integer, minimum: 0 }
+            healthy: { type: integer, minimum: 0 }
+            failing: { type: integer, minimum: 0 }
+            reviewRequired: { type: integer, minimum: 0 }
+            waitingForCompanion: { type: integer, minimum: 0 }
+            stale: { type: integer, minimum: 0 }
+        processing:
+          type: object
+          required: [pendingOutbox, enqueuedWithoutTerminalAttempt]
+          properties:
+            pendingOutbox: { type: integer, minimum: 0 }
+            enqueuedWithoutTerminalAttempt: { type: integer, minimum: 0 }
+        reviews:
+          type: object
+          required: [reconciliationPending, dataQualityPending]
+          properties:
+            reconciliationPending: { type: integer, minimum: 0 }
+            dataQualityPending: { type: integer, minimum: 0 }
