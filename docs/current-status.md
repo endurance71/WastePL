@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-28, po merge `4abd83abbc276ea2921760b00aa91d191a9139f8` (`main`).
+> Zweryfikowano: 2026-08-28, commit `4abd83abbc276ea2921760b00aa91d191a9139f8` (`main`).
 
 ## Etap
 
