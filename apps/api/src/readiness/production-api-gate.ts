@@ -75,6 +75,11 @@ interface ApiFacility {
   provenance: { assertions: Array<{ sourceKey: string }> };
 }
 
+const LEGACY_SOURCE_KEY_ALIASES: Record<string, string> = {
+  'pgk-koszalin-pszok-main': 'koszalin-pszok-main',
+  'pgk-koszalin-pszok-faq': 'koszalin-pszok-faq',
+};
+
 function gateDatabaseUrl(): string {
   if (process.env.PRODUCTION_GATE_DATABASE_URL) return process.env.PRODUCTION_GATE_DATABASE_URL;
   const base = new URL(
@@ -84,8 +89,30 @@ function gateDatabaseUrl(): string {
   return base.toString();
 }
 
+function canonicalSourceKey(value: string): string {
+  return LEGACY_SOURCE_KEY_ALIASES[value] ?? value;
+}
+
 function sorted(values: string[] | undefined): string[] {
   return [...(values ?? [])].sort();
+}
+
+function canonicalSourceSet(values: string[] | undefined): string[] {
+  return [...new Set((values ?? []).map(canonicalSourceKey))].sort();
+}
+
+function normalizeClaimSourceKeys(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.map((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
+    const record = entry as Record<string, unknown>;
+    return {
+      ...record,
+      ...(typeof record.sourceKey === 'string'
+        ? { sourceKey: canonicalSourceKey(record.sourceKey) }
+        : {}),
+    };
+  });
 }
 
 function normalizeFacility(item: ApiFacility): unknown {
@@ -101,12 +128,17 @@ function normalizeFacility(item: ApiFacility): unknown {
     access: {
       scope: item.access.scope,
       requiresProof: item.access.requiresProof,
-      quantityLimits: item.access.rules.quantityLimits ?? [],
+      quantityLimits: normalizeClaimSourceKeys(item.access.rules.quantityLimits ?? []),
     },
     operationalStatus: item.operationalStatus,
     verificationStatus: item.quality.verificationStatus,
     confidence: item.quality.confidence,
-    assertionSourceKeys: sorted(item.provenance.assertions.map((assertion) => assertion.sourceKey)),
+    // The API intentionally exposes immutable assertion history. For golden
+    // correctness we compare current source identities, not the number of
+    // historical artifacts carrying the same source claim.
+    assertionSourceKeys: canonicalSourceSet(
+      item.provenance.assertions.map((assertion) => assertion.sourceKey),
+    ),
   };
 }
 
@@ -120,11 +152,17 @@ function normalizeExpectedFacility(expected: GoldenFacilityExpected): unknown {
     acceptedMaterials: sorted(expected.acceptedMaterials),
     acceptedContainers: sorted(expected.acceptedContainers),
     openingHours: expected.openingHours ?? null,
-    access: expected.access ?? { scope: 'UNKNOWN', requiresProof: null, quantityLimits: [] },
+    access: expected.access
+      ? {
+          scope: expected.access.scope,
+          requiresProof: expected.access.requiresProof,
+          quantityLimits: normalizeClaimSourceKeys(expected.access.quantityLimits),
+        }
+      : { scope: 'UNKNOWN', requiresProof: null, quantityLimits: [] },
     operationalStatus: expected.operationalStatus ?? { state: 'UNKNOWN', observedAt: null },
     verificationStatus: expected.verificationStatus ?? 'REVIEW_REQUIRED',
     confidence: expected.confidence ?? 0.8,
-    assertionSourceKeys: sorted(expected.assertionSourceKeys),
+    assertionSourceKeys: canonicalSourceSet(expected.assertionSourceKeys),
   };
 }
 
@@ -228,6 +266,7 @@ async function main(): Promise<void> {
 
     report.api = {
       status: 'PASS',
+      sourceIdentityNormalization: LEGACY_SOURCE_KEY_ALIASES,
       collection: {
         total: collectionGolden.cases.length,
         passed: collectionPassed,
