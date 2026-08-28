@@ -63,6 +63,7 @@ export interface SourceManifest {
 const SUPPORTED_PARSERS = new Map<string, ManifestSourceFormat>([
   ['pgk-koszalin-pdf-text', 'PDF_TEXT'],
   ['pgk-koszalin-pszok-html', 'HTML'],
+  ['municipal-pszok-html', 'HTML'],
 ]);
 
 const require = createRequire(import.meta.url);
