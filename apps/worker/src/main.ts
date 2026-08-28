@@ -3,6 +3,7 @@ import { Redis } from 'ioredis';
 import pg from 'pg';
 import { INGESTION_QUEUE } from '@wastepl/domain';
 import { PgkKoszalinCollectionArtifactHandler } from './collections/collection-artifact-handler.js';
+import { MunicipalCollectionArtifactHandler } from './collections/municipal-collection-artifact-handler.js';
 import { MunicipalPszokArtifactHandler } from './facilities/municipal-pszok-artifact-handler.js';
 import { PgkKoszalinPszokBundleArtifactHandler } from './facilities/pgk-koszalin-pszok-bundle-artifact-handler.js';
 import { createArtifactProcessingWorker } from './ingestion/artifact-processing.js';
@@ -73,6 +74,7 @@ export function createArtifactRuntimeProcessor(
   const reader = new MinioArtifactReader();
   const runtimeHandlers = handlers ?? [
     new PgkKoszalinCollectionArtifactHandler(pool),
+    new MunicipalCollectionArtifactHandler(pool),
     new PgkKoszalinPszokBundleArtifactHandler(pool, reader),
     new MunicipalPszokArtifactHandler(pool),
   ];
@@ -153,9 +155,9 @@ export async function bootstrapWorker(): Promise<void> {
   const artifactOutbox = new ArtifactOutboxDispatcher(registry, artifactQueue);
   const maintenanceLoop = startMaintenanceLoop(sourceScheduler, artifactOutbox);
 
-  // Collection publication, the PGK Koszalin multi-artifact PSZOK coordinator and
-  // explicitly profiled single-source municipal PSZOK handlers are registered.
-  // Processing remains opt-in until the fixture-independent production gate is green.
+  // Collection publication (PGK + explicitly profiled municipal PDF sources), the
+  // PGK Koszalin multi-artifact PSZOK coordinator and profiled municipal PSZOK
+  // handlers are registered. Processing remains deployment opt-in.
   const artifactProcessingEnabled = process.env.ARTIFACT_PROCESSING_ENABLED === 'true';
   const artifactWorker = artifactProcessingEnabled
     ? createArtifactProcessingWorker(
