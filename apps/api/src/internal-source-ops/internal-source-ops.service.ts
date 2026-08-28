@@ -261,11 +261,9 @@ export class InternalSourceOpsService {
   }
 
   async coverage(manifestVersion: string | null) {
-    const params: unknown[] = [];
-    let manifestWhere = `s.manifest_version IS NOT NULL`;
-    if (manifestVersion) {
-      params.push(manifestVersion);
-      manifestWhere = `s.manifest_version = $1`;
+    const resolvedManifestVersion = manifestVersion ?? await this.latestManifestVersion();
+    if (resolvedManifestVersion === null) {
+      return { manifestVersion: null, rows: [] };
     }
 
     const result = await this.db.pool.query<CoverageRow>(
@@ -281,16 +279,15 @@ export class InternalSourceOpsService {
          count(*) FILTER (WHERE ${STALE_SQL})::text AS stale_entries
        FROM sources s
        JOIN municipalities m ON m.id = s.municipality_id
-       WHERE ${manifestWhere}
+       WHERE s.manifest_version = $1
          AND s.data_type IS NOT NULL
        GROUP BY m.terc, m.name, s.data_type
        ORDER BY m.terc, s.data_type`,
-      params,
+      [resolvedManifestVersion],
     );
 
-    const latestVersion = manifestVersion ?? await this.latestManifestVersion();
     return {
-      manifestVersion: latestVersion,
+      manifestVersion: resolvedManifestVersion,
       rows: result.rows.map((row) => ({
         terc: row.terc,
         municipalityName: row.municipality_name,
@@ -369,7 +366,7 @@ export class InternalSourceOpsService {
       `SELECT manifest_version
        FROM sources
        WHERE manifest_version IS NOT NULL
-       ORDER BY assessed_at DESC NULLS LAST, manifest_version DESC
+       ORDER BY manifest_version DESC
        LIMIT 1`,
     );
     return result.rows[0]?.manifest_version ?? null;
