@@ -176,7 +176,7 @@ async function main(): Promise<void> {
     const limits = Array.isArray(access.access_rules?.quantityLimits)
       ? access.access_rules.quantityLimits as Array<Record<string, unknown>>
       : [];
-    if (limits.length !== 2 || limits.some((limit) => limit.sourceKey !== 'pgk-koszalin-pszok-faq')) {
+    if (limits.length !== 2 || limits.some((limit) => limit.sourceKey !== 'koszalin-pszok-faq')) {
       throw new Error(`Canonical quantity limits lost FAQ claim attribution: ${JSON.stringify(limits)}`);
     }
 
@@ -262,7 +262,7 @@ async function main(): Promise<void> {
       assertionsAfter,
       changedFaqCanonicalAssertionCount: changedFaqAssertionCount,
       aggregateAccessProvenanceRemainedMain: true,
-      quantityLimitClaimAttribution: 'pgk-koszalin-pszok-faq',
+      quantityLimitClaimAttribution: 'koszalin-pszok-faq',
     };
     report.duplicateChecks = {
       duplicateCurrentCollectionEvents: duplicateCurrentEvents,
