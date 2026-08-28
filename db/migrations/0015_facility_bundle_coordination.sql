@@ -25,16 +25,28 @@ CREATE INDEX IF NOT EXISTS idx_sources_bundle_key_role
   ON sources(municipality_id, bundle_key, bundle_role)
   WHERE bundle_key IS NOT NULL;
 
--- Existing pilot identities are made explicit without changing their URLs or UUIDs.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sources_bundle_role
+  ON sources(municipality_id, bundle_key, bundle_role)
+  WHERE bundle_key IS NOT NULL;
+
+-- Backfill stable manifest identities for the two known PGK Koszalin PSZOK sources.
+-- This keeps a clean migration-only database usable before the manifest sync runs,
+-- while the manifest remains the canonical declaration of the bundle relationship.
 UPDATE sources
-SET bundle_key = 'koszalin-pszok',
-    bundle_role = CASE source_key
-      WHEN 'koszalin-pszok-main' THEN 'main'
-      WHEN 'koszalin-pszok-faq' THEN 'faq'
-    END,
+SET source_key = COALESCE(source_key, 'koszalin-pszok-main'),
+    bundle_key = 'koszalin-pszok',
+    bundle_role = 'main',
     bundle_required_roles = '["main","faq"]'::jsonb,
     bundle_freshness_minutes = 2880
-WHERE source_key IN ('koszalin-pszok-main', 'koszalin-pszok-faq');
+WHERE source_url = 'https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-koszalin/';
+
+UPDATE sources
+SET source_key = COALESCE(source_key, 'koszalin-pszok-faq'),
+    bundle_key = 'koszalin-pszok',
+    bundle_role = 'faq',
+    bundle_required_roles = '["main","faq"]'::jsonb,
+    bundle_freshness_minutes = 2880
+WHERE source_url = 'https://www.pgkkoszalin.pl/najczesciej-zadawane-pytania-f-a-q/';
 
 ALTER TABLE sources DROP CONSTRAINT IF EXISTS sources_health_status_check;
 ALTER TABLE sources
