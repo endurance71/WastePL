@@ -1,5 +1,20 @@
 import type { VerificationStatus, WasteFractionCode } from '@wastepl/domain';
 
+export type NormalizedSourceOwnerType =
+  | 'MUNICIPALITY'
+  | 'MUNICIPAL_COMPANY'
+  | 'WASTE_OPERATOR'
+  | 'DEPOSIT_OPERATOR'
+  | 'OTHER_PUBLIC'
+  | 'OTHER';
+
+export type NormalizedMunicipalityType =
+  | 'URBAN'
+  | 'RURAL'
+  | 'URBAN_RURAL'
+  | 'DISTRICT_CITY'
+  | 'OTHER';
+
 export interface PdfTextArtifactInput {
   text: string;
   sourceKey: string;
@@ -7,6 +22,7 @@ export interface PdfTextArtifactInput {
   sha256: string;
   retrievedAt: string;
   storageUri: string | null;
+  ownerType?: NormalizedSourceOwnerType;
 }
 
 export interface NormalizedQuality {
@@ -43,7 +59,7 @@ export interface NormalizedCollectionEvent {
 export interface NormalizedSource {
   sourceKey: string;
   url: string;
-  ownerType: 'MUNICIPAL_COMPANY';
+  ownerType: NormalizedSourceOwnerType;
   format: 'PDF_TEXT';
   reuseBasis: string | null;
   artifact: {
@@ -61,7 +77,7 @@ export interface NormalizedDataset {
   municipality: {
     terc: string;
     name: string;
-    municipalityType: 'RURAL' | 'DISTRICT_CITY';
+    municipalityType: NormalizedMunicipalityType;
   };
   serviceAreas: NormalizedServiceArea[];
   collectionEvents: NormalizedCollectionEvent[];
