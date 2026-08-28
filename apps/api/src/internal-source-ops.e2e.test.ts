@@ -19,7 +19,7 @@ integrationDescribe('internal source-ops API', () => {
   const sourceKey = `source-ops-e2e-${Date.now()}`;
   const sourceUrl = `https://example.invalid/wastepl/${sourceKey}`;
   const coveragePrefix = `source-ops-coverage-${Date.now()}`;
-  const oldManifest = 'source-ops-e2e@2099.1';
+  const oldManifest = 'source-ops-e2e@2099.2';
   const latestManifest = 'source-ops-e2e@2099.10';
   const secretStorageUri = 's3://do-not-expose-bucket/private/source-object';
   const secretRawError = 'SECRET upstream body contained credentials-like diagnostic text';
@@ -128,18 +128,10 @@ integrationDescribe('internal source-ops API', () => {
   });
 
   it('requires the internal admin key and actor', async () => {
-    const missingKey = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/summary',
-      headers: { 'x-wastepl-actor': ACTOR },
-    });
+    const missingKey = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/summary', headers: { 'x-wastepl-actor': ACTOR } });
     expect(missingKey.statusCode).toBe(401);
 
-    const missingActor = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/summary',
-      headers: { 'x-wastepl-admin-key': ADMIN_KEY },
-    });
+    const missingActor = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/summary', headers: { 'x-wastepl-admin-key': ADMIN_KEY } });
     expect(missingActor.statusCode).toBe(400);
     expect(missingActor.json()).toMatchObject({ code: 'ACTOR_REQUIRED' });
   });
@@ -160,12 +152,7 @@ integrationDescribe('internal source-ops API', () => {
       municipality: { terc: '3261011', name: 'Koszalin' },
       dataType: 'OTHER',
       manifest: { status: 'ACTIVE', schedulable: true },
-      health: {
-        status: 'PARSE_FAILED',
-        stale: true,
-        consecutiveFailures: 3,
-        lastErrorCode: 'E2E_PARSE_FAILED',
-      },
+      health: { status: 'PARSE_FAILED', stale: true, consecutiveFailures: 3, lastErrorCode: 'E2E_PARSE_FAILED' },
       latestArtifact: {
         id: artifactId,
         sha256: 'd'.repeat(64),
@@ -173,11 +160,7 @@ integrationDescribe('internal source-ops API', () => {
         parserKey: 'source-ops-e2e-parser',
         parserVersion: '9.9.9',
       },
-      latestProcessing: {
-        outcome: 'PARSE_FAILED',
-        parserKey: 'source-ops-e2e-parser',
-        errorCode: 'E2E_PARSE_FAILED',
-      },
+      latestProcessing: { outcome: 'PARSE_FAILED', parserKey: 'source-ops-e2e-parser', errorCode: 'E2E_PARSE_FAILED' },
     });
 
     expect(response.body).not.toContain(secretStorageUri);
@@ -187,98 +170,51 @@ integrationDescribe('internal source-ops API', () => {
   });
 
   it('keeps PLANNED sources distinct and defaults coverage to the naturally latest manifest version', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/coverage',
-      headers,
-    });
+    const response = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/coverage', headers });
     expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
     expect(body.manifestVersion).toBe(latestManifest);
     expect(body.rows).toHaveLength(1);
     expect(body.rows[0]).toMatchObject({
-      terc: '3261011',
-      municipalityName: 'Koszalin',
-      dataType: 'ALERTS',
-      activeEntries: 1,
-      plannedEntries: 1,
-      schedulableEntries: 1,
-      healthyEntries: 1,
-      failingEntries: 0,
-      staleEntries: 0,
+      terc: '3261011', municipalityName: 'Koszalin', dataType: 'ALERTS',
+      activeEntries: 1, plannedEntries: 1, schedulableEntries: 1,
+      healthyEntries: 1, failingEntries: 0, staleEntries: 0,
     });
   });
 
   it('supports an explicit older manifest without mixing newer rows', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: `/internal/v1/source-ops/coverage?manifestVersion=${oldManifest}`,
-      headers,
-    });
+    const response = await app.inject({ method: 'GET', url: `/internal/v1/source-ops/coverage?manifestVersion=${oldManifest}`, headers });
     expect(response.statusCode, response.body).toBe(200);
     const body = response.json();
     expect(body.manifestVersion).toBe(oldManifest);
     expect(body.rows).toHaveLength(1);
     expect(body.rows[0]).toMatchObject({
-      terc: '3261011',
-      dataType: 'ALERTS',
-      activeEntries: 1,
-      plannedEntries: 0,
-      schedulableEntries: 1,
-      healthyEntries: 1,
+      terc: '3261011', dataType: 'ALERTS', activeEntries: 1, plannedEntries: 0, schedulableEntries: 1, healthyEntries: 1,
     });
   });
 
   it('summarizes source health, processing and review queues in one request', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/summary',
-      headers,
-    });
+    const response = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/summary', headers });
     expect(response.statusCode, response.body).toBe(200);
     expect(response.json()).toMatchObject({
-      sources: {
-        total: expect.any(Number),
-        active: expect.any(Number),
-        planned: expect.any(Number),
-        failing: expect.any(Number),
-        stale: expect.any(Number),
-      },
-      processing: {
-        pendingOutbox: expect.any(Number),
-        enqueuedWithoutTerminalAttempt: expect.any(Number),
-      },
-      reviews: {
-        reconciliationPending: expect.any(Number),
-        dataQualityPending: expect.any(Number),
-      },
+      sources: { total: expect.any(Number), active: expect.any(Number), planned: expect.any(Number), failing: expect.any(Number), stale: expect.any(Number) },
+      processing: { pendingOutbox: expect.any(Number), enqueuedWithoutTerminalAttempt: expect.any(Number) },
+      reviews: { reconciliationPending: expect.any(Number), dataQualityPending: expect.any(Number) },
     });
     expect(response.json().sources.failing).toBeGreaterThanOrEqual(1);
     expect(response.json().sources.stale).toBeGreaterThanOrEqual(1);
   });
 
   it('rejects invalid filters deterministically', async () => {
-    const invalidTerc = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/sources?terc=32610',
-      headers,
-    });
+    const invalidTerc = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/sources?terc=32610', headers });
     expect(invalidTerc.statusCode).toBe(400);
     expect(invalidTerc.json()).toMatchObject({ code: 'INVALID_TERC' });
 
-    const invalidStale = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/sources?stale=maybe',
-      headers,
-    });
+    const invalidStale = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/sources?stale=maybe', headers });
     expect(invalidStale.statusCode).toBe(400);
     expect(invalidStale.json()).toMatchObject({ code: 'INVALID_BOOLEAN' });
 
-    const invalidManifest = await app.inject({
-      method: 'GET',
-      url: '/internal/v1/source-ops/coverage?manifestVersion=not-a-version',
-      headers,
-    });
+    const invalidManifest = await app.inject({ method: 'GET', url: '/internal/v1/source-ops/coverage?manifestVersion=not-a-version', headers });
     expect(invalidManifest.statusCode).toBe(400);
     expect(invalidManifest.json()).toMatchObject({ code: 'INVALID_MANIFEST_VERSION' });
   });
