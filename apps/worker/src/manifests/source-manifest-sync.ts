@@ -61,7 +61,6 @@ export class PgSourceManifestSync {
   async sync(manifestValue: unknown, asOf = new Date()): Promise<ManifestSyncResult> {
     validateSourceManifest(manifestValue);
     const manifest = manifestValue as SourceManifest;
-
     const municipalityRows = await this.pool.query<MunicipalityRow>(
       `SELECT id, terc, name
        FROM municipalities
@@ -131,6 +130,7 @@ export class PgSourceManifestSync {
     }
 
     const active = isManifestSourceActiveOn(source, asOf);
+    const bundle = source.bundle ?? null;
     const values = [
       municipalityId,
       source.ownerType,
@@ -147,6 +147,10 @@ export class PgSourceManifestSync {
       `${manifest.manifestId}@${manifest.version}`,
       asDbDate(source.activeFrom),
       asDbDate(source.activeTo),
+      bundle?.key ?? null,
+      bundle?.role ?? null,
+      bundle ? JSON.stringify(bundle.requiredRoles) : null,
+      bundle?.freshnessMinutes ?? null,
     ];
 
     const current = existing.rows[0];
@@ -156,9 +160,11 @@ export class PgSourceManifestSync {
            municipality_id, owner_type, owner_name, source_url, source_format,
            reuse_basis, parser_key, poll_interval_minutes, active,
            source_key, data_type, manifest_status, manifest_version, active_from, active_to,
+           bundle_key, bundle_role, bundle_required_roles, bundle_freshness_minutes,
            next_check_at
          ) VALUES (
            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
+           $16,$17,$18::jsonb,$19,
            CASE WHEN $9::boolean THEN now() ELSE NULL END
          )`,
         values,
@@ -189,12 +195,16 @@ export class PgSourceManifestSync {
            manifest_version = $13,
            active_from = $14,
            active_to = $15,
+           bundle_key = $16,
+           bundle_role = $17,
+           bundle_required_roles = $18::jsonb,
+           bundle_freshness_minutes = $19,
            next_check_at = CASE
              WHEN $9::boolean AND active = false THEN now()
              WHEN $9::boolean THEN next_check_at
              ELSE NULL
            END
-       WHERE id = $16`,
+       WHERE id = $20`,
       [...values, current.id],
     );
   }
