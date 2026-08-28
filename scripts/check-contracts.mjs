@@ -84,10 +84,30 @@ for (const path of [
   '/internal/v1/reviews/audit',
   '/internal/v1/reviews/{kind}/{id}',
   '/internal/v1/reviews/{kind}/{id}/decision',
+  '/internal/v1/source-ops/sources',
+  '/internal/v1/source-ops/coverage',
+  '/internal/v1/source-ops/summary',
 ]) {
   if (!internalOpenApi.paths?.[path]) {
     throw new Error(`Internal OpenAPI is missing required path: ${path}`);
   }
+}
+
+const latestArtifactProperties = internalOpenApi.components?.schemas?.LatestArtifact?.properties ?? {};
+for (const forbidden of ['storageUri', 'storage_uri', 'bucket', 'credentials']) {
+  if (forbidden in latestArtifactProperties) {
+    throw new Error(`Internal LatestArtifact must not expose sensitive field ${forbidden}`);
+  }
+}
+const latestProcessingProperties = internalOpenApi.components?.schemas?.LatestProcessing?.properties ?? {};
+for (const forbidden of ['errorMessage', 'error_message', 'rawError', 'stack']) {
+  if (forbidden in latestProcessingProperties) {
+    throw new Error(`Internal LatestProcessing must not expose raw diagnostic field ${forbidden}`);
+  }
+}
+const sourceOpsItemProperties = internalOpenApi.components?.schemas?.SourceOpsItem?.properties ?? {};
+if (!sourceOpsItemProperties.latestArtifact || !sourceOpsItemProperties.latestProcessing) {
+  throw new Error('SourceOpsItem must expose safe latest artifact and processing provenance');
 }
 
 const facilityItemProperties = openApi.components?.schemas?.FacilityItem?.properties ?? {};
@@ -226,4 +246,4 @@ const rvmWithIsWorking = structuredClone(rvmV02);
 rvmWithIsWorking.isWorking = true;
 assertInvalid(validateFacilityV02, rvmWithIsWorking, 'unproven isWorking boolean');
 
-console.log('WastePL contracts OK (public/internal APIs + dataset/facility schemas + 8-municipality source manifest)');
+console.log('WastePL contracts OK (public/internal APIs + source-ops safety + dataset/facility schemas + 8-municipality source manifest)');
