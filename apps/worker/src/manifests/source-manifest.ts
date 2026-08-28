@@ -1,5 +1,4 @@
-import Ajv2020 from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
+import { createRequire } from 'node:module';
 import manifestSchema from '../../../../schemas/source-manifest-v0.1.schema.json' with { type: 'json' };
 
 export type ManifestDataType = 'COLLECTION_SCHEDULE' | 'PSZOK' | 'ALERTS' | 'OTHER';
@@ -40,6 +39,11 @@ const SUPPORTED_PARSERS = new Map<string, ManifestSourceFormat>([
   ['pgk-koszalin-pszok-html', 'HTML'],
 ]);
 
+const require = createRequire(import.meta.url);
+const ajvModule = require('ajv/dist/2020');
+const formatsModule = require('ajv-formats');
+const Ajv2020 = ajvModule.default ?? ajvModule;
+const addFormats = formatsModule.default ?? formatsModule;
 const ajv = new Ajv2020({ allErrors: true, strict: false });
 addFormats(ajv);
 const validateSchema = ajv.compile(manifestSchema);
@@ -63,7 +67,9 @@ function assertDateRange(source: SourceManifestSource): void {
 export function validateSourceManifest(value: unknown): asserts value is SourceManifest {
   if (!validateSchema(value)) {
     const details = (validateSchema.errors ?? [])
-      .map((error) => `${error.instancePath || '/'} ${error.message ?? 'is invalid'}`)
+      .map((error: { instancePath?: string; message?: string }) =>
+        `${error.instancePath || '/'} ${error.message ?? 'is invalid'}`,
+      )
       .join('; ');
     throw new Error(`Invalid source manifest schema: ${details}`);
   }
