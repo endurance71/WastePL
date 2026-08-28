@@ -95,14 +95,18 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
         'DELETE FROM facility_source_assertions WHERE source_artifact_id = ANY($1::uuid[])',
         [artifactIds],
       );
-      await pool.query('DELETE FROM source_processing_attempts WHERE artifact_id = ANY($1::uuid[])', [artifactIds]);
-      await pool.query('DELETE FROM artifact_processing_outbox WHERE artifact_id = ANY($1::uuid[])', [artifactIds]);
-      await pool.query('DELETE FROM source_artifacts WHERE id = ANY($1::uuid[])', [artifactIds]);
     }
+    // Canonical facilities retain direct provenance FKs to the immutable source artifacts,
+    // therefore canonical rows must be removed before the artifact rows themselves.
     await pool.query(
       `DELETE FROM facilities WHERE canonical_key = ANY($1::text[])`,
       [profiles.map((profile) => profile.canonicalKey)],
     );
+    if (artifactIds.length > 0) {
+      await pool.query('DELETE FROM source_processing_attempts WHERE artifact_id = ANY($1::uuid[])', [artifactIds]);
+      await pool.query('DELETE FROM artifact_processing_outbox WHERE artifact_id = ANY($1::uuid[])', [artifactIds]);
+      await pool.query('DELETE FROM source_artifacts WHERE id = ANY($1::uuid[])', [artifactIds]);
+    }
     await pool.end();
   });
 
@@ -207,8 +211,10 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       );
       expect(duplicateCheck.rows[0]).toEqual({ canonical_count: '1', assertion_count: '1' });
 
-      const brokenBody = Buffer.from('<html><body><h1>PSZOK</h1><p>template changed</p></body></html>');
-      const brokenHash = sha256Hex(Buffer.concat([brokenBody, Buffer.from(randomUUID())]));
+      const brokenBody = Buffer.from(
+        `<html><body><h1>PSZOK</h1><p>template changed ${randomUUID()}</p></body></html>`,
+      );
+      const brokenHash = sha256Hex(brokenBody);
       const brokenStored = await store.putIfAbsent({
         sourceId,
         sha256: brokenHash,
