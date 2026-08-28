@@ -199,7 +199,7 @@ export class PgSourceManifestSync {
     );
   }
 
-  async coverage(manifestId: string): Promise<SourceCoverageRow[]> {
+  async coverage(manifestId: string, version: string): Promise<SourceCoverageRow[]> {
     const result = await this.pool.query<{
       terc: string;
       municipality_name: string;
@@ -217,11 +217,11 @@ export class PgSourceManifestSync {
          count(*) FILTER (WHERE s.active = true)::text AS schedulable_entries
        FROM sources s
        JOIN municipalities m ON m.id = s.municipality_id
-       WHERE s.manifest_version LIKE $1
+       WHERE s.manifest_version = $1
          AND s.data_type IS NOT NULL
        GROUP BY m.terc, m.name, s.data_type
        ORDER BY m.terc, s.data_type`,
-      [`${manifestId}@%`],
+      [`${manifestId}@${version}`],
     );
 
     return result.rows.map((row) => ({
