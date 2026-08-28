@@ -17,12 +17,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Acquire official PRG evidence
-        run: python scripts/acquire-prg-golden.py
-      - name: Upload raw PRG acquisition evidence
+      - name: Acquire exact Koszalin PRG evidence
+        run: python scripts/acquire-prg-koszalin-exact.py
+      - name: Upload exact Koszalin PRG evidence
         uses: actions/upload-artifact@v4
         with:
-          name: prg-golden-acquisition-20260828
-          path: tmp/prg-acquisition/
+          name: prg-golden-koszalin-exact-20260828
+          path: tmp/koszalin-exact/
           if-no-files-found: error
           retention-days: 7
