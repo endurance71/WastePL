@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-28. Implementacja fali `pilot-koszalin-region@2026.3` została potwierdzona pełnym CI run `33191470822` (#110) na PR `#66`; końcowe zmiany dokumentacyjne podlegają jeszcze finalnemu rerunowi PR przed merge.
+> Zweryfikowano: 2026-08-28, commit `d235456587ebb3723f881968183ba0f74539be06` (pełny CI run `33191470822`, #110, PR `#66`). Końcowe zmiany dokumentacyjne podlegają finalnemu rerunowi PR przed merge.
 
 ## Etap
 
