@@ -66,9 +66,20 @@ interface MutableStats {
   rejectedRows: ReferenceRejectedRow[];
 }
 
-function isoDate(value: string | Date | null): string | null {
+function twoDigits(value: number): string {
+  return value.toString().padStart(2, '0');
+}
+
+/**
+ * PostgreSQL `date` is a calendar date, not an instant. node-postgres may expose
+ * it as a local-midnight Date, so converting it through UTC can move the value
+ * to the previous/next day. Preserve the local calendar fields instead.
+ */
+export function databaseCalendarDate(value: string | Date | null): string | null {
   if (value === null) return null;
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (value instanceof Date) {
+    return `${value.getFullYear()}-${twoDigits(value.getMonth() + 1)}-${twoDigits(value.getDate())}`;
+  }
   return String(value).slice(0, 10);
 }
 
@@ -114,7 +125,7 @@ export class PgOfficialReferenceImporter {
           const changed = current.name !== row.name
             || current.teryt_kind_code !== row.rodz
             || current.teryt_kind_name !== row.nameAdditional
-            || isoDate(current.source_updated_at) !== row.stateDate
+            || databaseCalendarDate(current.source_updated_at) !== row.stateDate
             || !current.active;
           await client.query(
             `UPDATE municipalities SET
@@ -163,7 +174,7 @@ export class PgOfficialReferenceImporter {
             || current.name !== row.name
             || current.locality_type_code !== row.localityTypeCode
             || !sameText(current.parent_simc, row.parentSimc)
-            || isoDate(current.source_updated_at) !== row.stateDate
+            || databaseCalendarDate(current.source_updated_at) !== row.stateDate
             || !current.active;
           await client.query(
             `UPDATE localities SET
@@ -237,7 +248,7 @@ export class PgOfficialReferenceImporter {
             || current.street_type !== row.streetType
             || current.name_1 !== row.name1
             || (current.name_2 ?? '') !== row.name2
-            || isoDate(current.source_updated_at) !== row.stateDate
+            || databaseCalendarDate(current.source_updated_at) !== row.stateDate
             || !current.active;
           await client.query(
             `UPDATE streets SET
@@ -384,8 +395,8 @@ export class PgOfficialReferenceImporter {
         || !sameText(current.postal_code, row.postalCode)
         || current.canonical_text !== canonicalText
         || !sameText(current.status, row.status)
-        || isoDate(current.valid_from) !== row.validFrom
-        || isoDate(current.valid_to) !== row.validTo
+        || databaseCalendarDate(current.valid_from) !== row.validFrom
+        || databaseCalendarDate(current.valid_to) !== row.validTo
         || isoDateTime(current.source_updated_at) !== (row.sourceUpdatedAt ? new Date(row.sourceUpdatedAt).toISOString() : null)
         || current.lon === null || current.lat === null
         || Math.abs(Number(current.lon) - geometry.lon) > 1e-8
