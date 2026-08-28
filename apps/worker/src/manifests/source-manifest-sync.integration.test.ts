@@ -108,8 +108,8 @@ integrationDescribe('PgSourceManifestSync', () => {
     );
   });
 
-  it('reports municipality/data-type coverage and never schedules unsupported PLANNED formats', async () => {
-    const coverage = await sync.coverage(manifestId);
+  it('reports municipality/data-type coverage for one manifest version and never schedules unsupported PLANNED formats', async () => {
+    const coverage = await sync.coverage(manifestId, '2026.1');
     expect(coverage).toHaveLength(8);
     expect(new Set(coverage.map((row) => row.terc)).size).toBe(8);
     expect(coverage.every((row) => row.dataType === 'COLLECTION_SCHEDULE')).toBe(true);
