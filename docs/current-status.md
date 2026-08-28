@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-28, kod gate na commit `7d4897ad8536ab8fda8fc88580c5bb2ae574307b` (PR `#59`, pełny CI run `33182354045`, run #104).
+> Zweryfikowano: 2026-08-28, commit `7d4897ad8536ab8fda8fc88580c5bb2ae574307b` (PR `#59`, pełny CI run `33182354045`, run #104).
 
 ## Etap
 
