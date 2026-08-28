@@ -9,6 +9,8 @@ import { FacilitiesService } from './facilities/facilities.service.js';
 import { HealthController } from './health/health.controller.js';
 import { InternalReviewController } from './internal-review/internal-review.controller.js';
 import { InternalReviewService } from './internal-review/internal-review.service.js';
+import { InternalSourceOpsController } from './internal-source-ops/internal-source-ops.controller.js';
+import { InternalSourceOpsService } from './internal-source-ops/internal-source-ops.service.js';
 
 @Module({
   controllers: [
@@ -17,6 +19,7 @@ import { InternalReviewService } from './internal-review/internal-review.service
     CollectionController,
     FacilitiesController,
     InternalReviewController,
+    InternalSourceOpsController,
   ],
   providers: [
     DatabaseService,
@@ -24,6 +27,7 @@ import { InternalReviewService } from './internal-review/internal-review.service
     CollectionService,
     FacilitiesService,
     InternalReviewService,
+    InternalSourceOpsService,
   ],
 })
 export class AppModule {}
