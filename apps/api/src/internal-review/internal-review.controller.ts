@@ -8,21 +8,9 @@ import {
   Param,
   Post,
   Query,
-  UnauthorizedException,
 } from '@nestjs/common';
+import { internalInteger, requireInternalAdmin } from '../internal-auth.js';
 import { InternalReviewService, type ReviewDecision, type ReviewKind } from './internal-review.service.js';
-
-function requireAdmin(key: string | undefined, actor: string | undefined): string {
-  const expected = process.env.WASTEPL_ADMIN_API_KEY;
-  if (!expected || !key || key !== expected) {
-    throw new UnauthorizedException({ code: 'ADMIN_AUTH_REQUIRED', message: 'Valid internal admin key required' });
-  }
-  const normalized = actor?.trim();
-  if (!normalized) {
-    throw new BadRequestException({ code: 'ACTOR_REQUIRED', message: 'x-wastepl-actor is required for auditable admin operations' });
-  }
-  return normalized;
-}
 
 function parseKind(raw: string): ReviewKind {
   if (raw !== 'RECONCILIATION' && raw !== 'DATA_QUALITY') {
@@ -38,15 +26,6 @@ function uuid(raw: string, name = 'id'): string {
   return raw;
 }
 
-function integer(raw: string | undefined, fallback: number, min: number, max: number): number {
-  if (!raw) return fallback;
-  const value = Number(raw);
-  if (!Number.isInteger(value) || value < min || value > max) {
-    throw new BadRequestException({ code: 'INVALID_PAGINATION', message: `value must be an integer between ${min} and ${max}` });
-  }
-  return value;
-}
-
 @Controller('internal/v1/reviews')
 export class InternalReviewController {
   constructor(@Inject(InternalReviewService) private readonly reviews: InternalReviewService) {}
@@ -59,15 +38,15 @@ export class InternalReviewController {
     @Query('limit') limitRaw?: string,
     @Query('offset') offsetRaw?: string,
   ) {
-    requireAdmin(key, actor);
+    requireInternalAdmin(key, actor);
     const state = stateRaw ?? 'PENDING';
     if (!['PENDING', 'APPROVED', 'REJECTED', 'ALL'].includes(state)) {
       throw new BadRequestException({ code: 'INVALID_REVIEW_STATE', message: 'state must be PENDING, APPROVED, REJECTED or ALL' });
     }
     return this.reviews.list(
       state as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL',
-      integer(limitRaw, 50, 1, 200),
-      integer(offsetRaw, 0, 0, 100000),
+      internalInteger(limitRaw, 50, 1, 200),
+      internalInteger(offsetRaw, 0, 0, 100000),
     );
   }
 
@@ -79,11 +58,11 @@ export class InternalReviewController {
     @Query('reviewId') reviewIdRaw?: string,
     @Query('limit') limitRaw?: string,
   ) {
-    requireAdmin(key, actor);
+    requireInternalAdmin(key, actor);
     return this.reviews.auditTrail(
       kindRaw ? parseKind(kindRaw) : null,
       reviewIdRaw ? uuid(reviewIdRaw, 'reviewId') : null,
-      integer(limitRaw, 100, 1, 500),
+      internalInteger(limitRaw, 100, 1, 500),
     );
   }
 
@@ -94,7 +73,7 @@ export class InternalReviewController {
     @Param('kind') kindRaw: string,
     @Param('id') idRaw: string,
   ) {
-    requireAdmin(key, actor);
+    requireInternalAdmin(key, actor);
     return this.reviews.get(parseKind(kindRaw), uuid(idRaw));
   }
 
@@ -110,7 +89,7 @@ export class InternalReviewController {
       geometry?: { lat?: number; lon?: number; sourceArtifactId?: string } | null;
     },
   ) {
-    const actor = requireAdmin(key, actorRaw);
+    const actor = requireInternalAdmin(key, actorRaw);
     if (body.decision !== 'APPROVE' && body.decision !== 'REJECT') {
       throw new BadRequestException({ code: 'INVALID_REVIEW_DECISION', message: 'decision must be APPROVE or REJECT' });
     }
