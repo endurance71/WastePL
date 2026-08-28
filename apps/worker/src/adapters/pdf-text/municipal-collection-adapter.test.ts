@@ -7,8 +7,8 @@ import {
 } from './municipal-collection-adapter.js';
 import { PdfTextParseError, type PdfTextArtifactInput } from './types.js';
 
-const SAFE_LOCALITIES = [
-  'Buczki', 'Czarnkowo', 'Dzięciołowo', 'Giżałki', 'Pobądź', 'Smęcino', 'Solno', 'Tyczewo', 'Wełdkowo', 'Wełdkówko',
+const SAFE_REFERENCE_LOCALITIES = [
+  'Buczki', 'Czarnkowo', 'Dzięciołowo', 'Giżałki', 'Pobądz', 'Smęcino', 'Solno', 'Tyczewo', 'Wełdkowo', 'Wełdkówko',
   'Bukowo', 'Bukówko', 'Dobrowo', 'Dobrówko', 'Modrolas', 'Podborsko', 'Retowo', 'Skarszewice', 'Słonino', 'Zaspy Wielkie',
   'Doble', 'Kikowo', 'Krosinko', 'Liśnica', 'Nowe Dębno', 'Rudno', 'Sławomierz', 'Trzebiszyn', 'Trzebiec', 'Żukówek',
 ] as const;
@@ -62,7 +62,7 @@ function referenceContext(): MunicipalCollectionReferenceContext {
       name: 'Tychowo',
       municipalityType: 'URBAN_RURAL',
     },
-    localities: SAFE_LOCALITIES.map((name, index) => ({
+    localities: SAFE_REFERENCE_LOCALITIES.map((name, index) => ({
       name,
       simc: String(3000000 + index).padStart(7, '0'),
     })),
@@ -92,7 +92,7 @@ describe('MunicipalCollectionPdfTextAdapter', () => {
       municipalityType: 'URBAN_RURAL',
     });
     expect(dataset.serviceAreas).toHaveLength(3);
-    expect(dataset.serviceAreas.flatMap((area) => area.coverage)).toHaveLength(SAFE_LOCALITIES.length);
+    expect(dataset.serviceAreas.flatMap((area) => area.coverage)).toHaveLength(SAFE_REFERENCE_LOCALITIES.length);
     expect(dataset.serviceAreas.flatMap((area) => area.coverage).some((rule) => rule.type === 'LOCALITY')).toBe(true);
     expect(dataset.serviceAreas.some((area) => area.name.includes('Tychowo ('))).toBe(false);
 
@@ -112,11 +112,21 @@ describe('MunicipalCollectionPdfTextAdapter', () => {
         note: 'Źródło: tworzywa sztuczne',
       }),
     );
+    expect(dataset.collectionEvents).toContainEqual(
+      expect.objectContaining({
+        serviceAreaKey: 'tychowo-standard-north-west',
+        quality: expect.objectContaining({
+          warnings: expect.arrayContaining([
+            'SOURCE_LOCALITY_ALIAS: Pobądź -> official TERYT Pobądz',
+          ]),
+        }),
+      }),
+    );
     expect(dataset.sources[0]).toMatchObject({
       ownerType: 'MUNICIPALITY',
       artifact: {
         parserKey: 'municipal-collection-pdf-text',
-        parserVersion: '0.1.0',
+        parserVersion: '0.1.1',
       },
     });
     await expect(validateWastePlDataset(dataset)).resolves.toBeUndefined();
@@ -133,6 +143,21 @@ describe('MunicipalCollectionPdfTextAdapter', () => {
     } catch (error) {
       expect((error as PdfTextParseError).code).toBe('MISSING_METADATA');
       expect((error as Error).message).toContain('Buczki');
+    }
+  });
+
+  it('requires the explicit official alias target instead of fuzzy matching the source typo', () => {
+    const context = referenceContext();
+    context.localities = context.localities.filter((entry) => entry.name !== 'Pobądz');
+    context.localities.push({ name: 'Pobądź Mała', simc: '3999999' });
+    const adapter = new MunicipalCollectionPdfTextAdapter(context);
+
+    expect(() => adapter.parse(input())).toThrowError(PdfTextParseError);
+    try {
+      adapter.parse(input());
+    } catch (error) {
+      expect((error as PdfTextParseError).code).toBe('MISSING_METADATA');
+      expect((error as Error).message).toContain('Pobądź');
     }
   });
 
