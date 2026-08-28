@@ -42,7 +42,7 @@ export interface NormalizedFacilityV02 {
     }>;
     exceptions: [];
     sourceKey: string;
-  } | null;
+  };
   access: {
     scope: 'OPEN_TO_ALL' | 'MUNICIPALITY_RESIDENTS' | 'MUNICIPALITY_PROPERTY_OWNERS' | 'OTHER' | 'UNKNOWN';
     requiresProof: boolean | null;
@@ -112,7 +112,7 @@ function latestRetrievedAt(...values: string[]): string {
     .toISOString();
 }
 
-function openingHours(sourceKey: string): NonNullable<NormalizedFacilityV02['openingHours']> {
+function openingHours(sourceKey: string): NormalizedFacilityV02['openingHours'] {
   return {
     timezone: 'Europe/Warsaw',
     weekly: [
