@@ -72,6 +72,15 @@ jobs:
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Run pilot readiness gate
+        run: pnpm pilot:readiness
+      - name: Upload pilot readiness report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-readiness-report
+          path: apps/worker/test-results/pilot-readiness-report.json
+          if-no-files-found: error
       - name: Upload golden mismatch report
         if: always()
         uses: actions/upload-artifact@v4
