@@ -5,11 +5,16 @@ const SOURCE_UPDATED_AT = '2026-08-28T00:00:00Z';
 
 /**
  * Deterministic, official-shaped reference input for the fixture-independent
- * production gate. IDs prefixed by `wastepl-gate-` and ULIC codes 99001–99007
- * are TEST-ONLY identities and must never be presented as official PRG/TERYT IDs.
+ * production gate. IDs prefixed by `wastepl-gate-`, ULIC codes 99001–99007 and
+ * Tychowo SIMC codes 8800001–8800030 are TEST-ONLY identities and must never be
+ * presented as official PRG/TERYT identifiers.
  *
- * The gate deliberately exercises PgOfficialReferenceImporter rather than SQL
- * address seeds. XML/GML syntax parsing is covered independently by parser tests.
+ * Production municipal collection parsing resolves names against the imported
+ * TERYT backbone at runtime; these test-only SIMC values deliberately verify
+ * that no municipality-specific SIMC list is hardcoded in the parser.
+ *
+ * The gate exercises PgOfficialReferenceImporter rather than SQL address seeds.
+ * XML/GML syntax parsing is covered independently by parser tests.
  */
 export function productionGateTercRows(): TercRow[] {
   return [
@@ -24,14 +29,60 @@ export function productionGateTercRows(): TercRow[] {
   ];
 }
 
+const TYCHOWO_SAFE_LOCALITIES = [
+  'Buczki',
+  'Czarnkowo',
+  'Dzięciołowo',
+  'Giżałki',
+  'Pobądź',
+  'Smęcino',
+  'Solno',
+  'Tyczewo',
+  'Wełdkowo',
+  'Wełdkówko',
+  'Bukowo',
+  'Bukówko',
+  'Dobrowo',
+  'Dobrówko',
+  'Modrolas',
+  'Podborsko',
+  'Retowo',
+  'Skarszewice',
+  'Słonino',
+  'Zaspy Wielkie',
+  'Doble',
+  'Kikowo',
+  'Krosinko',
+  'Liśnica',
+  'Nowe Dębno',
+  'Rudno',
+  'Sławomierz',
+  'Trzebiszyn',
+  'Trzebiec',
+  'Żukówek',
+] as const;
+
 export function productionGateSimcRows(): SimcRow[] {
-  return [
+  const base: SimcRow[] = [
     { woj: '32', pow: '61', gmi: '01', rodzGmi: '1', localityTypeCode: '01', basic: '1', name: 'Koszalin', simc: '0949448', parentSimc: null, stateDate: STATE_DATE },
     { woj: '32', pow: '09', gmi: '04', rodzGmi: '2', localityTypeCode: '01', basic: '1', name: 'Bonin', simc: '0308040', parentSimc: null, stateDate: STATE_DATE },
     { woj: '32', pow: '09', gmi: '04', rodzGmi: '2', localityTypeCode: '01', basic: '1', name: 'Dęborogi', simc: '0308212', parentSimc: null, stateDate: STATE_DATE },
     { woj: '32', pow: '09', gmi: '04', rodzGmi: '2', localityTypeCode: '01', basic: '1', name: 'Policko', simc: '0308229', parentSimc: null, stateDate: STATE_DATE },
     { woj: '32', pow: '09', gmi: '04', rodzGmi: '2', localityTypeCode: '01', basic: '1', name: 'Wyszebórz', simc: '0308206', parentSimc: null, stateDate: STATE_DATE },
   ];
+  const tychowo = TYCHOWO_SAFE_LOCALITIES.map((name, index): SimcRow => ({
+    woj: '32',
+    pow: '01',
+    gmi: '04',
+    rodzGmi: '3',
+    localityTypeCode: '01',
+    basic: '1',
+    name,
+    simc: `88${String(index + 1).padStart(5, '0')}`,
+    parentSimc: null,
+    stateDate: STATE_DATE,
+  }));
+  return [...base, ...tychowo];
 }
 
 export function productionGateUlicRows(): UlicRow[] {
@@ -56,8 +107,6 @@ interface KoszalinAddressFixture {
 }
 
 const KOSZALIN_ADDRESSES: KoszalinAddressFixture[] = [
-  // 1 Maja 3 is required by the source parser's complete explicit-address coverage,
-  // even though the current 30-case golden pack starts with 1 Maja 8.
   { street: '1 Maja', ulic: '11926', number: '3', postalCode: null },
   { street: '1 Maja', ulic: '11926', number: '8', postalCode: '75-800' },
   { street: '4 Marca', ulic: '99001', number: '10', postalCode: null },
@@ -113,7 +162,7 @@ export function productionGatePrgRows(): PrgAddressRow[] {
 
 export const PRODUCTION_GATE_REFERENCE_COUNTS = {
   municipalities: 8,
-  localities: 5,
+  localities: 35,
   streets: 8,
   addresses: 31,
   goldenAddresses: 30,
