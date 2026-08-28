@@ -1,0 +1,92 @@
+name: live-source-staging
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-source-staging
+  cancel-in-progress: false
+
+jobs:
+  live-source-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: wastepl
+          POSTGRES_PASSWORD: wastepl
+          POSTGRES_DB: wastepl
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wastepl -d wastepl"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://wastepl:wastepl@localhost:5432/wastepl
+      LIVE_SOURCE_DATABASE_URL: postgresql://wastepl:wastepl@localhost:5432/wastepl_live_source_gate
+      REDIS_URL: redis://localhost:6379
+      S3_ENDPOINT: http://localhost:9000
+      S3_REGION: eu-central-1
+      S3_BUCKET: wastepl-live-source-${{ github.run_id }}
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: change-me-now
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - name: Start isolated MinIO
+        run: |
+          docker run -d --name wastepl-live-source-minio \
+            -p 9000:9000 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=change-me-now \
+            minio/minio server /data --address ':9000'
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs wastepl-live-source-minio
+          exit 1
+      - run: pnpm install --no-frozen-lockfile
+      - name: Build live-source gate
+        run: |
+          pnpm contracts:check
+          pnpm --filter @wastepl/domain build
+          pnpm --filter @wastepl/worker build
+          pnpm --filter @wastepl/worker typecheck
+      - name: Run live-source isolated runtime gate
+        run: pnpm pilot:live-source
+      - name: Upload live-source report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-source-staging-report-${{ github.run_id }}
+          path: |
+            apps/worker/test-results/live-source-staging-report.json
+            apps/worker/test-results/live-source-staging-summary.md
+          if-no-files-found: error
+      - name: Stop isolated MinIO
+        if: always()
+        run: docker rm -f wastepl-live-source-minio || true
