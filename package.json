@@ -16,7 +16,7 @@
     "docs:check": "node scripts/check-docs.mjs",
     "contracts:check": "node scripts/check-contracts.mjs && node scripts/check-manifest-rollout.mjs",
     "pilot:readiness": "pnpm --filter @wastepl/worker readiness",
-    "pilot:production-gate": "pnpm --filter @wastepl/worker readiness:production-runtime && pnpm --filter @wastepl/worker readiness:production-extended && pnpm --filter @wastepl/api readiness:production-api",
+    "pilot:production-gate": "pnpm --filter @wastepl/worker readiness:production-runtime && pnpm --filter @wastepl/worker readiness:production-extended && pnpm --filter @wastepl/api readiness:production-api && pnpm --filter @wastepl/worker readiness:tychowo-runtime",
     "pilot:live-source": "pnpm --filter @wastepl/worker readiness:live-source",
     "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down"
