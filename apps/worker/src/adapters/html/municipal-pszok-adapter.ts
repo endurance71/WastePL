@@ -3,6 +3,7 @@ import type { HtmlArtifactInput, NormalizedFacilityV02 } from './pgk-koszalin-ps
 
 const BOBOLICE_SOURCE_KEY = 'bobolice-pszok';
 const SWIESZYNO_SOURCE_KEY = 'swieszyno-pszok';
+const SIANOW_SOURCE_KEY = 'sianow-pszok';
 
 type Weekly = NonNullable<NormalizedFacilityV02['openingHours']>['weekly'];
 
@@ -58,6 +59,25 @@ function boboliceMaterials(text: string): FacilityMaterial[] {
 
   for (const [, pattern] of required) {
     requireText(text, pattern, BOBOLICE_SOURCE_KEY, 'published accepted-material catalogue changed');
+  }
+  return required.map(([material]) => material);
+}
+
+function sianowMaterials(text: string): FacilityMaterial[] {
+  const required: Array<[FacilityMaterial, RegExp]> = [
+    ['BULKY', /meble i inne odpady wielkogabarytowe/i],
+    ['ELECTRONICS', /sprzęt elektryczny i elektroniczny/i],
+    ['TYRES', /zużyte opony/i],
+    ['GREEN', /odpady zielone/i],
+    ['CONSTRUCTION', /budowlane i rozbiórkowe/i],
+    ['MEDICINES', /przeterminowane leki/i],
+    ['BATTERIES', /baterie i akumulatory/i],
+    ['HAZARDOUS', /farb.*lakier.*klej|rozpuszczalnik|środki ochrony roślin/i],
+    ['TEXTILES', /odzież i tekstylia/i],
+  ];
+
+  for (const [, pattern] of required) {
+    requireText(text, pattern, SIANOW_SOURCE_KEY, 'published accepted-material catalogue changed');
   }
   return required.map(([material]) => material);
 }
@@ -161,18 +181,73 @@ function parseSwieszyno(input: HtmlArtifactInput, text: string): NormalizedFacil
   };
 }
 
+function parseSianow(input: HtmlArtifactInput, text: string): NormalizedFacilityV02 {
+  requireText(text, /Sianow|Sianów/i, input.sourceKey, 'municipality identity missing');
+  requireText(text, /(?:ul\.?\s*)?Łubuszan\s*80/i, input.sourceKey, 'Łubuszan 80 location missing');
+  requireText(text, /Zakładu Odzysku Odpadów/i, input.sourceKey, 'waste recovery facility location context missing');
+  requireText(text, /Przedsiębiorstwo Gospodarki Komunalnej\s*Sp\.?\s*z\s*o\.?\s*o/i, input.sourceKey, 'PGK operator statement missing');
+  requireText(text, /poniedziałek.*8[.:]?00\s*[–—-]\s*16[.:]?00/i, input.sourceKey, 'Monday opening hours missing');
+  requireText(text, /czwartek.*8[.:]?00\s*[–—-]\s*16[.:]?00/i, input.sourceKey, 'Thursday opening hours missing');
+  requireText(text, /sobot.*8[.:]?00\s*[–—-]\s*14[.:]?00/i, input.sourceKey, 'Saturday opening hours missing');
+  requireText(text, /Każdy mieszkaniec Gminy i Miasta Sianów/i, input.sourceKey, 'resident access statement missing');
+  requireText(text, /okazać potwierdzenie wniesienia opłaty/i, input.sourceKey, 'proof-of-payment requirement missing');
+
+  return {
+    schemaVersion: '0.2.0',
+    key: 'pl-3209073-pszok-sianow-lubuszan-80',
+    kind: 'PSZOK',
+    name: 'PSZOK Sianów, ul. Łubuszan 80',
+    address: 'ul. Łubuszan 80, Sianów',
+    location: null,
+    locationSourceKey: null,
+    externalIds: [],
+    acceptedMaterials: sianowMaterials(text),
+    acceptedContainers: [],
+    openingHours: openingHours(input.sourceKey, [
+      { day: 'MONDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'TUESDAY', intervals: [] },
+      { day: 'WEDNESDAY', intervals: [] },
+      { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'FRIDAY', intervals: [] },
+      { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '14:00' }] },
+      { day: 'SUNDAY', intervals: [] },
+    ]),
+    access: {
+      scope: 'MUNICIPALITY_RESIDENTS',
+      requiresProof: true,
+      quantityLimits: [],
+      notes: ['Mieszkaniec oddający odpady musi okazać potwierdzenie wniesienia opłaty za gospodarowanie odpadami komunalnymi na rzecz Gminy Sianów.'],
+      sourceKey: input.sourceKey,
+    },
+    operationalStatus: unknownOperationalStatus(),
+    operatorName: 'Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie',
+    rulesUrl: input.url,
+    sourceKey: input.sourceKey,
+    quality: {
+      verificationStatus: 'OFFICIAL_SOURCE',
+      confidence: 0.98,
+      retrievedAt: input.retrievedAt,
+      warnings: [
+        'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+        'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+      ],
+    },
+  };
+}
+
 export class MunicipalPszokHtmlAdapter {
   readonly parserKey = 'municipal-pszok-html';
-  readonly parserVersion = '0.1.0';
+  readonly parserVersion = '0.2.0';
 
   supportsSourceKey(sourceKey: string): boolean {
-    return sourceKey === BOBOLICE_SOURCE_KEY || sourceKey === SWIESZYNO_SOURCE_KEY;
+    return sourceKey === BOBOLICE_SOURCE_KEY || sourceKey === SWIESZYNO_SOURCE_KEY || sourceKey === SIANOW_SOURCE_KEY;
   }
 
   parse(input: HtmlArtifactInput): NormalizedFacilityV02 {
     const text = textFromHtml(input.html);
     if (input.sourceKey === BOBOLICE_SOURCE_KEY) return parseBobolice(input, text);
     if (input.sourceKey === SWIESZYNO_SOURCE_KEY) return parseSwieszyno(input, text);
+    if (input.sourceKey === SIANOW_SOURCE_KEY) return parseSianow(input, text);
     throw new Error(`Municipal PSZOK adapter: unsupported source key ${input.sourceKey}`);
   }
 }
