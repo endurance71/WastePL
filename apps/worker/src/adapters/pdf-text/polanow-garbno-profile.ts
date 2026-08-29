@@ -70,7 +70,10 @@ function extractTableCopies(text: string): string[][] {
     .split(/\r?\n/)
     .map(normalizedLine)
     .filter(Boolean);
-  const monthLinePattern = /^(lipiec|sierpień|wrzesień|październik|listopad|grudzień)\b/i;
+  // Do not use JS \b here: ASCII-style word boundaries mis-handle Polish
+  // month endings such as "ń". The extracted table always separates the
+  // month label from its first date cell with whitespace.
+  const monthLinePattern = /^(lipiec|sierpień|wrzesień|październik|listopad|grudzień)(?:\s|$)/i;
   const monthLines = lines.filter((line) => monthLinePattern.test(line));
 
   if (monthLines.length !== 12) {
