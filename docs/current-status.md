@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29. `main` przed PR `#72`: `ba1e1abb79202db520f75b9ec4ac3b5c173a2bd4`. Mechanizm live-source gate w PR `#72` przeszedł pełny deterministyczny CI #123 (`33244427495`) na headzie `9ae05998051d0490493acfce7911e02040ac6be8`; końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
+> Zweryfikowano: 2026-08-29, commit `ba1e1abb79202db520f75b9ec4ac3b5c173a2bd4` (`main` przed PR `#72`). Mechanizm live-source gate w PR `#72` przeszedł pełny deterministyczny CI #123 (`33244427495`) na headzie `9ae05998051d0490493acfce7911e02040ac6be8`; końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
 
 ## Etap
 
