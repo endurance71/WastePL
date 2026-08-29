@@ -133,11 +133,10 @@ Harmonogramy i facilities zachowują artifact UUID, SHA-256, parser key/version 
 
 ## Najbliższa kolejność
 
-1. Scalić PR `#73` po finalnym zielonym CI dokumentacyjnego heada.
-2. Uruchomić i ręcznie przejrzeć `live-source-staging` z aktualnego `main`; dopiero wtedy domknąć `#60`.
-3. Wykonać następną bezpieczną aktywację z całkowicie zamkniętym pomiarem PROSPECTIVE, żeby poszerzyć próbkę `#65`.
-4. Kontynuować collection coverage tylko tam, gdzie fraction semantics i service-area mapping są deterministyczne.
-5. PWA `#51` rozpocząć dopiero po spełnieniu live-soak start gate i przy zachowaniu obecnych data-quality gates.
+1. Uruchomić i ręcznie przejrzeć `live-source-staging` z aktualnego `main`; dopiero wtedy domknąć `#60`.
+2. Wykonać następną bezpieczną aktywację z całkowicie zamkniętym pomiarem PROSPECTIVE, żeby poszerzyć próbkę `#65`.
+3. Kontynuować collection coverage tylko tam, gdzie fraction semantics i service-area mapping są deterministyczne.
+4. PWA `#51` rozpocząć dopiero po spełnieniu live-soak start gate i przy zachowaniu obecnych data-quality gates.
 
 ## Stan decyzji
 
@@ -145,7 +144,7 @@ Harmonogramy i facilities zachowują artifact UUID, SHA-256, parser key/version 
 
 **Automatyczna publikacja dla wspieranych źródeł: GO pod istniejącymi gate'ami.**
 
-**Rollout `2026.4`: code/runtime gates PASS; final docs rerun przed merge.**
+**Rollout `2026.4`: pełny code/runtime gate PASS w CI #140; finalny dokumentacyjny rerun wymagany dla heada PR.**
 
 **Collection coverage: 3/8 — bez sztucznego zaliczania Sianów PSZOK jako harmonogramu.**
 
