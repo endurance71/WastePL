@@ -1,15 +1,15 @@
 # Sianów PSZOK 2026.4 prospective onboarding worklog
 
-> Measurement mode: `PROSPECTIVE`. Timezone: `Europe/Warsaw`. Timer resolution: whole minutes, rounded to the nearest whole minute from explicit phase boundary timestamps. CI queue/runtime waiting and later external waiting are excluded by stopping the active phase timer before those waits.
+> Measurement mode: `PROSPECTIVE`. Timezone: `Europe/Warsaw`. Timer resolution: whole minutes, rounded to the nearest whole minute from explicit phase boundary timestamps. CI queue/runtime waiting and external waiting are excluded by stopping the active phase timer before those waits.
 
 ## Target
 
 - Municipality: Sianów (`3209073`)
 - Data type: `PSZOK`
-- Intended source key: `sianow-pszok`
-- Intended manifest: `pilot-koszalin-region@2026.4`
-- Candidate parser: `municipal-pszok-html`
-- Expected reuse class before implementation: `EXTENDED_EXISTING`
+- Source key: `sianow-pszok`
+- Manifest: `pilot-koszalin-region@2026.4`
+- Parser: `municipal-pszok-html`
+- Reuse class: `EXTENDED_EXISTING`
 
 ## Official evidence inspected prospectively
 
@@ -28,7 +28,7 @@ The official page states:
 - proof of payment must be shown when delivering waste;
 - explicit accepted-material catalogue including bulky waste, electronics, tyres, green waste, construction/demolition municipal waste, expired medicines/chemicals, batteries/accumulators, hazardous household chemicals and textiles.
 
-Current 2026 schedule PDFs published by the municipality independently repeat the PSZOK location and Monday/Thursday/Saturday hours. This is used as corroborating current-period evidence, not as an additional ACTIVE artifact for the facility.
+Current 2026 schedule PDFs published by the municipality independently repeat the PSZOK location and Monday/Thursday/Saturday hours. This is corroborating current-period evidence, not an additional ACTIVE artifact for the facility.
 
 ## Phase log
 
@@ -36,14 +36,17 @@ Current 2026 schedule PDFs published by the municipality independently repeat th
 | --- | --- | --- | ---: | --- | --- |
 | discovery | 2026-08-29 12:07:52+02:00 | 2026-08-29 12:10:42+02:00 | 3 | complete | Compared remaining pilot blockers and searched for a lower-risk direct official source suitable for the first post-2026.3 prospective measurement. |
 | sourceAssessment | 2026-08-29 12:10:42+02:00 | 2026-08-29 12:11:19+02:00 | 1 | complete | Confirmed direct municipal HTML semantics and corroborating 2026 schedule evidence; no trusted coordinates are claimed. |
-| parserImplementation | 2026-08-29 12:11:19+02:00 | — | — | active | Existing municipal PSZOK adapter/handler inspected before code changes. |
-| regressionFixture | — | — | — | pending | — |
-| addressServiceAreaMapping | — | — | — | pending | PSZOK has no collection service-area mapping; phase will measure the explicit determination that no address/service-area rules are required. |
-| review | — | — | — | pending | — |
+| parserImplementation | 2026-08-29 12:11:19+02:00 | 2026-08-29 12:14:30+02:00 | 3 | complete | Extended `municipal-pszok-html` with a source-key-specific Sianów profile and registered TERC 3209073 in the existing production handler. |
+| regressionFixture | 2026-08-29 12:14:30+02:00 | 2026-08-29 12:16:06+02:00 | 2 | complete | Added frozen minimal official-content regression fixture, adapter assertions, semantic-drift rejection and immutable-artifact runtime coverage. |
+| addressServiceAreaMapping | 2026-08-29 12:16:06+02:00 | 2026-08-29 12:16:13+02:00 | 0 | complete | PSZOK does not create collection service-area rules. Facility access is source-backed `MUNICIPALITY_RESIDENTS`; seven active seconds round to 0 at the declared timer resolution. |
+| review | 2026-08-29 12:16:13+02:00 | 2026-08-29 12:19:17+02:00 | 3 | complete-pre-CI | Reviewed rollout isolation, created manifest 2026.4 and strengthened manifest rollout assertions. Any active CI-fix interval will be appended and added to this phase; CI waiting itself is excluded. |
+
+Pre-CI human-active total: **12 minutes**.
 
 ## Measurement guardrails
 
 - No minutes are reconstructed from Git commit timestamps or PR duration.
-- No CI execution time will be counted as human-active work.
+- No CI execution time is counted as human-active work.
 - A phase may legitimately be 0 minutes if explicit start/end timestamps fall within less than 30 seconds at this timer resolution.
-- Final onboarding metrics will reference this file and the implementation/regression evidence in the repository.
+- If CI exposes a defect, only the active diagnosis/fix interval is added to `review`; queue/runtime waiting remains excluded.
+- Final onboarding metrics reference this file and implementation/regression evidence in the repository.
