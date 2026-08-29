@@ -1,12 +1,12 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29, commit `67b25bf8b0db4fd0dff002b33e477478c0065bee` (pełny CI run `33242598823`, #115, PR `#67`). Zmiana dokumentacyjna podlega jeszcze finalnemu rerunowi przed merge.
+> Zweryfikowano: 2026-08-29, commit `67b25bf8b0db4fd0dff002b33e477478c0065bee` (pełny CI run `33242598823`, #115). Implementacja jest prowadzona do merge w PR `#68`; zamknięty draft `#67` miał identyczny kod i został zastąpiony wyłącznie z powodu błędu konektora przy zmianie statusu draft.
 
 ## Etap
 
 Sprinty 01–04 dostarczyły produkcyjnie utwardzony Data Platform PoC: rejestr źródeł, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne parsery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API oraz fixture-independent production gates.
 
-Sprint 05 rozszerza rzeczywiste collection coverage i jakość pilota. Po PR `#66` aktywne harmonogramy obejmują Koszalin, Manowo i bezpieczną część Tychowa. PR `#67` implementuje kryterium `#64`: minimum 100 realnych adresów opartych o zamrożony snapshot GUGiK PRG oraz pełną consumer API bramkę jakości.
+Sprint 05 rozszerza rzeczywiste collection coverage i jakość pilota. Po PR `#66` aktywne harmonogramy obejmują Koszalin, Manowo i bezpieczną część Tychowa. PR `#68` implementuje kryterium `#64`: minimum 100 realnych adresów opartych o zamrożony snapshot GUGiK PRG oraz pełną consumer API bramkę jakości.
 
 WastePL nadal nie jest kompletnym produktem konsumenckim dla wszystkich ośmiu gmin. Brak danych jest traktowany jako brak pokrycia, a nie jako powód do zgadywania harmonogramu.
 
@@ -164,7 +164,7 @@ Wcześniejszy run #114 prawidłowo wykrył błąd samej asercji raportowej: `cov
 
 ## Najbliższa kolejność
 
-1. Scalić `#67` po finalnym zielonym CI i zamknąć `#64`.
+1. Scalić `#68` po finalnym zielonym CI i zamknąć `#64`.
 2. Zrealizować `#65`: audytowalne metryki onboardingu/adapters reuse bez wymyślania historycznych minut pracy.
 3. Kontynuować aktywację kolejnych gmin tylko tam, gdzie coverage jest deterministyczne.
 4. Wykonać manualny live-source staging/soak na aktualnym `main`.
@@ -176,6 +176,6 @@ Wcześniejszy run #114 prawidłowo wykrył błąd samej asercji raportowej: `cov
 
 **Automatyczna publikacja dla wspieranych źródeł: GO pod istniejącymi gate'ami.**
 
-**Kryterium `#64` 100 realnych adresów: implementacja i pełny CI #115 PASS; oczekuje na merge PR `#67`.**
+**Kryterium `#64` 100 realnych adresów: implementacja i pełny CI #115 PASS; oczekuje na merge PR `#68`.**
 
 **Zewnętrzny szeroki pilot konsumencki: nadal NO-GO**, ponieważ pokrycie harmonogramów nie obejmuje jeszcze wszystkich ośmiu gmin i nie wykonano aktualnego live-source soak.
