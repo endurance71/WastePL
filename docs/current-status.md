@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29, code head `8cd0922d39594c6a7733c005e501c72d4921bd2a` (PR `#74`). Pełny CI #145 (`33252332977`) przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, readiness, fixture-independent production gate, Sianów i Tychowo PSZOK worker/API post-gates, real-100 consumer gate, Tychowo collection 45/45 i API smoke. Bieżąca zmiana tego dokumentu nie zmienia runtime i podlega finalnemu rerunowi przed merge.
+> Zweryfikowano: 2026-08-29, commit `8cd0922d39594c6a7733c005e501c72d4921bd2a` (PR `#74`). Pełny CI #145 (`33252332977`) przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, readiness, fixture-independent production gate, Sianów i Tychowo PSZOK worker/API post-gates, real-100 consumer gate, Tychowo collection 45/45 i API smoke. Merge policy wymaga dodatkowo zielonego CI na finalnym headzie dokumentacyjnym.
 
 ## Etap
 
@@ -175,7 +175,7 @@ Harmonogramy i facilities zachowują artifact UUID, SHA-256, parser key/version 
 
 **Automatyczna publikacja dla wspieranych źródeł: GO pod istniejącymi gate'ami.**
 
-**Rollout `2026.5`: pełny code/runtime gate PASS w CI #145; finalny dokumentacyjny rerun wymagany dla finalnego heada PR `#74`.**
+**Rollout `2026.5`: pełny code/runtime gate PASS w CI #145; merge policy wymaga zielonego CI również na finalnym headzie dokumentacyjnym.**
 
 **Collection coverage: 3/8 — bez sztucznego zaliczania facility activation jako harmonogramu.**
 
