@@ -101,7 +101,7 @@ async function main(): Promise<void> {
       item.operationalStatus.state !== 'UNKNOWN' ||
       item.quality.verificationStatus !== 'OFFICIAL_SOURCE' ||
       item.provenance.primary.parserKey !== 'municipal-pszok-html' ||
-      item.provenance.primary.parserVersion !== '0.2.0' ||
+      item.provenance.primary.parserVersion !== '0.3.0' ||
       !item.provenance.assertions.some((assertion) => assertion.sourceKey === SOURCE_KEY)
     ) {
       throw new Error(`Sianów public facility contract drift: ${JSON.stringify(item)}`);
