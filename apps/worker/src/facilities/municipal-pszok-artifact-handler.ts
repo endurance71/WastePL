@@ -24,6 +24,7 @@ interface SourceRow extends QueryResultRow {
 const EXPECTED_TERC = new Map<string, string>([
   ['bobolice-pszok', '3209033'],
   ['swieszyno-pszok', '3209082'],
+  ['sianow-pszok', '3209073'],
 ]);
 
 export class MunicipalPszokArtifactHandler implements ArtifactHandler {
