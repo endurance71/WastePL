@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "test": "vitest run --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "readiness:production-api": "tsx src/readiness/production-api-gate-100.ts"
+    "readiness:production-api": "tsx src/readiness/production-api-gate-100.ts",
+    "readiness:sianow-pszok-api": "tsx src/readiness/sianow-pszok-api-post-gate.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
@@ -17,7 +18,7 @@
     "@nestjs/platform-fastify": "^11.1.6",
     "@wastepl/domain": "workspace:*",
     "pg": "^8.16.3",
-    "reflect-metadata": "^0.2.2",
+    "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
