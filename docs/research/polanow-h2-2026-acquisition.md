@@ -46,7 +46,31 @@ The same BIP CMS exposes attachment downloads canonically from the origin root:
 
 `https://bip.polanow.pl/pobierz.php?d=zal&id=<attachment-hash>`
 
-This root-level `pobierz.php?d=zal&id=...` pattern is independently observable on indexed Polanów BIP attachments. Therefore a child-artifact resolver must resolve this CMS link against the site origin, not against the wrapper path.
+This root-level `pobierz.php?d=zal&id=...` pattern is independently observable on indexed Polanów BIP attachments. The strict resolver therefore resolves this CMS link against the site origin, not against the wrapper path.
+
+## Live acquisition proof
+
+Isolated GitHub Actions run `33270288429` (`polanow-h2-acquisition-probe`, 2026-08-29) executed from a non-production probe branch. It used no production database, bucket or queue. All 15 canonical H2 wrappers resolved to origin-root attachment downloads, returned a body with the `%PDF-` signature, and were hashed before the report was archived.
+
+| Child | SHA-256 |
+| --- | --- |
+| 01 Garbno | `d578df780951f1f391fa81007bd61e8048f001e1fca771a4561408c4c8913643` |
+| 02 Kościernica | `bc3b2f430c561f0260a6d81e09479520ad0724518fe0f6932374d3eeaca38945` |
+| 03 rural set A | `14e1ea008b34297750331f526bf3f8981d184205401fb82b83919fc5918cd9ab` |
+| 04 rural set B | `24cf9023ab74d295e154fe0502bbf20ac35913a6d488e3ca318339ee3b183c53` |
+| 05 rural set C | `a7d18df9cb40d4cc71810f4f41558a5863faa702b7b62b8b992d4d7644cd348b` |
+| 06 Polanów route A | `97353c460373f520431c8221c2b30501facdd05af7b7bcbc216de55c6aa96a69` |
+| 07 Polanów route B | `abc931a2985dd6540eb7039d83a8efde6c9ebd716759c3a9a2c7305afc8dc0f5` |
+| 08 rural set D | `b611c0beef308b3ed50388158f7192b4b1c73cee22b30cadb6e8334c1ed25560` |
+| 09 rural set E | `7ebc124edfe07b441a4e83c2e23226bca7c967b43e6472151c2662344b1721d3` |
+| 10 rural set F | `c28292e1408a6d365cffafb5d09bb021a62c44817d9ce0c5bf4a9bacf9477728` |
+| 11 difficult access A | `9a8daee424f7b3736cde010df6b81e5333911a4d8abcdcd72fc7e74b00ce87ba` |
+| 12 difficult access B | `14cdec38ba3631937d9394aad27a712d25af70a2873416a73e4b3e76bb4fef3c` |
+| 13 multi-family Polanów | `c8fab3cb37afb68d59840ff3ee83244de1aba3963c40b61ea2fe300f96e39513` |
+| 14 multi-family Nacław/Żydowo | `963849141b1c796cdcf9c6c15c638076c20cf56b74495d03db9be561c72ac7ea` |
+| 15 multi-family Krąg/Rzeczyca Wielka | `179ca57591f02175f77e0fe87875154c8af210b699495a97afb5b391250f25d6` |
+
+The report artifact is `polanow-h2-acquisition-report-33270288429` (artifact id `9719895614`). The acquisition gate is therefore no longer blocked on stable child capture.
 
 ## Safety constraints for implementation
 
@@ -54,12 +78,12 @@ This root-level `pobierz.php?d=zal&id=...` pattern is independently observable o
 - extract and verify the same 32-hex attachment id from the wrapper and download link;
 - resolve `pobierz.php?d=zal&id=<id>` against `https://bip.polanow.pl/`;
 - reject H1 document id `2660` and any wrapper outside parent document `2846`;
-- freeze content SHA-256 after successful child capture;
+- keep the frozen SHA evidence above separate from future drift observations;
 - do not activate difficult-access or multi-family children until service-area overlap rules are independently deterministic;
-- do not promote Polanów to ACTIVE until production runtime, real PRG reference gate, replay and API post-gates pass.
+- do not promote Polanów to ACTIVE until parser/template, real PRG reference, production runtime, replay and API post-gates pass.
 
-## Current blocker after this research
+## Current blocker after live capture
 
-The previous blocker `H2_CHILD_SET_ENUMERATED_BUT_STABLE_PDF_CAPTURE_NOT_YET_PROVEN` is narrowed to runtime verification of the origin-root attachment resolver and SHA capture.
+`H2_PARSER_TEMPLATE_AND_SERVICE_AREA_GATE_NOT_YET_COMPLETE`
 
-No collection source is activated by this document.
+Stable H2 child acquisition is proven. The next work item is representative PDF text/template analysis followed by a source-backed, non-overlapping service-area model. No collection source is activated by this document.
