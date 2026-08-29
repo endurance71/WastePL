@@ -15,6 +15,7 @@ const integrationDescribe = databaseUrl ? describe : describe.skip;
 interface Profile {
   sourceKey: string;
   terc: string;
+  municipalityName: string;
   sourceUrl: string;
   fixture: string;
   canonicalKey: string;
@@ -25,6 +26,7 @@ const profiles: Profile[] = [
   {
     sourceKey: 'bobolice-pszok',
     terc: '3209033',
+    municipalityName: 'Bobolice',
     sourceUrl: 'https://bobolice.pl/cms/8587',
     fixture: 'bobolice-pszok.html',
     canonicalKey: 'pl-3209033-pszok-boboliczki',
@@ -33,10 +35,20 @@ const profiles: Profile[] = [
   {
     sourceKey: 'swieszyno-pszok',
     terc: '3209082',
+    municipalityName: 'Świeszyno',
     sourceUrl: 'https://swieszyno.pl/punkt-selektywnej-zbiorki-odpadow-komunalnych-pszok/',
     fixture: 'swieszyno-pszok.html',
     canonicalKey: 'pl-3209082-pszok-chalupy-13b',
     expectedMaterials: ['CONSTRUCTION'],
+  },
+  {
+    sourceKey: 'sianow-pszok',
+    terc: '3209073',
+    municipalityName: 'Sianów',
+    sourceUrl: 'https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/punkt-selektywnej-zbiorki-odpadow-komunalnych/',
+    fixture: 'sianow-pszok.html',
+    canonicalKey: 'pl-3209073-pszok-sianow-lubuszan-80',
+    expectedMaterials: ['BULKY', 'ELECTRONICS', 'TYRES', 'GREEN', 'CONSTRUCTION', 'MEDICINES', 'BATTERIES', 'HAZARDOUS', 'TEXTILES'],
   },
 ];
 
@@ -52,7 +64,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
          VALUES ($1, $2, 'runtime-integration-test')
          ON CONFLICT (terc) DO UPDATE SET name = municipalities.name
          RETURNING id`,
-        [profile.terc, profile.sourceKey === 'bobolice-pszok' ? 'Bobolice' : 'Świeszyno'],
+        [profile.terc, profile.municipalityName],
       );
       await pool.query(
         `INSERT INTO sources (
@@ -61,8 +73,8 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
            source_shape, evidence_status, activation_blocker, assessed_at
          ) VALUES (
            $1, 'MUNICIPALITY', 'Runtime integration', $2, 'HTML',
-           'municipal-pszok-html', $3, 'PSZOK', 'ACTIVE', 'pilot-koszalin-region@2026.2', true,
-           'DIRECT_CONTENT', 'VERIFIED', NULL, '2026-08-28T10:30:00Z'
+           'municipal-pszok-html', $3, 'PSZOK', 'ACTIVE', 'pilot-koszalin-region@2026.4', true,
+           'DIRECT_CONTENT', 'VERIFIED', NULL, '2026-08-29T10:10:42Z'
          )
          ON CONFLICT (source_key) WHERE source_key IS NOT NULL DO UPDATE SET
            municipality_id = EXCLUDED.municipality_id,
@@ -96,8 +108,6 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
         [artifactIds],
       );
     }
-    // Canonical facilities retain direct provenance FKs to the immutable source artifacts,
-    // therefore canonical rows must be removed before the artifact rows themselves.
     await pool.query(
       `DELETE FROM facilities WHERE canonical_key = ANY($1::text[])`,
       [profiles.map((profile) => profile.canonicalKey)],
@@ -132,7 +142,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       const registry = new PgSourceRegistry(pool);
       const inserted = await registry.insertArtifact({
         sourceId,
-        retrievedAt: new Date('2026-08-28T10:30:00.000Z'),
+        retrievedAt: new Date('2026-08-29T10:10:42.000Z'),
         sha256: hash,
         storageUri: stored.uri,
         parserKey: 'municipal-pszok-html',
@@ -194,7 +204,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       expect(artifact.rows[0]).toMatchObject({
         status: 'PUBLISHED',
         parser_key: 'municipal-pszok-html',
-        parser_version: '0.1.0',
+        parser_version: '0.2.0',
       });
       expect(Number(artifact.rows[0]!.extraction_confidence)).toBeGreaterThanOrEqual(0.96);
 
@@ -223,7 +233,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       });
       const broken = await registry.insertArtifact({
         sourceId,
-        retrievedAt: new Date('2026-08-28T11:00:00.000Z'),
+        retrievedAt: new Date('2026-08-29T10:20:00.000Z'),
         sha256: brokenHash,
         storageUri: brokenStored.uri,
         parserKey: 'municipal-pszok-html',
@@ -244,7 +254,6 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       );
       expect(retained.rows[0]).toEqual({ source_artifact_id: artifactId, count: '1' });
 
-      // A replay of the last known good artifact restores source health without changing canonical data.
       await expect(processArtifactJob(registry, processor, {
         sourceId,
         artifactId,
