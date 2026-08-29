@@ -12,6 +12,10 @@ const swieszynoHtml = readFileSync(
   new URL('../../../test/fixtures/swieszyno-pszok.html', import.meta.url),
   'utf8',
 );
+const sianowHtml = readFileSync(
+  new URL('../../../test/fixtures/sianow-pszok.html', import.meta.url),
+  'utf8',
+);
 
 function artifact(html: string, sourceKey: string, url: string) {
   return {
@@ -19,7 +23,7 @@ function artifact(html: string, sourceKey: string, url: string) {
     sourceKey,
     url,
     sha256: sha256Hex(Buffer.from(html)),
-    retrievedAt: '2026-08-28T10:30:00.000Z',
+    retrievedAt: '2026-08-29T10:10:42.000Z',
     storageUri: `fixture://${sourceKey}.html`,
   };
 }
@@ -100,6 +104,53 @@ describe('MunicipalPszokHtmlAdapter', () => {
       .toEqual([{ opens: '08:00', closes: '16:00' }]);
   });
 
+  it('normalizes Sianów PSZOK with source-backed proof requirement and canonical material subset', async () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const facility = adapter.parse(artifact(
+      sianowHtml,
+      'sianow-pszok',
+      'https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/punkt-selektywnej-zbiorki-odpadow-komunalnych/',
+    ));
+
+    await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    expect(facility).toMatchObject({
+      key: 'pl-3209073-pszok-sianow-lubuszan-80',
+      address: 'ul. Łubuszan 80, Sianów',
+      location: null,
+      operatorName: 'Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie',
+      access: {
+        scope: 'MUNICIPALITY_RESIDENTS',
+        requiresProof: true,
+        sourceKey: 'sianow-pszok',
+      },
+      quality: {
+        verificationStatus: 'OFFICIAL_SOURCE',
+        confidence: 0.98,
+        warnings: [
+          'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+          'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+        ],
+      },
+    });
+    expect(facility.acceptedMaterials).toEqual([
+      'BULKY',
+      'ELECTRONICS',
+      'TYRES',
+      'GREEN',
+      'CONSTRUCTION',
+      'MEDICINES',
+      'BATTERIES',
+      'HAZARDOUS',
+      'TEXTILES',
+    ]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'MONDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '16:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'THURSDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '16:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SATURDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '14:00' }]);
+  });
+
   it('rejects an unregistered municipality profile even when HTML resembles PSZOK content', () => {
     const adapter = new MunicipalPszokHtmlAdapter();
     expect(() => adapter.parse(artifact(
@@ -127,5 +178,18 @@ describe('MunicipalPszokHtmlAdapter', () => {
       'swieszyno-pszok',
       'https://swieszyno.pl/punkt-selektywnej-zbiorki-odpadow-komunalnych-pszok/',
     ))).toThrow('resident access statement missing');
+  });
+
+  it('fails visibly when Sianów proof-of-payment semantics disappear', () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const broken = sianowHtml.replace(
+      'okazać potwierdzenie wniesienia opłaty',
+      'posiadać nieokreślone uprawnienie',
+    );
+    expect(() => adapter.parse(artifact(
+      broken,
+      'sianow-pszok',
+      'https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/punkt-selektywnej-zbiorki-odpadow-komunalnych/',
+    ))).toThrow('proof-of-payment requirement missing');
   });
 });

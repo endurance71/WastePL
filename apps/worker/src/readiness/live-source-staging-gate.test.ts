@@ -54,11 +54,12 @@ describe('live-source staging gate policy', () => {
 
     const manifestRoot = resolve(repoRoot, 'manifests');
     const latest = latestPilotManifestFilename(await readdir(manifestRoot));
-    expect(latest).toBe('pilot-koszalin-region-2026.3.json');
+    expect(latest).toBe('pilot-koszalin-region-2026.4.json');
     const manifest = JSON.parse(await readFile(resolve(manifestRoot, latest), 'utf8')) as SourceManifest;
     const keys = activeSourceKeysFromManifest(manifest);
-    expect(keys).toHaveLength(7);
+    expect(keys).toHaveLength(8);
     expect(keys).toContain('tychowo-collection-standard-2026');
+    expect(keys).toContain('sianow-pszok');
   });
 
   it('recognizes a bundle member that was completed by its companion', () => {
