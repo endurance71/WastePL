@@ -20,8 +20,8 @@ Earlier exploratory research and issue #76 are treated only as input hypotheses.
 | Phase | Start | End | Rounded minutes | State | Notes |
 | --- | --- | --- | ---: | --- | --- |
 | discovery | 2026-08-29 20:51:07+02:00 | 2026-08-29 20:52:20+02:00 | 1 | complete | Re-validated H2 parent 2846 and committed 15/15 final static PDF URLs, sizes and SHA-256 evidence from acquisition run 33269197493. |
-| sourceAssessment | 2026-08-29 20:52:20+02:00 | — | — | active | Determine safe source subset/fractions and exclude hard-to-reach/multi-family overlaps. |
-| parserImplementation | — | — | — | pending | Extend existing municipal collection parser, no new parser family unless evidence requires it. |
+| sourceAssessment | 2026-08-29 20:52:20+02:00 | 2026-08-29 20:53:22+02:00 | 1 | complete | Fixed safe policy: 34 rural localities across 7 standard PDFs; publish only MIXED/BIO/BULKY; omit generic segregacja; exclude multi-family and MIXED/BIO hard-to-reach overlaps. |
+| parserImplementation | 2026-08-29 20:56:19+02:00 | — | — | active | Fresh active interval after interruption. An earlier announced parser start at 20:53:22 did not receive a close boundary and included no parser code change; it is disclosed but not counted. |
 | regressionFixture | — | — | — | pending | Freeze only required source evidence and add template/semantic drift tests. |
 | addressServiceAreaMapping | — | — | — | pending | PRG/TERYT-backed service areas and address correctness gate. |
 | review | — | — | — | pending | Manifest, runtime/API gates, metrics and final review. |
@@ -33,13 +33,18 @@ Earlier exploratory research and issue #76 are treated only as input hypotheses.
 - Acquisition run `33269197493`: wrappers HTTP 15/15, PDFs `%PDF` 15/15, unique SHA-256 15/15.
 - H1 document `d/70/2660` is not valid H2 evidence.
 
-## Source-assessment hypotheses under test
+## Safe source assessment
 
 - Standard single-family H2 PDFs publish `zmieszane / bio / segregacja / gabaryty`.
-- WastePL may safely publish `MIXED`, `BIO`, `BULKY`; generic `segregacja` remains omitted rather than guessed.
+- WastePL publishes `MIXED`, `BIO`, `BULKY`; generic `segregacja` is required as template evidence but deliberately omitted from canonical events.
 - Multi-family PDFs are withheld because resolver does not currently use building type and their street/locality coverage overlaps single-family routes.
-- Rural localities with hard-to-reach MIXED/BIO schedule overrides are withheld from locality-wide standard coverage unless explicit-address overrides are implemented and PRG-gated.
-- Entries explicitly marked `sama segregacja` do not alter MIXED/BIO/BULKY and therefore do not force exclusion when `segregacja` is omitted.
+- Rural localities with hard-to-reach MIXED/BIO schedule overrides are withheld from locality-wide standard coverage.
+- Entries explicitly marked `sama segregacja` do not alter MIXED/BIO/BULKY and therefore do not force exclusion while `segregacja` remains omitted.
+- `docs/research/polanow-h2-safe-subset.md` is the source-level allow-list/exclusion contract.
+
+## Timer integrity note
+
+A parser phase was verbally announced at `20:53:22`, immediately before an interrupted session. There was no explicit end timestamp and no parser-code commit during that interval. It is therefore not reconstructed from session/Git elapsed time. A new countable parser interval starts at `20:56:19`.
 
 ## Guardrails
 
