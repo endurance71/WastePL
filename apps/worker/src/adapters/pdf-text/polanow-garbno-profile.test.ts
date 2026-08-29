@@ -88,7 +88,7 @@ describe('Polanów Garbno H2 municipal PDF profile', () => {
 
     // The PDF text contains the same rendered table twice. It must not double the events.
     expect(dataset.collectionEvents.filter((event) => event.fraction === 'MIXED')).toHaveLength(13);
-    expect(dataset.collectionEvents.filter((event) => event.fraction === 'BIO')).toHaveLength(10);
+    expect(dataset.collectionEvents.filter((event) => event.fraction === 'BIO')).toHaveLength(11);
     expect(dataset.collectionEvents.filter((event) => event.fraction === 'OTHER')).toHaveLength(7);
     expect(dataset.sources[0]).toMatchObject({
       sourceKey: 'polanow-collection-garbno-h2-2026',
@@ -103,9 +103,6 @@ describe('Polanów Garbno H2 municipal PDF profile', () => {
   it('fails closed when the duplicated rendered tables drift apart', () => {
     const adapter = new MunicipalCollectionPdfTextAdapter(context());
     const drifted = GARBNO_TEXT.replace(
-      'lipiec 9, 23 3, 17, 31 3, 31\nsierpień',
-      'lipiec 9, 23 3, 17, 31 3, 31\nsierpień',
-    ).replace(
       'zmieszane bio segregacja gabaryty\nlipiec 9, 23 3, 17, 31 3, 31\nsierpień 6, 20 14, 28 28\nwrzesień 3,17 11, 25 25\npaździernik 1, 15, 29 9, 23 23 24\nlistopad 13, 26 20 20\ngrudzień 10, 22 17 18\n2026',
       'zmieszane bio segregacja gabaryty\nlipiec 10, 23 3, 17, 31 3, 31\nsierpień 6, 20 14, 28 28\nwrzesień 3,17 11, 25 25\npaździernik 1, 15, 29 9, 23 23 24\nlistopad 13, 26 20 20\ngrudzień 10, 22 17 18\n2026',
     );
