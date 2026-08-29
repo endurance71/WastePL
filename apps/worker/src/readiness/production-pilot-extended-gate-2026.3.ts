@@ -20,6 +20,16 @@ const faqFixturePath = resolve(repoRoot, 'apps/worker/test/fixtures/pgk-koszalin
 const changedAt = new Date('2026-08-28T17:00:00Z');
 const MANIFEST_VERSION = '2026.3';
 const MANIFEST_ID = `pilot-koszalin-region@${MANIFEST_VERSION}`;
+const EXPECTED_PILOT_TERCS = [
+  '3201043',
+  '3209012',
+  '3209033',
+  '3209042',
+  '3209063',
+  '3209073',
+  '3209082',
+  '3261011',
+] as const;
 
 interface SourceRow extends QueryResultRow {
   id: string;
@@ -215,7 +225,12 @@ async function main(): Promise<void> {
     }
 
     const coverage = await new PgSourceManifestSync(pool).coverage('pilot-koszalin-region', MANIFEST_VERSION);
-    if (coverage.length !== 8) throw new Error(`Expected coverage rows for 8 pilot municipalities, got ${coverage.length}`);
+    const coverageMunicipalityTercs = [...new Set(coverage.map((row) => row.terc))].sort();
+    if (JSON.stringify(coverageMunicipalityTercs) !== JSON.stringify([...EXPECTED_PILOT_TERCS].sort())) {
+      throw new Error(
+        `Pilot coverage municipality set drifted: expected=${JSON.stringify([...EXPECTED_PILOT_TERCS].sort())}, actual=${JSON.stringify(coverageMunicipalityTercs)}`,
+      );
+    }
 
     const manifestCounts = await pool.query<{
       manifest_status: string;
@@ -276,6 +291,7 @@ async function main(): Promise<void> {
     };
     report.coverage = {
       manifest: MANIFEST_ID,
+      municipalityTercs: coverageMunicipalityTercs,
       rows: coverage,
       manifestCounts: manifestCounts.rows,
     };
