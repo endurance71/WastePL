@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { textFromPdfTextArtifact } from '../adapters/pdf-text/pdf-text-extractor.js';
 import { extractPolanowH2AttachmentHref, resolvePolanowH2AttachmentDownload } from '../ingestion/polanow-bip-attachment.js';
 
 const USER_AGENT = 'WastePL/0.1 (+https://wastepl.pl)';
 const POLANOW_ORIGIN = 'https://bip.polanow.pl';
 const REPORT_PATH = 'test-results/polanow-h2-acquisition-report.json';
+const TEXT_SAMPLE_KEYS = new Set(['01-garbno', '06-polanow-route-a', '11-difficult-access-a', '13-multifamily-polanow']);
 
 const H2_WRAPPERS = [
   ['01-garbno', 'b9dd65849fc6ebcb56cb8e3ce17710d5'],
@@ -33,6 +35,8 @@ type ProbeSuccess = {
   contentType: string | null;
   bytes: number;
   sha256: string;
+  textSha256: string | null;
+  textLength: number | null;
   outcome: 'CAPTURED';
 };
 
@@ -61,6 +65,17 @@ function requireTrustedFinalUrl(url: string): void {
   }
 }
 
+function printTextSample(key: string, text: string): void {
+  const sample = text
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .slice(0, 45)
+    .join('\n')
+    .slice(0, 2600);
+  console.log(`TEXT_SAMPLE_BEGIN ${key}\n${sample}\nTEXT_SAMPLE_END ${key}`);
+}
+
 async function probeOne(key: string, attachmentId: string): Promise<ProbeSuccess | ProbeFailure> {
   const wrapperUrl = `${POLANOW_ORIGIN}/zalacznik/${attachmentId}/70/2846/`;
 
@@ -86,6 +101,15 @@ async function probeOne(key: string, attachmentId: string): Promise<ProbeSuccess
       throw new Error(`Downloaded body is not a PDF (bytes=${body.length})`);
     }
 
+    let textSha256: string | null = null;
+    let textLength: number | null = null;
+    if (TEXT_SAMPLE_KEYS.has(key)) {
+      const text = await textFromPdfTextArtifact(body);
+      textSha256 = createHash('sha256').update(text, 'utf8').digest('hex');
+      textLength = text.length;
+      printTextSample(key, text);
+    }
+
     return {
       key,
       wrapperUrl,
@@ -95,6 +119,8 @@ async function probeOne(key: string, attachmentId: string): Promise<ProbeSuccess
       contentType: pdfResponse.headers.get('content-type'),
       bytes: body.length,
       sha256: createHash('sha256').update(body).digest('hex'),
+      textSha256,
+      textLength,
       outcome: 'CAPTURED',
     };
   } catch (error) {
