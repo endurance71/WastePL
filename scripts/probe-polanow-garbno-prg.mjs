@@ -33,7 +33,6 @@ function geometry(block) {
 function parseMembers(xml) {
   const members = [...xml.matchAll(/<wfs:member>([\s\S]*?)<\/wfs:member>/gi)].map((match) => match[1]);
   if (members.length === 0) {
-    // Older GeoServer encodings sometimes use gml:featureMember.
     members.push(...[...xml.matchAll(/<gml:featureMember>([\s\S]*?)<\/gml:featureMember>/gi)].map((match) => match[1]));
   }
   return members.map((block) => {
@@ -59,6 +58,15 @@ function parseMembers(xml) {
   });
 }
 
+const ogcFilter = [
+  '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc" xmlns:ms="http://mapserver.gis.umn.edu/mapserver">',
+  '<ogc:PropertyIsEqualTo>',
+  '<ogc:PropertyName>ms:simc</ogc:PropertyName>',
+  `<ogc:Literal>${SIMC}</ogc:Literal>`,
+  '</ogc:PropertyIsEqualTo>',
+  '</ogc:Filter>',
+].join('');
+
 const url = new URL(WFS);
 url.searchParams.set('SERVICE', 'WFS');
 url.searchParams.set('VERSION', '1.1.0');
@@ -66,7 +74,7 @@ url.searchParams.set('REQUEST', 'GetFeature');
 url.searchParams.set('TYPENAME', 'ms:prg-adresy');
 url.searchParams.set('SRSNAME', 'EPSG:2180');
 url.searchParams.set('MAXFEATURES', '200');
-url.searchParams.set('CQL_FILTER', `simc='${SIMC}'`);
+url.searchParams.set('FILTER', ogcFilter);
 
 const response = await fetch(url, {
   redirect: 'follow',
@@ -75,6 +83,8 @@ const response = await fetch(url, {
 });
 if (!response.ok) throw new Error(`GUGiK WFS HTTP ${response.status}`);
 const xml = await response.text();
+await mkdir('test-results', { recursive: true });
+await writeFile(RAW_PATH, xml, 'utf8');
 if (/ExceptionReport|ServiceException/i.test(xml)) throw new Error(`GUGiK WFS exception: ${xml.slice(0, 1000)}`);
 const addresses = parseMembers(xml).sort((a, b) => a.buildingNumber.localeCompare(b.buildingNumber, 'pl', { numeric: true }));
 if (addresses.length < 1) throw new Error('No official PRG addresses returned for Garbno SIMC 0308749');
@@ -90,6 +100,7 @@ const report = {
     dataset: 'Państwowy Rejestr Granic — Krajowa Integracja Numeracji Adresowej',
     wfsUrl: WFS,
     wfsLayer: 'ms:prg-adresy',
+    query: 'OGC_FILTER_SIMC_EQUALS',
     querySimc: SIMC,
     responseSha256: createHash('sha256').update(xml, 'utf8').digest('hex'),
   },
@@ -98,8 +109,6 @@ const report = {
   addresses,
 };
 
-await mkdir('test-results', { recursive: true });
-await writeFile(RAW_PATH, xml, 'utf8');
 await writeFile(REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 console.log(JSON.stringify({ count: addresses.length, first: addresses[0], last: addresses.at(-1), responseSha256: report.source.responseSha256 }, null, 2));
 console.log(`Report: ${REPORT_PATH}`);
