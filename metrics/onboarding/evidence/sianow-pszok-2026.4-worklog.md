@@ -39,14 +39,18 @@ Current 2026 schedule PDFs published by the municipality independently repeat th
 | parserImplementation | 2026-08-29 12:11:19+02:00 | 2026-08-29 12:14:30+02:00 | 3 | complete | Extended `municipal-pszok-html` with a source-key-specific Sianów profile and registered TERC 3209073 in the existing production handler. |
 | regressionFixture | 2026-08-29 12:14:30+02:00 | 2026-08-29 12:16:06+02:00 | 2 | complete | Added frozen minimal official-content regression fixture, adapter assertions, semantic-drift rejection and immutable-artifact runtime coverage. |
 | addressServiceAreaMapping | 2026-08-29 12:16:06+02:00 | 2026-08-29 12:16:13+02:00 | 0 | complete | PSZOK does not create collection service-area rules. Facility access is source-backed `MUNICIPALITY_RESIDENTS`; seven active seconds round to 0 at the declared timer resolution. |
-| review | 2026-08-29 12:16:13+02:00 | 2026-08-29 12:19:17+02:00 | 3 | complete-pre-CI | Reviewed rollout isolation, created manifest 2026.4 and strengthened manifest rollout assertions. Any active CI-fix interval will be appended and added to this phase; CI waiting itself is excluded. |
+| review | 2026-08-29 12:16:13+02:00 | 2026-08-29 12:19:17+02:00 | 3 | complete-pre-CI | Reviewed rollout isolation, created manifest 2026.4 and strengthened manifest rollout assertions. |
+| review follow-up | 2026-08-29 13:26+02:00 | 2026-08-29 13:30:55+02:00 | 5 | complete | Wired the Sianów worker and public-API production post-gates, diagnosed CI #135, advanced the live-source baseline from 2026.3 to 2026.4 and removed the misleading secondary missing-report upload failure. |
 
-Pre-CI human-active total: **12 minutes**.
+Closed, auditable human-active intervals total: **17 minutes**.
+
+A prior follow-up interval was explicitly started in the previous session at `2026-08-29 12:26:09+02:00` while the public-API post-gate was being added, but no explicit end boundary was captured before that session ended. Its duration is **not reconstructed from Git timestamps and is not imputed** into the 17-minute total. Therefore 17 minutes is an auditable measured lower bound, not a claim that every active second across interrupted sessions was captured.
 
 ## Measurement guardrails
 
 - No minutes are reconstructed from Git commit timestamps or PR duration.
 - No CI execution time is counted as human-active work.
 - A phase may legitimately be 0 minutes if explicit start/end timestamps fall within less than 30 seconds at this timer resolution.
-- If CI exposes a defect, only the active diagnosis/fix interval is added to `review`; queue/runtime waiting remains excluded.
+- Only closed timer intervals contribute numeric minutes.
+- An unclosed interval remains disclosed rather than backfilled with synthetic precision.
 - Final onboarding metrics reference this file and implementation/regression evidence in the repository.
