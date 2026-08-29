@@ -13,6 +13,7 @@
     "readiness:2026.2": "tsx src/readiness/pilot-readiness-2026.2.ts",
     "readiness:production-runtime": "tsx src/readiness/production-pilot-gate-2026.3.ts",
     "readiness:production-extended": "tsx src/readiness/production-pilot-extended-gate-2026.3.ts",
+    "readiness:sianow-pszok-runtime": "tsx src/readiness/sianow-pszok-post-gate.ts",
     "readiness:tychowo-runtime": "tsx src/readiness/tychowo-real-address-post-gate.ts",
     "readiness:live-source": "tsx src/readiness/live-source-staging-gate.ts",
     "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"
