@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29, commit `8cd0922d39594c6a7733c005e501c72d4921bd2a` (PR `#74`). Pełny CI #145 (`33252332977`) przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, readiness, fixture-independent production gate, Sianów i Tychowo PSZOK worker/API post-gates, real-100 consumer gate, Tychowo collection 45/45 i API smoke. Merge policy wymaga dodatkowo zielonego CI na finalnym headzie dokumentacyjnym.
+> Zweryfikowano: 2026-08-29, commit `de6440d438f6ed1b8330b791ac1cdcf2e6f2ec9f` (PR `#75`). Pełny CI #147 (`33252595157`) przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, readiness, fixture-independent production gate, Sianów i Tychowo PSZOK worker/API post-gates, real-100 consumer gate, Tychowo collection 45/45 i API smoke. Merge policy wymaga dodatkowo zielonego CI na finalnym headzie dokumentacyjnym.
 
 ## Etap
 
@@ -46,7 +46,7 @@ Canonical facility:
 
 Powiązany regulamin był użyty wyłącznie jako materiał research/corroboration. Nie jest mieszany do canonical single-artifact provenance.
 
-CI #145 potwierdził na clean production DB:
+CI #147 potwierdził na clean production DB:
 
 - sync `pilot-koszalin-region@2026.5` z 9 ACTIVE sources;
 - immutable artifact → production dispatcher → `municipal-pszok-html@0.3.0` → canonical facility;
@@ -71,7 +71,7 @@ Canonical facility:
 - geometry: `null`;
 - materiały ograniczone do source-backed canonical subset.
 
-CI #145 ponownie potwierdził Sianów worker first import + replay + provenance oraz public API post-gate. Harmonogram Sianowa pozostaje `PLANNED` z blockerem `GENERIC_SEGREGATED_COLUMN_NOT_CANONICALLY_MAPPED`.
+CI #147 ponownie potwierdził Sianów worker first import + replay + provenance oraz public API post-gate. Harmonogram Sianowa pozostaje `PLANNED` z blockerem `GENERIC_SEGREGATED_COLUMN_NOT_CANONICALLY_MAPPED`.
 
 ## Realny golden pack 100 adresów
 
@@ -86,7 +86,7 @@ Rozkład:
 
 Każdy liczony przypadek ma realny identyfikator `prg-adresy.*`. Production gate odrzuca syntetyczne `wastepl-gate-*`. `Bogusława II 1-3` pozostaje source-only support row z `prg_id=NULL` i nie jest liczony do 100 realnych punktów PRG.
 
-CI #145: collection correctness `1.0` przy wymaganym minimum `0.99`, critical schedule/date mismatches = `0`, facilities = `8/8`; osobny Tychowo post-gate ponownie potwierdził 45/45 deterministycznych adresów PRG.
+CI #147: collection correctness `1.0` przy wymaganym minimum `0.99`, critical schedule/date mismatches = `0`, facilities = `8/8`; osobny Tychowo post-gate ponownie potwierdził 45/45 deterministycznych adresów PRG.
 
 ## Tychowo collection
 
@@ -129,7 +129,7 @@ Tychowo PSZOK ma pełny prospektywny pomiar:
 
 CI queue/runtime nie jest liczony do human effort. Historycznych minut nadal nie rekonstruujemy z commitów, PR ani długości sesji. Sianów pozostaje uczciwie opisany jako 17-minutowy lower bound z powodu jednego niezamkniętego historycznie interwału; Tychowo jest pierwszym rekordem bez tej luki.
 
-Kontrakt `#65` w CI #145 raportuje: 9 ACTIVE sources pokrytych przez 8 activation records, first-import manual intervention `1/8`, repeat automation `3/3`, human effort coverage `12/48`.
+Kontrakt `#65` w CI #147 raportuje: 9 ACTIVE sources pokrytych przez 8 activation records, first-import manual intervention `1/8`, repeat automation `3/3`, human effort coverage `12/48`.
 
 ## Live-source staging/drift gate `#60`
 
@@ -175,7 +175,7 @@ Harmonogramy i facilities zachowują artifact UUID, SHA-256, parser key/version 
 
 **Automatyczna publikacja dla wspieranych źródeł: GO pod istniejącymi gate'ami.**
 
-**Rollout `2026.5`: pełny code/runtime gate PASS w CI #145; merge policy wymaga zielonego CI również na finalnym headzie dokumentacyjnym.**
+**Rollout `2026.5`: pełny code/runtime gate PASS w CI #147; merge policy wymaga zielonego CI również na finalnym headzie dokumentacyjnym.**
 
 **Collection coverage: 3/8 — bez sztucznego zaliczania facility activation jako harmonogramu.**
 
