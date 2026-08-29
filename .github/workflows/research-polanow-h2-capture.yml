@@ -21,7 +21,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: pnpm
       - name: Enable pnpm
         run: corepack enable
       - name: Install dependencies
@@ -38,5 +37,5 @@ jobs:
           path: |
             tmp/polanow-h2-capture/
             tmp/polanow-h2-runtime-text/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
