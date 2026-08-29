@@ -16,6 +16,10 @@ const sianowHtml = readFileSync(
   new URL('../../../test/fixtures/sianow-pszok.html', import.meta.url),
   'utf8',
 );
+const tychowoHtml = readFileSync(
+  new URL('../../../test/fixtures/tychowo-pszok.html', import.meta.url),
+  'utf8',
+);
 
 function artifact(html: string, sourceKey: string, url: string) {
   return {
@@ -23,7 +27,7 @@ function artifact(html: string, sourceKey: string, url: string) {
     sourceKey,
     url,
     sha256: sha256Hex(Buffer.from(html)),
-    retrievedAt: '2026-08-29T10:10:42.000Z',
+    retrievedAt: '2026-08-29T11:47:09.000Z',
     storageUri: `fixture://${sourceKey}.html`,
   };
 }
@@ -151,6 +155,55 @@ describe('MunicipalPszokHtmlAdapter', () => {
       .toEqual([{ opens: '08:00', closes: '14:00' }]);
   });
 
+  it('normalizes Tychowo PSZOK from the single official BIP HTML without leaking PDF-only claims', async () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const facility = adapter.parse(artifact(
+      tychowoHtml,
+      'tychowo-pszok',
+      'https://bip.tychowo.pl/artykul/646/9305/oplata-za-gospodarowanie-odpadami-komunalnymi',
+    ));
+
+    await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    expect(facility).toMatchObject({
+      key: 'pl-3201043-pszok-tychowo-dolna-8',
+      name: 'PSZOK Tychowo, ul. Dolna 8',
+      address: 'ul. Dolna 8, Tychowo',
+      location: null,
+      operatorName: null,
+      access: {
+        scope: 'UNKNOWN',
+        requiresProof: null,
+        quantityLimits: [],
+        sourceKey: 'tychowo-pszok',
+      },
+      quality: {
+        verificationStatus: 'OFFICIAL_SOURCE',
+        confidence: 0.97,
+        warnings: [
+          'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+          'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+          'ACCESS_RULES_NOT_PUBLISHED_IN_PRIMARY_SOURCE',
+        ],
+      },
+    });
+    expect(facility.acceptedMaterials).toEqual([
+      'PAPER',
+      'GLASS',
+      'BIO',
+      'BATTERIES',
+      'ELECTRONICS',
+      'BULKY',
+      'TYRES',
+      'CONSTRUCTION',
+    ]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'TUESDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '14:30' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'THURSDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '14:30' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SATURDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '14:30' }]);
+  });
+
   it('rejects an unregistered municipality profile even when HTML resembles PSZOK content', () => {
     const adapter = new MunicipalPszokHtmlAdapter();
     expect(() => adapter.parse(artifact(
@@ -191,5 +244,18 @@ describe('MunicipalPszokHtmlAdapter', () => {
       'sianow-pszok',
       'https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/punkt-selektywnej-zbiorki-odpadow-komunalnych/',
     ))).toThrow('proof-of-payment requirement missing');
+  });
+
+  it('fails visibly when the Tychowo PSZOK hours drift', () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const broken = tychowoHtml.replace(
+      'Wtorek, czwartek, sobota - 8:00 - 14:30',
+      'Wtorek, czwartek, sobota - godziny zmienione',
+    );
+    expect(() => adapter.parse(artifact(
+      broken,
+      'tychowo-pszok',
+      'https://bip.tychowo.pl/artykul/646/9305/oplata-za-gospodarowanie-odpadami-komunalnymi',
+    ))).toThrow('Tuesday/Thursday/Saturday opening hours missing');
   });
 });
