@@ -1,12 +1,12 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29, commit `e364533e6667ab0d3b8ecd0f02f5819b51516fc5` (pełny CI run `33243809544`, #119, PR `#69`). Końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
+> Zweryfikowano: 2026-08-29, commit `46609ddf0ad853796377f4a3d331fb99f3d4829c` (pełny CI run `33243926097`, #120, PR `#70`). Końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
 
 ## Etap
 
 Sprinty 01–04 dostarczyły produkcyjnie utwardzony Data Platform PoC: rejestr źródeł, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne parsery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API oraz fixture-independent production gates.
 
-Sprint 05 rozszerza rzeczywiste collection coverage i jakość pilota. PR `#68` został scalony do `main` jako commit `a82677fceffddf6af2287880a6403e57fa4e7f9d` i zamknął `#64`: clean production consumer gate obejmuje dokładnie 100 realnych adresów GUGiK PRG. PR `#69` implementuje warstwę pomiarową `#65`: machine-readable onboarding metrics, adapter reuse, source complexity oraz first-import/repeat-update automation bez rekonstruowania historycznych minut pracy.
+Sprint 05 rozszerza rzeczywiste collection coverage i jakość pilota. PR `#68` został scalony do `main` jako commit `a82677fceffddf6af2287880a6403e57fa4e7f9d` i zamknął `#64`: clean production consumer gate obejmuje dokładnie 100 realnych adresów GUGiK PRG. PR `#70` implementuje warstwę pomiarową `#65`: machine-readable onboarding metrics, adapter reuse, source complexity oraz first-import/repeat-update automation bez rekonstruowania historycznych minut pracy.
 
 WastePL nadal nie jest kompletnym produktem konsumenckim dla wszystkich ośmiu gmin. Brak danych jest traktowany jako brak pokrycia, a nie jako powód do zgadywania harmonogramu.
 
@@ -48,7 +48,7 @@ Aktywny standard subset Tychowa ma 3 service areas i 45/45 realnych przypadków 
 
 ## Onboarding economics `#65`
 
-PR `#69` dodaje kontrakt `schemas/onboarding-metrics-v0.1.schema.json`, dane `metrics/onboarding/pilot-koszalin-region-v0.1.json`, sprawdzany agregat oraz `scripts/check-onboarding-metrics.mjs` wpięty do `contracts:check`.
+PR `#70` dodaje kontrakt `schemas/onboarding-metrics-v0.1.schema.json`, dane `metrics/onboarding/pilot-koszalin-region-v0.1.json`, sprawdzany agregat oraz `scripts/check-onboarding-metrics.mjs` wpięty do `contracts:check`.
 
 Jednostką pomiaru jest `municipality × data type × source wave`. Baseline zawiera 6 aktywacji:
 
@@ -102,7 +102,7 @@ Pierwszy manualny live-source soak z aktualnego `main` nadal jest wymagany przed
 
 ## CI i bramki
 
-Pełny CI #119 (`33243809544`) na PR `#69` przeszedł:
+Pełny CI #120 (`33243926097`) na kodzie PR `#70` przeszedł przed końcową korektą numeru PR w dokumentacji:
 
 - documentation check;
 - `contracts:check`, w tym nowy onboarding metrics contract/history validator;
@@ -128,7 +128,7 @@ Pełny CI #119 (`33243809544`) na PR `#69` przeszedł:
 
 ## Najbliższa kolejność
 
-1. Scalić warstwę kontraktową `#69` po finalnym zielonym CI; `#65` pozostawić otwarte do pierwszego pełnego prospektywnego pomiaru.
+1. Scalić warstwę kontraktową `#70` po finalnym zielonym CI; `#65` pozostawić otwarte do pierwszego pełnego prospektywnego pomiaru.
 2. Wybrać następną bezpieczną aktywację źródła i od początku prowadzić sześć timerów onboardingowych.
 3. Kontynuować collection coverage tylko tam, gdzie service-area mapping jest deterministyczny.
 4. Wykonać manualny live-source staging/soak na aktualnym `main`.
@@ -142,6 +142,6 @@ Pełny CI #119 (`33243809544`) na PR `#69` przeszedł:
 
 **Kryterium `#64` — 100 realnych adresów: DONE, scalone w PR `#68`.**
 
-**Warstwa pomiarowa `#65`: implementacja #69 + CI #119 PASS; koszt human-time nadal UNKNOWN do pierwszej prospektywnej aktywacji.**
+**Warstwa pomiarowa `#65`: implementacja #70 + CI #120 PASS; koszt human-time nadal UNKNOWN do pierwszej prospektywnej aktywacji.**
 
 **Zewnętrzny szeroki pilot konsumencki: nadal NO-GO**, ponieważ pokrycie harmonogramów nie obejmuje jeszcze wszystkich ośmiu gmin i nie wykonano aktualnego live-source soak.
