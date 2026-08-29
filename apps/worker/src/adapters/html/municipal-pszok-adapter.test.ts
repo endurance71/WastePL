@@ -174,7 +174,7 @@ describe('MunicipalPszokHtmlAdapter', () => {
         scope: 'UNKNOWN',
         requiresProof: null,
         quantityLimits: [],
-        sourceKey: 'tychowo-pszok',
+        sourceKey: null,
       },
       quality: {
         verificationStatus: 'OFFICIAL_SOURCE',
