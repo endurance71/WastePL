@@ -6,7 +6,13 @@ import { extractPolanowH2AttachmentHref, resolvePolanowH2AttachmentDownload } fr
 const USER_AGENT = 'WastePL/0.1 (+https://wastepl.pl)';
 const POLANOW_ORIGIN = 'https://bip.polanow.pl';
 const REPORT_PATH = 'test-results/polanow-h2-acquisition-report.json';
-const TEXT_SAMPLE_KEYS = new Set(['01-garbno', '06-polanow-route-a', '11-difficult-access-a', '13-multifamily-polanow']);
+const TEXT_SAMPLE_KEYS = new Set([
+  '01-garbno',
+  '06-polanow-route-a',
+  '11-difficult-access-a',
+  '12-difficult-access-b',
+  '13-multifamily-polanow',
+]);
 
 const H2_WRAPPERS = [
   ['01-garbno', 'b9dd65849fc6ebcb56cb8e3ce17710d5'],
