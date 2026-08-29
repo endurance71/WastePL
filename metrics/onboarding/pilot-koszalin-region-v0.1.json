@@ -348,13 +348,13 @@
         "parserImplementation": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
         "regressionFixture": { "minutes": 2, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
         "addressServiceAreaMapping": { "minutes": 0, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
-        "review": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" }
+        "review": { "minutes": 8, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" }
       },
       "firstImport": {
         "status": "PASS",
         "automatic": true,
         "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts"
+        "evidenceRef": "apps/worker/src/readiness/sianow-pszok-post-gate.ts"
       },
       "repeatUpdate": {
         "status": "NOT_MEASURED",
@@ -368,11 +368,14 @@
         "apps/worker/test/fixtures/sianow-pszok.html",
         "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
         "apps/worker/src/facilities/municipal-pszok-artifact-handler.ts",
-        "apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts"
+        "apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts",
+        "apps/worker/src/readiness/sianow-pszok-post-gate.ts",
+        "apps/api/src/readiness/sianow-pszok-api-post-gate.ts"
       ],
       "notes": [
-        "First complete post-2026.3 prospective timing record; pre-CI human-active total is 12 minutes.",
-        "CI wait/runtime is excluded. If CI requires an active fix, only that diagnosis/fix interval is added to review before merge.",
+        "Closed prospective timer intervals total 17 human-active minutes across discovery, assessment, implementation, regression, mapping determination and review.",
+        "One earlier review follow-up interval was started but not closed before an interrupted session; its duration is disclosed in the worklog and is not reconstructed or imputed, so 17 minutes is an auditable measured lower bound rather than synthetic precision.",
+        "CI queue/runtime is excluded from effort minutes.",
         "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
       ]
     }
