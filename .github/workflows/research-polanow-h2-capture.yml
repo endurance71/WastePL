@@ -6,6 +6,7 @@ on:
       - research/polanow-h2-capture
     paths:
       - scripts/research-polanow-h2-capture.mjs
+      - apps/worker/src/readiness/research-polanow-h2-runtime-text.ts
       - .github/workflows/research-polanow-h2-capture.yml
 
 permissions:
@@ -14,19 +15,28 @@ permissions:
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: pnpm
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Probe exact Polanów H2 attachments
         run: node scripts/research-polanow-h2-capture.mjs
+      - name: Extract representative H2 text through production PDF.js path
+        run: pnpm --filter @wastepl/worker exec tsx src/readiness/research-polanow-h2-runtime-text.ts
       - name: Upload capture evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: polanow-h2-capture-${{ github.run_id }}
-          path: tmp/polanow-h2-capture/
+          path: |
+            tmp/polanow-h2-capture/
+            tmp/polanow-h2-runtime-text/
           if-no-files-found: error
           retention-days: 7
