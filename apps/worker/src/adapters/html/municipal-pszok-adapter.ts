@@ -285,7 +285,7 @@ function parseTychowo(input: HtmlArtifactInput, text: string): NormalizedFacilit
       requiresProof: null,
       quantityLimits: [],
       notes: ['Primary BIP HTML does not state PSZOK eligibility or proof requirements; linked regulation is not used as runtime evidence by this single-artifact profile.'],
-      sourceKey: input.sourceKey,
+      sourceKey: null,
     },
     operationalStatus: unknownOperationalStatus(),
     operatorName: null,
