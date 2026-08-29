@@ -316,6 +316,65 @@
       "notes": [
         "Wave-3 assessment was prospective in evidence capture, but human-active minutes were not timed; the contract records effort as UNKNOWN instead of deriving it from Git timestamps."
       ]
+    },
+    {
+      "id": "sianow-pszok-wave4",
+      "terc": "3209073",
+      "municipalityName": "Sianów",
+      "dataType": "PSZOK",
+      "sourceWave": "pilot-source-wave-4",
+      "activatedInManifestVersion": "2026.4",
+      "sourceKeys": ["sianow-pszok"],
+      "parserKeys": ["municipal-pszok-html"],
+      "measurementMode": "PROSPECTIVE",
+      "adapterReuseClass": "EXTENDED_EXISTING",
+      "complexity": {
+        "parentArtifactCount": 0,
+        "childArtifactCount": 1,
+        "activeArtifactCount": 1,
+        "coordination": "SINGLE_ARTIFACT",
+        "serviceAreaComplexity": "NONE",
+        "manualReviewSurfaces": 0,
+        "drivers": [
+          "direct official municipal HTML",
+          "existing municipal PSZOK adapter and production handler extended with one deterministic source profile",
+          "trusted coordinates are not published and remain null",
+          "proof-of-fee requirement is explicitly source-backed"
+        ]
+      },
+      "effort": {
+        "discovery": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
+        "sourceAssessment": { "minutes": 1, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
+        "parserImplementation": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
+        "regressionFixture": { "minutes": 2, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
+        "addressServiceAreaMapping": { "minutes": 0, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
+        "review": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" }
+      },
+      "firstImport": {
+        "status": "PASS",
+        "automatic": true,
+        "manualInterventions": 0,
+        "evidenceRef": "apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts"
+      },
+      "repeatUpdate": {
+        "status": "NOT_MEASURED",
+        "automatic": null,
+        "manualInterventions": null,
+        "evidenceRef": null
+      },
+      "evidenceRefs": [
+        "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md",
+        "manifests/pilot-koszalin-region-2026.4.json",
+        "apps/worker/test/fixtures/sianow-pszok.html",
+        "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
+        "apps/worker/src/facilities/municipal-pszok-artifact-handler.ts",
+        "apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts"
+      ],
+      "notes": [
+        "First complete post-2026.3 prospective timing record; pre-CI human-active total is 12 minutes.",
+        "CI wait/runtime is excluded. If CI requires an active fix, only that diagnosis/fix interval is added to review before merge.",
+        "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
+      ]
     }
   ]
 }
