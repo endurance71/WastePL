@@ -24,7 +24,7 @@ jobs:
       - name: Enable pnpm
         run: corepack enable
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
       - name: Probe exact Polanów H2 attachments
         run: node scripts/research-polanow-h2-capture.mjs
       - name: Extract representative H2 text through production PDF.js path
