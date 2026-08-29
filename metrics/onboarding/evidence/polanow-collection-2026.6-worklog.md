@@ -19,19 +19,27 @@ Earlier exploratory research and issue #76 are treated only as input hypotheses.
 
 | Phase | Start | End | Rounded minutes | State | Notes |
 | --- | --- | --- | ---: | --- | --- |
-| discovery | 2026-08-29 20:51:07+02:00 | — | — | active | Re-validate current H2 parent, exact 15 child identities and stable capture evidence before implementation. |
-| sourceAssessment | — | — | — | pending | Determine safe source subset/fractions and exclude overlaps. |
+| discovery | 2026-08-29 20:51:07+02:00 | 2026-08-29 20:52:20+02:00 | 1 | complete | Re-validated H2 parent 2846 and committed 15/15 final static PDF URLs, sizes and SHA-256 evidence from acquisition run 33269197493. |
+| sourceAssessment | 2026-08-29 20:52:20+02:00 | — | — | active | Determine safe source subset/fractions and exclude hard-to-reach/multi-family overlaps. |
 | parserImplementation | — | — | — | pending | Extend existing municipal collection parser, no new parser family unless evidence requires it. |
 | regressionFixture | — | — | — | pending | Freeze only required source evidence and add template/semantic drift tests. |
 | addressServiceAreaMapping | — | — | — | pending | PRG/TERYT-backed service areas and address correctness gate. |
 | review | — | — | — | pending | Manifest, runtime/API gates, metrics and final review. |
 
-## Known hypotheses to re-validate
+## Frozen discovery evidence
 
 - Official H2 parent: `https://bip.polanow.pl/harmonogram-odbioru-odpadow-komunalnych---ii-polrocze-2026/d/70/2846/`.
-- Untimed acquisition run `33269197493` observed 15/15 HTTP PDF captures and 15 unique SHA-256 values; this must be converted into committed/final source evidence before activation.
-- Standard single-family PDFs use `zmieszane / bio / segregacja / gabaryty`; generic `segregacja` must not be split or published as a canonical recyclable fraction.
-- Multi-family and hard-to-reach sets overlap ordinary routes and must be excluded unless the resolver can distinguish them deterministically.
+- `docs/research/polanow-h2-capture-2026-08-29.json` freezes all 15 child wrapper hashes and final `/upload/zal/2026/2026-06-24/*.pdf` URLs.
+- Acquisition run `33269197493`: wrappers HTTP 15/15, PDFs `%PDF` 15/15, unique SHA-256 15/15.
+- H1 document `d/70/2660` is not valid H2 evidence.
+
+## Source-assessment hypotheses under test
+
+- Standard single-family H2 PDFs publish `zmieszane / bio / segregacja / gabaryty`.
+- WastePL may safely publish `MIXED`, `BIO`, `BULKY`; generic `segregacja` remains omitted rather than guessed.
+- Multi-family PDFs are withheld because resolver does not currently use building type and their street/locality coverage overlaps single-family routes.
+- Rural localities with hard-to-reach MIXED/BIO schedule overrides are withheld from locality-wide standard coverage unless explicit-address overrides are implemented and PRG-gated.
+- Entries explicitly marked `sama segregacja` do not alter MIXED/BIO/BULKY and therefore do not force exclusion when `segregacja` is omitted.
 
 ## Guardrails
 
