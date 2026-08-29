@@ -1,0 +1,163 @@
+{
+  "version": "2026-08-29",
+  "threshold": 0.99,
+  "criticalWrongDateTolerance": 0,
+  "addressSnapshot": "apps/worker/test/fixtures/reference/prg-pilot-real-100-20260828.json",
+  "sources": {
+    "koszalin": {
+      "key": "koszalin-collection-bio-2026",
+      "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/bio.pdf",
+      "fixture": "apps/worker/test/fixtures/pdf-text/koszalin-bio-2026.txt"
+    },
+    "manowo": {
+      "key": "manowo-collection-2ab-2026",
+      "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/manowo/2AB.pdf",
+      "fixture": "apps/worker/test/fixtures/pdf-text/manowo-2ab-2026.txt"
+    },
+    "tychowo": {
+      "key": "tychowo-collection-standard-2026",
+      "url": "https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianaharmonogram_tychowo_20261.pdf",
+      "fixture": "apps/worker/test/fixtures/pdf-text/tychowo-standard-2026.txt"
+    }
+  },
+  "serviceAreas": {
+    "koszalin-bio-poniedziałek": {
+      "name": "Koszalin zabudowa wielorodzinna BIO - poniedziałek",
+      "source": "koszalin",
+      "eventProfile": "KOSZALIN_MON"
+    },
+    "koszalin-bio-wtorek": {
+      "name": "Koszalin zabudowa wielorodzinna BIO - wtorek",
+      "source": "koszalin",
+      "eventProfile": "KOSZALIN_TUE"
+    },
+    "koszalin-bio-środa": {
+      "name": "Koszalin zabudowa wielorodzinna BIO - środa",
+      "source": "koszalin",
+      "eventProfile": "KOSZALIN_WED"
+    },
+    "koszalin-bio-czwartek": {
+      "name": "Koszalin zabudowa wielorodzinna BIO - czwartek",
+      "source": "koszalin",
+      "eventProfile": "KOSZALIN_THU"
+    },
+    "koszalin-bio-piątek": {
+      "name": "Koszalin zabudowa wielorodzinna BIO - piątek",
+      "source": "koszalin",
+      "eventProfile": "KOSZALIN_FRI"
+    },
+    "manowo-bonin-deborogi-policko-wyszeborz": {
+      "name": "Gmina Manowo: Bonin, Dęborogi, Policko, Wyszebórz",
+      "source": "manowo",
+      "eventProfile": "MANOWO_JAN"
+    },
+    "tychowo-standard-north-west": {
+      "name": "Gmina Tychowo — grupa Buczki/Czarnkowo",
+      "source": "tychowo",
+      "eventProfile": "TYCHOWO_NORTH_WEST_SEP"
+    },
+    "tychowo-standard-south": {
+      "name": "Gmina Tychowo — grupa Bukowo/Dobrowo",
+      "source": "tychowo",
+      "eventProfile": "TYCHOWO_SOUTH_SEP"
+    },
+    "tychowo-standard-east": {
+      "name": "Gmina Tychowo — grupa Doble/Kikowo",
+      "source": "tychowo",
+      "eventProfile": "TYCHOWO_EAST_SEP"
+    }
+  },
+  "eventProfiles": {
+    "KOSZALIN_MON": {
+      "from": "2026-07-01",
+      "days": 7,
+      "events": [
+        { "date": "2026-07-06", "fraction": "BIO", "status": "SCHEDULED" }
+      ]
+    },
+    "KOSZALIN_TUE": {
+      "from": "2026-07-01",
+      "days": 7,
+      "events": [
+        { "date": "2026-07-07", "fraction": "BIO", "status": "SCHEDULED" }
+      ]
+    },
+    "KOSZALIN_WED": {
+      "from": "2026-07-01",
+      "days": 7,
+      "events": [
+        { "date": "2026-07-01", "fraction": "BIO", "status": "SCHEDULED" }
+      ]
+    },
+    "KOSZALIN_THU": {
+      "from": "2026-07-01",
+      "days": 7,
+      "events": [
+        { "date": "2026-07-02", "fraction": "BIO", "status": "SCHEDULED" }
+      ]
+    },
+    "KOSZALIN_FRI": {
+      "from": "2026-07-01",
+      "days": 7,
+      "events": [
+        { "date": "2026-07-03", "fraction": "BIO", "status": "SCHEDULED" }
+      ]
+    },
+    "MANOWO_JAN": {
+      "from": "2026-01-01",
+      "days": 31,
+      "events": [
+        { "date": "2026-01-07", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-01-07", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-01-07", "fraction": "METALS_PLASTICS", "status": "SCHEDULED" },
+        { "date": "2026-01-07", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-01-13", "fraction": "MIXED", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "METALS_PLASTICS", "status": "SCHEDULED" },
+        { "date": "2026-01-20", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-01-27", "fraction": "MIXED", "status": "SCHEDULED" }
+      ]
+    },
+    "TYCHOWO_NORTH_WEST_SEP": {
+      "from": "2026-09-01",
+      "days": 30,
+      "events": [
+        { "date": "2026-09-14", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-09-17", "fraction": "MIXED", "status": "SCHEDULED" },
+        { "date": "2026-09-23", "fraction": "OTHER", "status": "SCHEDULED" },
+        { "date": "2026-09-24", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-09-25", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-09-28", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-09-28", "fraction": "MIXED", "status": "SCHEDULED" }
+      ]
+    },
+    "TYCHOWO_SOUTH_SEP": {
+      "from": "2026-09-01",
+      "days": 30,
+      "events": [
+        { "date": "2026-09-14", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-09-18", "fraction": "MIXED", "status": "SCHEDULED" },
+        { "date": "2026-09-23", "fraction": "OTHER", "status": "SCHEDULED" },
+        { "date": "2026-09-24", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-09-25", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-09-28", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-09-28", "fraction": "MIXED", "status": "SCHEDULED" }
+      ]
+    },
+    "TYCHOWO_EAST_SEP": {
+      "from": "2026-09-01",
+      "days": 30,
+      "events": [
+        { "date": "2026-09-07", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-09-07", "fraction": "MIXED", "status": "SCHEDULED" },
+        { "date": "2026-09-09", "fraction": "OTHER", "status": "SCHEDULED" },
+        { "date": "2026-09-10", "fraction": "PAPER", "status": "SCHEDULED" },
+        { "date": "2026-09-11", "fraction": "GLASS", "status": "SCHEDULED" },
+        { "date": "2026-09-16", "fraction": "MIXED", "status": "SCHEDULED" },
+        { "date": "2026-09-21", "fraction": "BIO", "status": "SCHEDULED" },
+        { "date": "2026-09-21", "fraction": "MIXED", "status": "SCHEDULED" }
+      ]
+    }
+  }
+}

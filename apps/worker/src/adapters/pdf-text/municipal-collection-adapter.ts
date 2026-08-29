@@ -43,6 +43,11 @@ interface ParsedTable {
   glass: number[][];
 }
 
+interface ResolvedLocality {
+  locality: MunicipalCollectionLocalityRef;
+  warnings: string[];
+}
+
 const TYCHOWO_SAFE_ROUTES: RouteDefinition[] = [
   {
     key: 'tychowo-standard-north-west',
@@ -110,6 +115,15 @@ const EXCLUDED_STANDARD_LOCALITIES = [
   'Warnino',
   'Wicewo',
 ] as const;
+
+/**
+ * Explicit source-to-reference corrections only. These are evidence-backed
+ * publication typos, not fuzzy matches. The source text must still contain the
+ * original spelling so template drift cannot be hidden by the alias.
+ */
+const TYCHOWO_LOCALITY_ALIASES: Readonly<Record<string, string>> = {
+  'Pobądź': 'Pobądz',
+};
 
 function normalizeText(text: string): string {
   return text
@@ -241,8 +255,9 @@ function event(
 function resolveLocality(
   context: MunicipalCollectionReferenceContext,
   localityName: string,
-): MunicipalCollectionLocalityRef {
-  const target = normalizeName(localityName);
+): ResolvedLocality {
+  const referenceName = TYCHOWO_LOCALITY_ALIASES[localityName] ?? localityName;
+  const target = normalizeName(referenceName);
   const matches = context.localities.filter((locality) => normalizeName(locality.name) === target);
   if (matches.length !== 1 || !matches[0]) {
     throw new PdfTextParseError(
@@ -251,7 +266,12 @@ function resolveLocality(
       localityName,
     );
   }
-  return matches[0];
+  return {
+    locality: matches[0],
+    warnings: referenceName === localityName
+      ? []
+      : [`SOURCE_LOCALITY_ALIAS: ${localityName} -> official TERYT ${referenceName}`],
+  };
 }
 
 function assertTemplateEvidence(text: string): void {
@@ -277,6 +297,7 @@ function appendMonthlyEvents(
   events: NormalizedCollectionEvent[],
   serviceAreaKey: string,
   table: ParsedTable,
+  routeWarnings: string[] = [],
 ): void {
   const rows: Array<{
     fraction: WasteFractionCode;
@@ -306,7 +327,7 @@ function appendMonthlyEvents(
             row.fraction,
             isoDate(2026, monthIndex + 1, day),
             row.note,
-            row.warnings ?? [],
+            [...routeWarnings, ...(row.warnings ?? [])],
           ),
         );
       }
@@ -337,17 +358,18 @@ function parseTychowoStandard(
       throw new PdfTextParseError(`Missing Tychowo table ${route.tableIndex}`, 'UNSUPPORTED_TEMPLATE');
     }
     const resolved = route.localities.map((locality) => resolveLocality(context, locality));
+    const routeWarnings = [...new Set(resolved.flatMap((entry) => entry.warnings))];
     serviceAreas.push({
       key: route.key,
       name: route.name,
       buildingType: null,
-      coverage: resolved.map((locality) => ({
+      coverage: resolved.map((entry) => ({
         type: 'LOCALITY' as const,
         priority: 50,
-        simc: locality.simc,
+        simc: entry.locality.simc,
       })),
     });
-    appendMonthlyEvents(input, collectionEvents, route.key, table);
+    appendMonthlyEvents(input, collectionEvents, route.key, table, routeWarnings);
   }
 
   serviceAreas.sort((a, b) => a.key.localeCompare(b.key));
@@ -368,7 +390,7 @@ function parseTychowoStandard(
 
 export class MunicipalCollectionPdfTextAdapter {
   readonly parserKey = 'municipal-collection-pdf-text';
-  readonly parserVersion = '0.1.0';
+  readonly parserVersion = '0.1.1';
 
   constructor(private readonly context: MunicipalCollectionReferenceContext) {}
 
