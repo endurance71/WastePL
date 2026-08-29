@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -18,30 +18,26 @@ import { PgSourceManifestSync } from '../manifests/source-manifest-sync.js';
 import type { SourceManifest } from '../manifests/source-manifest.js';
 import { PgOfficialReferenceImporter } from '../reference/pg-reference-importer.js';
 import {
-  productionGatePrgRows,
-  productionGateSimcRows,
-  productionGateTercRows,
-  productionGateUlicRows,
-} from './production-gate-reference.js';
+  REAL_GOLDEN_REFERENCE_COUNTS,
+  hydrateRealGoldenReferenceBackbone,
+  insertKoszalinSourceOnlySupportAddress,
+  loadRealGoldenReferenceSnapshot,
+  realGoldenPrgRows,
+} from './real-golden-reference.js';
+import { productionGateTercRows } from './production-gate-reference.js';
 
 const { Client, Pool } = pg;
 const execFileAsync = promisify(execFile);
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
-const manifestPath = resolve(repoRoot, 'manifests/pilot-koszalin-region-2026.2.json');
+const manifestRoot = resolve(repoRoot, 'manifests');
 const reportPath = resolve(repoRoot, 'apps/worker/test-results/live-source-staging-report.json');
 const summaryPath = resolve(repoRoot, 'apps/worker/test-results/live-source-staging-summary.md');
 const fixtureRoot = resolve(repoRoot, 'apps/worker/test/fixtures');
 
-export const LIVE_ACTIVE_SOURCE_KEYS = [
-  'bobolice-pszok',
-  'koszalin-collection-bio-2026',
-  'koszalin-pszok-faq',
-  'koszalin-pszok-main',
-  'manowo-collection-2ab-2026',
-  'swieszyno-pszok',
-] as const;
+export const LIVE_GATE_MIN_MANIFEST_VERSION = '2026.3';
+const PILOT_MANIFEST_ID = 'pilot-koszalin-region';
+const PILOT_MANIFEST_PATTERN = /^pilot-koszalin-region-(\d{4}\.\d+)\.json$/;
 
-export type LiveActiveSourceKey = typeof LIVE_ACTIVE_SOURCE_KEYS[number];
 export type LiveSourceOutcome =
   | 'HEALTHY'
   | 'CHANGED_BUT_PARSEABLE'
@@ -50,14 +46,14 @@ export type LiveSourceOutcome =
   | 'PARSE_FAILED'
   | 'WAITING_FOR_COMPANION';
 
-const baselineFixturePath: Partial<Record<LiveActiveSourceKey, string>> = {
+const baselineFixturePath: Readonly<Record<string, string>> = {
   'koszalin-pszok-main': 'pgk-koszalin-pszok-main.html',
   'koszalin-pszok-faq': 'pgk-koszalin-pszok-faq.html',
   'bobolice-pszok': 'bobolice-pszok.html',
   'swieszyno-pszok': 'swieszyno-pszok.html',
 };
 
-const expectedCanonicalKeys: Partial<Record<LiveActiveSourceKey, string>> = {
+const expectedCanonicalKeys: Readonly<Record<string, string>> = {
   'koszalin-pszok-main': 'pl-3261011-pszok-komunalna-5',
   'koszalin-pszok-faq': 'pl-3261011-pszok-komunalna-5',
   'bobolice-pszok': 'pl-3209033-pszok-boboliczki',
@@ -66,7 +62,7 @@ const expectedCanonicalKeys: Partial<Record<LiveActiveSourceKey, string>> = {
 
 interface ActiveSourceRow extends QueryResultRow {
   id: string;
-  source_key: LiveActiveSourceKey;
+  source_key: string;
   source_url: string;
   source_format: string;
   parser_key: string | null;
@@ -111,6 +107,13 @@ interface SourceHealthRow extends QueryResultRow {
   last_error_code: string | null;
 }
 
+export interface LiveCanonicalEvidence {
+  expectedCanonicalKey: string | null;
+  expectedCanonicalKeyObserved: boolean | null;
+  collectionPublicationCount: number | null;
+  facilityAssertionCount: number | null;
+}
+
 export interface LiveSourceResult {
   sourceKey: string;
   terc: string;
@@ -137,11 +140,7 @@ export interface LiveSourceResult {
   healthStatus: string;
   consecutiveFailures: number;
   safeErrorCode: string | null;
-  canonicalEvidence: {
-    expectedCanonicalKey: string | null;
-    expectedCanonicalKeyObserved: boolean | null;
-    collectionPublicationCount: number | null;
-  };
+  canonicalEvidence: LiveCanonicalEvidence;
 }
 
 interface GateReport {
@@ -155,6 +154,13 @@ interface GateReport {
     database: string | null;
     bucket: string | null;
     productionMutationAllowed: false;
+  };
+  reference?: {
+    snapshotDate: string;
+    realAddresses: number;
+    localitiesHydrated: number;
+    streetsHydrated: number;
+    sourceOnlySupportAddresses: number;
   };
   sourceResults: LiveSourceResult[];
   bundleChecks: Array<Record<string, unknown>>;
@@ -173,6 +179,51 @@ interface GateReport {
 
 function sha256(body: Buffer): string {
   return createHash('sha256').update(body).digest('hex');
+}
+
+function versionParts(value: string): [number, number] {
+  const match = /^(\d{4})\.(\d+)$/.exec(value);
+  if (!match) throw new Error(`LIVE_GATE_INVALID_MANIFEST_VERSION:${value}`);
+  return [Number(match[1]), Number(match[2])];
+}
+
+function compareVersions(left: string, right: string): number {
+  const [leftYear, leftRevision] = versionParts(left);
+  const [rightYear, rightRevision] = versionParts(right);
+  return leftYear - rightYear || leftRevision - rightRevision;
+}
+
+export function latestPilotManifestFilename(names: string[]): string {
+  const candidates = names
+    .map((name) => {
+      const match = PILOT_MANIFEST_PATTERN.exec(name);
+      return match ? { name, version: match[1] } : null;
+    })
+    .filter((candidate): candidate is { name: string; version: string } => candidate !== null)
+    .sort((left, right) => compareVersions(left.version, right.version));
+  const latest = candidates.at(-1);
+  if (!latest) throw new Error('LIVE_GATE_MANIFEST_NOT_FOUND');
+  if (compareVersions(latest.version, LIVE_GATE_MIN_MANIFEST_VERSION) < 0) {
+    throw new Error('LIVE_GATE_MANIFEST_TOO_OLD');
+  }
+  return latest.name;
+}
+
+export function activeSourceKeysFromManifest(manifest: SourceManifest): string[] {
+  return manifest.municipalities
+    .flatMap((municipality) => municipality.sources)
+    .filter((source) => source.status === 'ACTIVE')
+    .map((source) => source.key)
+    .sort();
+}
+
+async function loadLatestPilotManifest(): Promise<{ manifest: SourceManifest; version: string }> {
+  const filename = latestPilotManifestFilename(await readdir(manifestRoot));
+  const manifest = JSON.parse(await readFile(resolve(manifestRoot, filename), 'utf8')) as SourceManifest;
+  if (manifest.manifestId !== PILOT_MANIFEST_ID) throw new Error('LIVE_GATE_MANIFEST_ID_DRIFT');
+  const version = PILOT_MANIFEST_PATTERN.exec(filename)?.[1];
+  if (!version || manifest.version !== version) throw new Error('LIVE_GATE_MANIFEST_VERSION_DRIFT');
+  return { manifest, version };
 }
 
 export function classifyLiveSourceOutcome(input: {
@@ -194,6 +245,32 @@ export function classifyLiveSourceOutcome(input: {
     return 'CHANGED_BUT_PARSEABLE';
   }
   return 'HEALTHY';
+}
+
+export function hasRequiredCanonicalEvidence(
+  dataType: string,
+  evidence: LiveCanonicalEvidence,
+): boolean {
+  if (dataType === 'COLLECTION_SCHEDULE') return (evidence.collectionPublicationCount ?? 0) >= 1;
+  if ((evidence.facilityAssertionCount ?? 0) < 1) return false;
+  return evidence.expectedCanonicalKey === null || evidence.expectedCanonicalKeyObserved === true;
+}
+
+export function effectiveLiveProcessingOutcome(input: {
+  processingOutcome: string | null;
+  artifactStatus: string | null;
+  healthStatus: string;
+  canonicalObserved: boolean;
+}): string | null {
+  if (input.processingOutcome !== 'WAITING_FOR_COMPANION') return input.processingOutcome;
+  if (
+    input.artifactStatus === 'PUBLISHED' &&
+    input.canonicalObserved &&
+    ['HEALTHY', 'REVIEW_REQUIRED'].includes(input.healthStatus)
+  ) {
+    return input.healthStatus === 'REVIEW_REQUIRED' ? 'REVIEW_REQUIRED' : 'PUBLISHED';
+  }
+  return input.processingOutcome;
 }
 
 function liveDatabaseUrl(): string {
@@ -231,6 +308,7 @@ export function assertLiveGateIsolation(input: {
 
 async function resetGateDatabase(gateUrl: string): Promise<void> {
   const databaseName = new URL(gateUrl).pathname.replace(/^\//, '');
+  if (!/^[a-zA-Z0-9_]+$/.test(databaseName)) throw new Error('LIVE_GATE_UNSAFE_DATABASE_NAME');
   const client = new Client({ connectionString: adminDatabaseUrl(gateUrl) });
   await client.connect();
   try {
@@ -340,7 +418,7 @@ async function sourceHealth(
 async function canonicalEvidence(
   pool: InstanceType<typeof Pool>,
   source: ActiveSourceRow,
-): Promise<LiveSourceResult['canonicalEvidence']> {
+): Promise<LiveCanonicalEvidence> {
   if (source.data_type === 'COLLECTION_SCHEDULE') {
     const result = await pool.query<{ count: string } & QueryResultRow>(
       `SELECT count(*)::text AS count FROM collection_publications WHERE source_id = $1`,
@@ -350,18 +428,37 @@ async function canonicalEvidence(
       expectedCanonicalKey: null,
       expectedCanonicalKeyObserved: null,
       collectionPublicationCount: Number(result.rows[0]?.count ?? 0),
+      facilityAssertionCount: null,
     };
   }
 
-  const expected = expectedCanonicalKeys[source.source_key] ?? null;
-  if (!expected) {
-    return { expectedCanonicalKey: null, expectedCanonicalKeyObserved: null, collectionPublicationCount: null };
-  }
-  const result = await pool.query<{ count: string } & QueryResultRow>(
+  const generic = await pool.query<{ count: string } & QueryResultRow>(
     `SELECT count(DISTINCT f.id)::text AS count
      FROM facilities f
      LEFT JOIN facility_source_assertions a ON a.facility_id = f.id
-     WHERE f.canonical_key = $1
+     WHERE f.active = true
+       AND (
+         f.source_artifact_id IN (SELECT id FROM source_artifacts WHERE source_id = $1)
+         OR a.source_key = $2
+       )`,
+    [source.id, source.source_key],
+  );
+  const facilityAssertionCount = Number(generic.rows[0]?.count ?? 0);
+  const expected = expectedCanonicalKeys[source.source_key] ?? null;
+  if (!expected) {
+    return {
+      expectedCanonicalKey: null,
+      expectedCanonicalKeyObserved: null,
+      collectionPublicationCount: null,
+      facilityAssertionCount,
+    };
+  }
+  const exact = await pool.query<{ count: string } & QueryResultRow>(
+    `SELECT count(DISTINCT f.id)::text AS count
+     FROM facilities f
+     LEFT JOIN facility_source_assertions a ON a.facility_id = f.id
+     WHERE f.active = true
+       AND f.canonical_key = $1
        AND (
          f.source_artifact_id IN (SELECT id FROM source_artifacts WHERE source_id = $2)
          OR a.source_key = $3
@@ -370,8 +467,9 @@ async function canonicalEvidence(
   );
   return {
     expectedCanonicalKey: expected,
-    expectedCanonicalKeyObserved: Number(result.rows[0]?.count ?? 0) > 0,
+    expectedCanonicalKeyObserved: Number(exact.rows[0]?.count ?? 0) > 0,
     collectionPublicationCount: null,
+    facilityAssertionCount,
   };
 }
 
@@ -411,10 +509,12 @@ async function main(): Promise<void> {
   const startedAt = new Date();
   const gateUrl = liveDatabaseUrl();
   const bucket = process.env.S3_BUCKET;
+  const { manifest, version } = await loadLatestPilotManifest();
+  const expectedActiveKeys = activeSourceKeysFromManifest(manifest);
   const report: GateReport = {
     gate: 'live-source-staging-soak',
-    gateVersion: '0.1.0',
-    manifest: 'pilot-koszalin-region@2026.2',
+    gateVersion: '0.2.0',
+    manifest: `${PILOT_MANIFEST_ID}@${version}`,
     mode: 'LIVE_HTTP_ISOLATED_RUNTIME',
     startedAt: startedAt.toISOString(),
     isolation: {
@@ -427,7 +527,7 @@ async function main(): Promise<void> {
     canonicalChecks: {},
     summary: {
       status: 'FAIL',
-      activeSourcesExpected: LIVE_ACTIVE_SOURCE_KEYS.length,
+      activeSourcesExpected: expectedActiveKeys.length,
       activeSourcesObserved: 0,
       healthy: 0,
       changedButParseable: 0,
@@ -438,6 +538,7 @@ async function main(): Promise<void> {
 
   let pool: InstanceType<typeof Pool> | null = null;
   let redis: Redis | null = null;
+
   try {
     assertLiveGateIsolation({
       liveDatabaseUrl: gateUrl,
@@ -449,25 +550,29 @@ async function main(): Promise<void> {
     redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', { maxRetriesPerRequest: null });
 
     const importer = new PgOfficialReferenceImporter(pool);
-    const referenceRuns = [
-      await importer.importTerc(productionGateTercRows(), {
-        dataset: 'TERYT_TERC', sourceVersion: 'live-source-gate-2026.2', metadata: { stagingOnly: true },
-      }),
-      await importer.importSimc(productionGateSimcRows(), {
-        dataset: 'TERYT_SIMC', sourceVersion: 'live-source-gate-2026.2', metadata: { stagingOnly: true },
-      }),
-      await importer.importUlic(productionGateUlicRows(), {
-        dataset: 'TERYT_ULIC', sourceVersion: 'live-source-gate-2026.2', metadata: { stagingOnly: true },
-      }),
-      await importer.importPrgAddresses(productionGatePrgRows(), {
-        dataset: 'PRG_ADDRESS', sourceVersion: 'live-source-gate-2026.2', metadata: { stagingOnly: true },
-      }),
-    ];
-    if (referenceRuns.some((run) => run.rejected > 0)) throw new Error('LIVE_GATE_REFERENCE_IMPORT_REJECTED');
+    const sourceVersion = `live-source-gate-${version}`;
+    const tercRun = await importer.importTerc(productionGateTercRows(), {
+      dataset: 'TERYT_TERC', sourceVersion, metadata: { stagingOnly: true },
+    });
+    if (tercRun.rejected > 0) throw new Error('LIVE_GATE_REFERENCE_IMPORT_REJECTED');
 
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as SourceManifest;
+    const snapshot = await loadRealGoldenReferenceSnapshot();
+    const backbone = await hydrateRealGoldenReferenceBackbone(pool, snapshot);
+    const prgRun = await importer.importPrgAddresses(realGoldenPrgRows(snapshot), {
+      dataset: 'PRG_ADDRESS', sourceVersion, metadata: { stagingOnly: true, frozenRealReference: true },
+    });
+    if (prgRun.rejected > 0) throw new Error('LIVE_GATE_REFERENCE_IMPORT_REJECTED');
+    await insertKoszalinSourceOnlySupportAddress(pool);
+    report.reference = {
+      snapshotDate: snapshot.snapshotDate,
+      realAddresses: REAL_GOLDEN_REFERENCE_COUNTS.realAddresses,
+      localitiesHydrated: backbone.localities,
+      streetsHydrated: backbone.streets,
+      sourceOnlySupportAddresses: REAL_GOLDEN_REFERENCE_COUNTS.sourceOnlySupportAddresses,
+    };
+
     const manifestSync = await new PgSourceManifestSync(pool).sync(manifest, new Date());
-    if (manifestSync.activeCount !== LIVE_ACTIVE_SOURCE_KEYS.length) {
+    if (manifestSync.activeCount !== expectedActiveKeys.length) {
       throw new Error('LIVE_GATE_ACTIVE_SOURCE_COUNT_DRIFT');
     }
 
@@ -482,7 +587,7 @@ async function main(): Promise<void> {
     const active = activeResult.rows;
     report.summary.activeSourcesObserved = active.length;
     const keys = active.map((source) => source.source_key);
-    if (JSON.stringify(keys) !== JSON.stringify([...LIVE_ACTIVE_SOURCE_KEYS].sort())) {
+    if (JSON.stringify(keys) !== JSON.stringify(expectedActiveKeys)) {
       throw new Error('LIVE_GATE_ACTIVE_SOURCE_IDENTITY_DRIFT');
     }
 
@@ -530,9 +635,16 @@ async function main(): Promise<void> {
       const health = await sourceHealth(pool, source.id);
       const baseline = baselines.get(source.source_key) ?? null;
       const evidence = await canonicalEvidence(pool, source);
+      const canonicalObserved = hasRequiredCanonicalEvidence(source.data_type, evidence);
+      const effectiveProcessing = effectiveLiveProcessingOutcome({
+        processingOutcome: processing?.outcome ?? null,
+        artifactStatus: artifact?.status ?? null,
+        healthStatus: health.health_status,
+        canonicalObserved,
+      });
       const outcome = classifyLiveSourceOutcome({
         fetchFailed: fetchFailures.has(source.id) || fetchAttempt?.outcome === 'FAILED',
-        processingOutcome: processing?.outcome ?? null,
+        processingOutcome: effectiveProcessing,
         sha256: artifact?.sha256 ?? fetchAttempt?.sha256 ?? null,
         baselineSha256: baseline,
       });
@@ -569,7 +681,7 @@ async function main(): Promise<void> {
           ? processing.completed_at.getTime() - processing.started_at.getTime()
           : null,
         artifactStatus: artifact?.status ?? null,
-        processingOutcome: processing?.outcome ?? null,
+        processingOutcome: effectiveProcessing,
         healthStatus: health.health_status,
         consecutiveFailures: health.consecutive_failures,
         safeErrorCode,
@@ -592,13 +704,9 @@ async function main(): Promise<void> {
       complete: bundleComplete,
     });
 
-    const missingCanonicalEvidence = report.sourceResults.filter((source) => {
-      if (source.dataType === 'COLLECTION_SCHEDULE') {
-        return (source.canonicalEvidence.collectionPublicationCount ?? 0) < 1;
-      }
-      return source.canonicalEvidence.expectedCanonicalKey !== null &&
-        source.canonicalEvidence.expectedCanonicalKeyObserved !== true;
-    });
+    const missingCanonicalEvidence = report.sourceResults.filter(
+      (source) => !hasRequiredCanonicalEvidence(source.dataType, source.canonicalEvidence),
+    );
     report.canonicalChecks = {
       missingSourceKeys: missingCanonicalEvidence.map((source) => source.sourceKey),
       allExpectedObserved: missingCanonicalEvidence.length === 0,

@@ -1,5 +1,18 @@
+import { readFile, readdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { assertLiveGateIsolation, classifyLiveSourceOutcome } from './live-source-staging-gate.js';
+import type { SourceManifest } from '../manifests/source-manifest.js';
+import {
+  activeSourceKeysFromManifest,
+  assertLiveGateIsolation,
+  classifyLiveSourceOutcome,
+  effectiveLiveProcessingOutcome,
+  hasRequiredCanonicalEvidence,
+  latestPilotManifestFilename,
+} from './live-source-staging-gate.js';
+
+const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 
 describe('live-source staging gate policy', () => {
   it('classifies parseable byte drift separately from parser failure', () => {
@@ -30,6 +43,82 @@ describe('live-source staging gate policy', () => {
       sha256: 'x',
       baselineSha256: null,
     })).toBe('WAITING_FOR_COMPANION');
+  });
+
+  it('uses natural manifest ordering and current pilot ACTIVE identities', async () => {
+    expect(latestPilotManifestFilename([
+      'pilot-koszalin-region-2026.9.json',
+      'pilot-koszalin-region-2026.10.json',
+      'other.json',
+    ])).toBe('pilot-koszalin-region-2026.10.json');
+
+    const manifestRoot = resolve(repoRoot, 'manifests');
+    const latest = latestPilotManifestFilename(await readdir(manifestRoot));
+    expect(latest).toBe('pilot-koszalin-region-2026.3.json');
+    const manifest = JSON.parse(await readFile(resolve(manifestRoot, latest), 'utf8')) as SourceManifest;
+    const keys = activeSourceKeysFromManifest(manifest);
+    expect(keys).toHaveLength(7);
+    expect(keys).toContain('tychowo-collection-standard-2026');
+  });
+
+  it('recognizes a bundle member that was completed by its companion', () => {
+    expect(effectiveLiveProcessingOutcome({
+      processingOutcome: 'WAITING_FOR_COMPANION',
+      artifactStatus: 'PUBLISHED',
+      healthStatus: 'HEALTHY',
+      canonicalObserved: true,
+    })).toBe('PUBLISHED');
+
+    expect(effectiveLiveProcessingOutcome({
+      processingOutcome: 'WAITING_FOR_COMPANION',
+      artifactStatus: 'PUBLISHED',
+      healthStatus: 'REVIEW_REQUIRED',
+      canonicalObserved: true,
+    })).toBe('REVIEW_REQUIRED');
+
+    expect(effectiveLiveProcessingOutcome({
+      processingOutcome: 'WAITING_FOR_COMPANION',
+      artifactStatus: 'PUBLISHED',
+      healthStatus: 'WAITING_FOR_COMPANION',
+      canonicalObserved: true,
+    })).toBe('WAITING_FOR_COMPANION');
+
+    expect(effectiveLiveProcessingOutcome({
+      processingOutcome: 'WAITING_FOR_COMPANION',
+      artifactStatus: 'PUBLISHED',
+      healthStatus: 'HEALTHY',
+      canonicalObserved: false,
+    })).toBe('WAITING_FOR_COMPANION');
+  });
+
+  it('requires generic facility evidence even without a hardcoded canonical key', () => {
+    expect(hasRequiredCanonicalEvidence('PSZOK', {
+      expectedCanonicalKey: null,
+      expectedCanonicalKeyObserved: null,
+      collectionPublicationCount: null,
+      facilityAssertionCount: 1,
+    })).toBe(true);
+
+    expect(hasRequiredCanonicalEvidence('PSZOK', {
+      expectedCanonicalKey: null,
+      expectedCanonicalKeyObserved: null,
+      collectionPublicationCount: null,
+      facilityAssertionCount: 0,
+    })).toBe(false);
+
+    expect(hasRequiredCanonicalEvidence('PSZOK', {
+      expectedCanonicalKey: 'expected-key',
+      expectedCanonicalKeyObserved: false,
+      collectionPublicationCount: null,
+      facilityAssertionCount: 1,
+    })).toBe(false);
+
+    expect(hasRequiredCanonicalEvidence('COLLECTION_SCHEDULE', {
+      expectedCanonicalKey: null,
+      expectedCanonicalKeyObserved: null,
+      collectionPublicationCount: 1,
+      facilityAssertionCount: null,
+    })).toBe(true);
   });
 
   it('rejects production-like database and bucket targets', () => {
