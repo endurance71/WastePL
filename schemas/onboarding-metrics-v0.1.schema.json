@@ -1,1 +1,106 @@
-PLACEHOLDER
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wastepl.dev/schemas/onboarding-metrics-v0.1.schema.json",
+  "title": "WastePL municipality onboarding metrics v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "pilotManifestId", "prospectiveRequiredAfterManifestVersion", "records"],
+  "properties": {
+    "schemaVersion": { "const": "0.1.0" },
+    "pilotManifestId": { "type": "string", "minLength": 1 },
+    "prospectiveRequiredAfterManifestVersion": { "type": "string", "pattern": "^\\d{4}\\.\\d+$" },
+    "records": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/record" } }
+  },
+  "$defs": {
+    "effortPhase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minutes", "basis", "evidenceRef"],
+      "properties": {
+        "minutes": { "type": ["integer", "null"], "minimum": 0 },
+        "basis": { "enum": ["UNKNOWN", "PROSPECTIVE_TIMER", "HISTORICAL_EVIDENCE"] },
+        "evidenceRef": { "type": ["string", "null"], "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "basis": { "const": "UNKNOWN" } } },
+          "then": { "properties": { "minutes": { "type": "null" }, "evidenceRef": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "basis": { "enum": ["PROSPECTIVE_TIMER", "HISTORICAL_EVIDENCE"] } } },
+          "then": { "properties": { "minutes": { "type": "integer", "minimum": 0 }, "evidenceRef": { "type": "string", "minLength": 1 } } }
+        }
+      ]
+    },
+    "automationObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "automatic", "manualInterventions", "evidenceRef"],
+      "properties": {
+        "status": { "enum": ["PASS", "REVIEW_REQUIRED", "FAIL", "NOT_MEASURED"] },
+        "automatic": { "type": ["boolean", "null"] },
+        "manualInterventions": { "type": ["integer", "null"], "minimum": 0 },
+        "evidenceRef": { "type": ["string", "null"], "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "NOT_MEASURED" } } },
+          "then": { "properties": { "automatic": { "type": "null" }, "manualInterventions": { "type": "null" }, "evidenceRef": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "status": { "enum": ["PASS", "REVIEW_REQUIRED", "FAIL"] } } },
+          "then": { "properties": { "automatic": { "type": "boolean" }, "manualInterventions": { "type": "integer", "minimum": 0 }, "evidenceRef": { "type": "string", "minLength": 1 } } }
+        }
+      ]
+    },
+    "complexity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parentArtifactCount", "childArtifactCount", "activeArtifactCount", "coordination", "serviceAreaComplexity", "manualReviewSurfaces", "drivers"],
+      "properties": {
+        "parentArtifactCount": { "type": "integer", "minimum": 0 },
+        "childArtifactCount": { "type": "integer", "minimum": 0 },
+        "activeArtifactCount": { "type": "integer", "minimum": 1 },
+        "coordination": { "enum": ["SINGLE_ARTIFACT", "BUNDLE", "MULTI_CHILD_ROUTE_SET", "MIXED_MEDIA"] },
+        "serviceAreaComplexity": { "enum": ["NONE", "SINGLE", "MULTIPLE", "EXPLICIT_ADDRESS_OVERRIDES", "UNKNOWN"] },
+        "manualReviewSurfaces": { "type": "integer", "minimum": 0 },
+        "drivers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "terc", "municipalityName", "dataType", "sourceWave", "activatedInManifestVersion", "sourceKeys", "parserKeys", "measurementMode", "adapterReuseClass", "complexity", "effort", "firstImport", "repeatUpdate", "evidenceRefs", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]+$" },
+        "terc": { "type": "string", "pattern": "^\\d{7}$" },
+        "municipalityName": { "type": "string", "minLength": 1 },
+        "dataType": { "enum": ["COLLECTION_SCHEDULE", "PSZOK", "DEPOSIT_RETURN"] },
+        "sourceWave": { "type": "string", "minLength": 1 },
+        "activatedInManifestVersion": { "type": "string", "pattern": "^\\d{4}\\.\\d+$" },
+        "sourceKeys": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "parserKeys": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "measurementMode": { "enum": ["HISTORICAL_BACKFILL", "PROSPECTIVE"] },
+        "adapterReuseClass": { "enum": ["REUSED_UNCHANGED", "REUSED_WITH_CONFIGURATION", "EXTENDED_EXISTING", "NEW_ADAPTER"] },
+        "complexity": { "$ref": "#/$defs/complexity" },
+        "effort": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["discovery", "sourceAssessment", "parserImplementation", "regressionFixture", "addressServiceAreaMapping", "review"],
+          "properties": {
+            "discovery": { "$ref": "#/$defs/effortPhase" },
+            "sourceAssessment": { "$ref": "#/$defs/effortPhase" },
+            "parserImplementation": { "$ref": "#/$defs/effortPhase" },
+            "regressionFixture": { "$ref": "#/$defs/effortPhase" },
+            "addressServiceAreaMapping": { "$ref": "#/$defs/effortPhase" },
+            "review": { "$ref": "#/$defs/effortPhase" }
+          }
+        },
+        "firstImport": { "$ref": "#/$defs/automationObservation" },
+        "repeatUpdate": { "$ref": "#/$defs/automationObservation" },
+        "evidenceRefs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "notes": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}
