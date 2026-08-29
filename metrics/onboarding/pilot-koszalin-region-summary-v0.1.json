@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "0.1.0",
+  "pilotManifestId": "pilot-koszalin-region",
+  "throughManifestVersion": "2026.3",
+  "activationRecords": 6,
+  "historicalBackfillRecords": 6,
+  "prospectiveRecords": 0,
+  "effortMeasurement": {
+    "phaseObservations": 36,
+    "knownPhaseObservations": 0,
+    "fullyMeasuredRecords": 0,
+    "coverageRate": 0,
+    "totalKnownHumanMinutes": null,
+    "interpretation": "Human-time economics are not yet estimable from the full sample because some phases are UNKNOWN; no missing time is imputed."
+  },
+  "adapterReuse": {
+    "counts": {
+      "REUSED_UNCHANGED": 0,
+      "REUSED_WITH_CONFIGURATION": 0,
+      "EXTENDED_EXISTING": 1,
+      "NEW_ADAPTER": 5
+    },
+    "nonNewAdapterRecords": 1,
+    "observedReuseRate": 0.1667,
+    "sampleWarning": "Small pilot sample; do not extrapolate this rate to national onboarding economics."
+  },
+  "firstImport": {
+    "measuredRecords": 6,
+    "automaticRecords": 5,
+    "automaticSuccessRate": 0.8333,
+    "recordsWithManualIntervention": 1,
+    "manualInterventionRate": 0.1667,
+    "targetManualInterventionRate": "<0.25",
+    "targetResult": "PASS"
+  },
+  "repeatUpdate": {
+    "measuredRecords": 3,
+    "automaticRecords": 3,
+    "automationRate": 1,
+    "targetAutomationRate": ">=0.90",
+    "targetResult": "PASS",
+    "sampleWarning": "Only source/data-type records with explicit repeat-update evidence are included in the denominator."
+  }
+}

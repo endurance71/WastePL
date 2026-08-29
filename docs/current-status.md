@@ -1,12 +1,12 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29, commit `67b25bf8b0db4fd0dff002b33e477478c0065bee` (pełny CI run `33242598823`, #115). Implementacja jest prowadzona do merge w PR `#68`; zamknięty draft `#67` miał identyczny kod i został zastąpiony wyłącznie z powodu błędu konektora przy zmianie statusu draft.
+> Zweryfikowano: 2026-08-29, commit `46609ddf0ad853796377f4a3d331fb99f3d4829c` (pełny CI run `33243926097`, #120, PR `#70`). Końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
 
 ## Etap
 
 Sprinty 01–04 dostarczyły produkcyjnie utwardzony Data Platform PoC: rejestr źródeł, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne parsery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API oraz fixture-independent production gates.
 
-Sprint 05 rozszerza rzeczywiste collection coverage i jakość pilota. Po PR `#66` aktywne harmonogramy obejmują Koszalin, Manowo i bezpieczną część Tychowa. PR `#68` implementuje kryterium `#64`: minimum 100 realnych adresów opartych o zamrożony snapshot GUGiK PRG oraz pełną consumer API bramkę jakości.
+Sprint 05 rozszerza rzeczywiste collection coverage i jakość pilota. PR `#68` został scalony do `main` jako commit `a82677fceffddf6af2287880a6403e57fa4e7f9d` i zamknął `#64`: clean production consumer gate obejmuje dokładnie 100 realnych adresów GUGiK PRG. PR `#70` implementuje warstwę pomiarową `#65`: machine-readable onboarding metrics, adapter reuse, source complexity oraz first-import/repeat-update automation bez rekonstruowania historycznych minut pracy.
 
 WastePL nadal nie jest kompletnym produktem konsumenckim dla wszystkich ośmiu gmin. Brak danych jest traktowany jako brak pokrycia, a nie jako powód do zgadywania harmonogramu.
 
@@ -25,105 +25,74 @@ WastePL nadal nie jest kompletnym produktem konsumenckim dla wszystkich ośmiu g
 | Niejednoznaczne odpowiedzi | 0 | Żaden z 100 przypadków nie został cicho rozstrzygnięty. |
 | Golden facilities | 8 z 8 | 100% w clean-runtime consumer API gate. |
 
-## Realny golden pack 100 adresów `#64`
+## Realny golden pack 100 adresów
 
 Frozen evidence snapshot znajduje się w `apps/worker/test/fixtures/reference/prg-pilot-real-100-20260828.json`. Został pozyskany z oficjalnych usług GUGiK i nie wymaga dostępu do internetu podczas pull-request CI.
 
-Rozkład 100 dokładnych punktów PRG:
+Rozkład:
 
-- Koszalin: 9;
-- Manowo: 46;
-- Tychowo: 45.
+- Koszalin: 9/9;
+- Manowo: 46/46;
+- Tychowo: 45/45;
+- łącznie: 100/100.
 
-Każdy liczony przypadek posiada prawdziwy identyfikator `prg-adresy.*`. Production gate odrzuca syntetyczne identyfikatory `wastepl-gate-*`. Snapshot zachowuje TERC, SIMC, ULIC, numer budynku, kod pocztowy, geometrię EPSG:2180 i oczekiwany service-area key.
+Każdy liczony przypadek posiada prawdziwy identyfikator `prg-adresy.*`. Production gate odrzuca syntetyczne `wastepl-gate-*`. `Bogusława II 1-3` jest utrzymywany jako jawny source-only support row z `prg_id=NULL` i nie jest liczony jako punkt PRG.
 
-`Bogusława II 1-3` pozostaje ważnym przypadkiem regresyjnym ze źródła harmonogramu Koszalina, ale nie jest liczony do 100 adresów: jest to zakres/adres miejsca gromadzenia odpadów, a nie jeden dokładny punkt PRG. W clean runtime jest utrzymywany jako jawny support row z `prg_id=NULL`.
+Consumer gate wymaga correctness co najmniej `0.99`, ale obecnie osiąga `1.0`; critical schedule/date mismatches = `0`, ambiguous responses = `0`, facility correctness = `8/8`.
 
-## Wynik clean production gate #115
+## Tychowo
 
-Run `33242598823` na commicie `67b25bf8b0db4fd0dff002b33e477478c0065bee` przeszedł pełny pipeline. W izolowanej bazie `wastepl_production_gate` structural migrations rozpoczynają się z zerową liczbą canonical collection/facility rows.
+Praca nad realnym PRG ujawniła różnicę źródłową `Pobądź` vs oficjalne PRG/TERYT `Pobądz`, SIMC `0313704`. Parser `municipal-collection-pdf-text@0.1.1` obsługuje jeden jawny alias `Pobądź -> Pobądz`; nie używa fuzzy matching.
 
-Reference/runtime wynik:
+Aktywny standard subset Tychowa ma 3 service areas i 45/45 realnych przypadków rozwiązuje się do dokładnie jednego service area. Miasto Tychowo oraz hard-to-reach properties pozostają celowo poza aktywnym zakresem do czasu jednoznacznego modelu rozróżnień źródłowych.
 
-- import TERC: 8 rekordów, 0 rejected;
-- zamrożony PRG: 100 realnych adresów, 100 inserted, 0 rejected;
-- syntetyczne PRG IDs: 0;
-- source-only support addresses: 1;
-- manifest `pilot-koszalin-region@2026.3`: 8 gmin, 15 source identities, 7 ACTIVE, 8 PLANNED;
-- po initial runtime publish: 471 current collection events, 3 collection publications i 3 gminy z canonical collection data;
-- Tychowo: 3 aktywne service areas;
-- facilities: 3 canonical entities i 5 początkowych source assertions;
-- replay identycznego artefaktu: `DEDUPLICATED` bez dodatkowej publikacji;
-- symulowany `HTTP_503`: health `FETCH_FAILED`, last-known-good zachowane;
-- zmieniony artefakt Manowa: current logical event set pozostaje stabilny, 66 poprzednich eventów przechodzi do historii temporalnej;
-- duplicate current collection events: 0;
-- duplicate canonical facilities: 0;
-- duplicate artifact assertions: 0.
+## Onboarding economics `#65`
 
-## Consumer API quality gate
+PR `#70` dodaje kontrakt `schemas/onboarding-metrics-v0.1.schema.json`, dane `metrics/onboarding/pilot-koszalin-region-v0.1.json`, sprawdzany agregat oraz `scripts/check-onboarding-metrics.mjs` wpięty do `contracts:check`.
 
-Consumer gate działa na tej samej czystej bazie po rzeczywistym artifact runtime i wykonuje `/v1/collection` dla wszystkich 100 realnych adresów.
+Jednostką pomiaru jest `municipality × data type × source wave`. Baseline zawiera 6 aktywacji:
 
-Wynik #115:
+- Koszalin collection;
+- Koszalin PSZOK;
+- Manowo collection;
+- Bobolice PSZOK;
+- Świeszyno PSZOK;
+- Tychowo collection.
 
-| Gmina | TERC | Wynik |
-| --- | --- | ---: |
-| Tychowo | `3201043` | 45/45 |
-| Manowo | `3209042` | 46/46 |
-| Koszalin | `3261011` | 9/9 |
-| **Łącznie** | — | **100/100** |
+Walidator przegląda historię manifestów i wylicza pierwszy manifest, w którym każdy source key stał się `ACTIVE`. Pilnuje zgodności TERC, data type i parser key, braku podwójnego pokrycia oraz tego, aby każdy obecny ACTIVE source miał rekord metryk.
 
-Dodatkowe warunki:
+Baseline automatyzacji:
 
-- correctness: `1.0` przy wymaganym minimum `0.99`;
-- critical schedule/date mismatches: `0` przy tolerancji `0`;
-- ambiguous responses: `0`;
-- facility correctness: `8/8`;
-- mismatch report: pusty.
+| Miara | Wynik | Uwagi |
+| --- | ---: | --- |
+| First-import measured records | 6 | Wszystkie obecne aktywacje mają repo evidence. |
+| First import bez manual intervention | 5/6 | Koszalin PSZOK ma jeden deterministyczny review surface. |
+| First-import manual intervention rate | 1/6 = 16,67% | Poniżej celu `<25%`, ale to mała próba. |
+| Repeat-update measured records | 3 | Tylko przypadki z jawnym repeat-update evidence. |
+| Repeat-update automation | 3/3 = 100% | Powyżej celu `>=90%`, bez ekstrapolacji na skalę kraju. |
+| Adapter reuse inny niż `NEW_ADAPTER` | 1/6 = 16,67% | Mała historyczna próba. |
+| Human-effort phases measured | 0/36 | Historyczny czas pozostaje `UNKNOWN`. |
+| Total engineering/data-ops time | `UNKNOWN` | Nie jest rekonstruowany z commitów, PR ani długości sesji. |
 
-Każdy potencjalny mismatch ma zaplanowane evidence obejmujące PRG ID, SIMC, ULIC, geometrię, source key/URL/fixture/event profile oraz published artifact provenance.
+Historyczne pola czasu mogą być liczbą tylko wtedy, gdy istnieje jawne `HISTORICAL_EVIDENCE`; w przeciwnym razie pozostają `UNKNOWN`. Baseline `2026.3` jest ostatnią wersją dopuszczającą historyczny backfill. Każdy source pierwszy raz aktywowany po `2026.3` musi mieć `measurementMode=PROSPECTIVE`, a wszystkie sześć faz — discovery, source assessment, parser implementation, regression fixture, address/service-area mapping i review — muszą być zmierzone jako `PROSPECTIVE_TIMER`. Brak rekordu zatrzymuje CI.
 
-## Tychowo — realny reference gate
+Szczegółowa metodologia znajduje się w [onboarding-economics.md](onboarding-economics.md).
 
-Praca nad `#64` ujawniła błąd, którego wcześniejszy syntetyczny reference context nie wykrywał: źródłowy harmonogram zapisuje miejscowość jako `Pobądź`, natomiast oficjalny PRG/TERYT używa `Pobądz`, SIMC `0313704`.
+`#65` pozostaje otwarte mimo gotowej warstwy pomiarowej. Powód jest celowy: nie mamy jeszcze ani jednego pełnego prospektywnego pomiaru human-active time, więc nie można uczciwie podać kosztu roboczogodzin na gminę. Pierwsza kolejna aktywacja ma dostarczyć ten pomiar.
 
-Parser `municipal-collection-pdf-text@0.1.1` obsługuje wyłącznie ten jeden jawny source alias `Pobądź -> Pobądz`. Nie stosuje fuzzy matching. Dataset niesie warning provenance `SOURCE_LOCALITY_ALIAS:Pobądź->Pobądz`.
+## Production runtime i provenance
 
-Tychowo post-gate #115 potwierdził:
+W runtime są zarejestrowane m.in. `pgk-koszalin-pdf-text`, `municipal-collection-pdf-text`, `pgk-koszalin-pszok-html` i `municipal-pszok-html`.
 
-- 45/45 realnych adresów PRG aktywnych;
-- 45/45 ma dokładnie jedno deterministyczne pokrycie service area;
-- ambiguous service areas: 0;
-- parser: `municipal-collection-pdf-text@0.1.1`;
-- source health: `HEALTHY`;
-- co najmniej jeden opublikowany artefakt źródła.
+Harmonogramy zachowują artifact UUID, SHA-256, parser key/version i source URL. Publikacje są transakcyjne, replay idempotentny, a poprzednie `collection_events` są zamykane przez `valid_to` zamiast hard-delete. Koszalin PSZOK używa bundle `main + faq` z `WAITING_FOR_COMPANION` i last-known-good semantics.
 
-Miasto Tychowo i hard-to-reach properties nadal są celowo poza aktywnym zakresem, dopóki oficjalne rozróżnienia nie mogą zostać odwzorowane bez `AMBIGUOUS_SERVICE_AREA`.
+`ARTIFACT_PROCESSING_ENABLED` pozostaje deploymentowo opt-in.
 
-## Production handlery i provenance
+## Będzino i pozostałe NO-GO
 
-W runtime są zarejestrowane m.in.:
+Będzino pozostaje `PLANNED`. Exact child artifact URLs są zamrożone, ale relacja route I/II, OSŁONY i zbioru trudnodostępnego do konkretnych adresów/lokalności nie jest jeszcze deterministyczna. WastePL nie publikuje tych danych użytkownikowi, dopóki relacja nie będzie jednoznaczna.
 
-- `pgk-koszalin-pdf-text`;
-- `municipal-collection-pdf-text`;
-- `pgk-koszalin-pszok-html`;
-- `municipal-pszok-html`.
-
-Harmonogramy zachowują artifact UUID, SHA-256, parser key/version i source URL. Publikacje są transakcyjne, replay idempotentny, a poprzednie `collection_events` są zamykane przez `valid_to` zamiast hard-delete.
-
-`ARTIFACT_PROCESSING_ENABLED` pozostaje deploymentowo opt-in; zmiana domyślnego enablementu nie jest częścią `#64`.
-
-## Facilities i bundle
-
-Koszalin używa deterministycznego bundle `koszalin-pszok-main` + `koszalin-pszok-faq` z `WAITING_FOR_COMPANION`. Extended production gate nadal sprawdza zmianę samego FAQ, zachowanie aggregate access provenance z głównego źródła, source attribution quantity limits oraz brak duplikatów.
-
-Bobolice i Świeszyno pozostają aktywne dla PSZOK bez wymyślania geometrii lub zakresu danych, których źródło nie potwierdza.
-
-## Będzino — evidence-backed NO-GO
-
-Będzino nadal pozostaje `PLANNED`. Exact child artifact URLs są zamrożone, ale blocker dotyczy deterministycznego mapowania route I/II, OSŁONY i zbioru trudnodostępnego do konkretnych adresów/lokalności. WastePL nie publikuje tych danych użytkownikowi, dopóki relacja nie będzie jednoznaczna.
-
-Szczegóły są w [assessment fali 3](research/pilot-source-wave-3-assessment.md).
+Sianów nadal ma blocker dotyczący źródłowej kolumny generic `odpady segregowane`. Świeszyno schedule wymaga stabilnego child capture ze starego hosta, a Bobolice collection i Polanów wymagają dalszego deterministycznego modelu bieżących child artifacts.
 
 ## Live-source staging/drift gate
 
@@ -131,16 +100,13 @@ Mechanizm live-source gate z `#60` jest odseparowany od PR CI i uruchamiany ręc
 
 Pierwszy manualny live-source soak z aktualnego `main` nadal jest wymagany przed zewnętrznym pilotem konsumenckim.
 
-## Source-ops API
-
-Internal source-ops API pod `/internal/v1/source-ops/*` raportuje health, coverage, pending outbox i review queues na podstawie Source Registry. Coverage jest wielowymiarowe: jedna gmina może mieć osobny wiersz dla `COLLECTION_SCHEDULE` i `PSZOK`. Gate `2026.3` wymaga dokładnego zestawu ośmiu pilotażowych TERC, a nie błędnie zakłada ośmiu wierszy coverage.
-
 ## CI i bramki
 
-Pełny CI #115 (`33242598823`) potwierdził:
+Pełny CI #120 (`33243926097`) na kodzie PR `#70` przeszedł przed końcową korektą numeru PR w dokumentacji:
 
-- documentation check i contracts;
-- wszystkie migracje;
+- documentation check;
+- `contracts:check`, w tym nowy onboarding metrics contract/history validator;
+- migracje;
 - build i strict typecheck;
 - pełny domain/worker/API test suite;
 - historyczne readiness `2026.1` i `2026.2`;
@@ -148,27 +114,25 @@ Pełny CI #115 (`33242598823`) potwierdził:
 - extended runtime checks;
 - consumer API 100-address gate;
 - realny Tychowo 45-address post-gate;
-- wymagane raporty i artifacts.
-
-Wcześniejszy run #114 prawidłowo wykrył błąd samej asercji raportowej: `coverage()` zwraca wiersze per gmina i data type, więc dla 8 gmin otrzymano 11 wierszy. Asercja została poprawiona na dokładny zbiór ośmiu TERC bez osłabiania wymagań dotyczących danych.
+- raporty, artifacts i API smoke test.
 
 ## Pozostałe blokery przed zewnętrznym pilotem
 
 - aktywny collection schedule nadal obejmuje tylko 3 z 8 gmin;
-- pierwszy manualny live-source staging/soak po aktualnym merge nie został wykonany;
+- pierwszy manualny live-source staging/soak po aktualnym `main` nie został wykonany;
 - miasto Tychowo i hard-to-reach wyjątki pozostają celowo bez publikacji;
 - Będzino wymaga deterministycznej relacji route/address;
 - ogólnopolski produkcyjny feed punktów systemu kaucyjnego nie jest jeszcze ustalony;
 - `ARTIFACT_PROCESSING_ENABLED` pozostaje opt-in;
-- nadal trzeba mierzyć realny koszt/czas onboardingu i utrzymania kolejnych gmin.
+- brakuje pierwszego prospektywnie zmierzonego human-active onboarding record do rzeczywistego kosztu czasu.
 
 ## Najbliższa kolejność
 
-1. Scalić `#68` po finalnym zielonym CI i zamknąć `#64`.
-2. Zrealizować `#65`: audytowalne metryki onboardingu/adapters reuse bez wymyślania historycznych minut pracy.
-3. Kontynuować aktywację kolejnych gmin tylko tam, gdzie coverage jest deterministyczne.
+1. Scalić warstwę kontraktową `#70` po finalnym zielonym CI; `#65` pozostawić otwarte do pierwszego pełnego prospektywnego pomiaru.
+2. Wybrać następną bezpieczną aktywację źródła i od początku prowadzić sześć timerów onboardingowych.
+3. Kontynuować collection coverage tylko tam, gdzie service-area mapping jest deterministyczny.
 4. Wykonać manualny live-source staging/soak na aktualnym `main`.
-5. Dopiero po stabilizacji danych i obserwowalności przejść do consumer PWA.
+5. Dopiero po stabilizacji danych, obserwowalności i coverage przejść do consumer PWA.
 
 ## Stan decyzji
 
@@ -176,6 +140,8 @@ Wcześniejszy run #114 prawidłowo wykrył błąd samej asercji raportowej: `cov
 
 **Automatyczna publikacja dla wspieranych źródeł: GO pod istniejącymi gate'ami.**
 
-**Kryterium `#64` 100 realnych adresów: implementacja i pełny CI #115 PASS; oczekuje na merge PR `#68`.**
+**Kryterium `#64` — 100 realnych adresów: DONE, scalone w PR `#68`.**
+
+**Warstwa pomiarowa `#65`: implementacja #70 + CI #120 PASS; koszt human-time nadal UNKNOWN do pierwszej prospektywnej aktywacji.**
 
 **Zewnętrzny szeroki pilot konsumencki: nadal NO-GO**, ponieważ pokrycie harmonogramów nie obejmuje jeszcze wszystkich ośmiu gmin i nie wykonano aktualnego live-source soak.
