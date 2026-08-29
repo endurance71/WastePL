@@ -160,7 +160,7 @@ async function main(): Promise<void> {
       [artifactId],
     );
     const artifactRow = artifact.rows[0];
-    if (!artifactRow || artifactRow.status !== 'PUBLISHED' || artifactRow.parser_key !== 'municipal-pszok-html' || artifactRow.parser_version !== '0.2.0') {
+    if (!artifactRow || artifactRow.status !== 'PUBLISHED' || artifactRow.parser_key !== 'municipal-pszok-html' || artifactRow.parser_version !== '0.3.0') {
       throw new Error(`Unexpected Sianów artifact parse state: ${JSON.stringify(artifactRow ?? null)}`);
     }
 
