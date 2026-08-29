@@ -14,7 +14,7 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:structural": "WASTEPL_MIGRATION_PROFILE=structural node scripts/migrate.mjs",
     "docs:check": "node scripts/check-docs.mjs",
-    "contracts:check": "node scripts/check-contracts.mjs && node scripts/check-manifest-rollout.mjs",
+    "contracts:check": "node scripts/check-contracts.mjs && node scripts/check-manifest-rollout.mjs && node scripts/check-onboarding-metrics.mjs",
     "pilot:readiness": "pnpm --filter @wastepl/worker readiness",
     "pilot:production-gate": "pnpm --filter @wastepl/worker readiness:production-runtime && pnpm --filter @wastepl/worker readiness:production-extended && pnpm --filter @wastepl/api readiness:production-api && pnpm --filter @wastepl/worker readiness:tychowo-runtime",
     "pilot:live-source": "pnpm --filter @wastepl/worker readiness:live-source",
