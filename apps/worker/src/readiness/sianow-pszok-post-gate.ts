@@ -126,7 +126,7 @@ async function main(): Promise<void> {
       access_source_artifact_id: string | null;
       verification_status: string;
     } & QueryResultRow>(
-      `SELECT id, canonical_key, address, geom IS NULL AS geom_is_null, accepted_materials,
+      `SELECT id, canonical_key, address_text AS address, geom IS NULL AS geom_is_null, accepted_materials,
               source_artifact_id, hours_source_artifact_id, access_source_artifact_id,
               verification_status
        FROM facilities WHERE canonical_key=$1`,
