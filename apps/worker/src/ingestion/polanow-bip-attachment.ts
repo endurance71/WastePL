@@ -107,3 +107,28 @@ export function resolvePolanowH2AttachmentDownload(
     downloadUrl: canonical.toString(),
   };
 }
+
+function decodeHrefAttribute(value: string): string {
+  return value
+    .replaceAll('&amp;', '&')
+    .replaceAll('&#38;', '&')
+    .replaceAll('&#x26;', '&');
+}
+
+export function extractPolanowH2AttachmentHref(wrapperUrl: string, html: string): string {
+  const hrefPattern = /href\s*=\s*(["'])(.*?)\1/gis;
+
+  for (const match of html.matchAll(hrefPattern)) {
+    const rawHref = match[2];
+    if (rawHref === undefined) continue;
+    const href = decodeHrefAttribute(rawHref.trim());
+    try {
+      resolvePolanowH2AttachmentDownload(wrapperUrl, href);
+      return href;
+    } catch (error) {
+      if (!(error instanceof PolanowBipAttachmentResolutionError)) throw error;
+    }
+  }
+
+  return fail('DOWNLOAD_LINK_NOT_FOUND', `No matching canonical attachment link found in wrapper ${wrapperUrl}`);
+}
