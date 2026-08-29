@@ -25,6 +25,7 @@ const EXPECTED_TERC = new Map<string, string>([
   ['bobolice-pszok', '3209033'],
   ['swieszyno-pszok', '3209082'],
   ['sianow-pszok', '3209073'],
+  ['tychowo-pszok', '3201043'],
 ]);
 
 export class MunicipalPszokArtifactHandler implements ArtifactHandler {
@@ -86,6 +87,18 @@ export class MunicipalPszokArtifactHandler implements ArtifactHandler {
       });
       await validateFacilityV02(facility);
 
+      const accessClaimed = facility.access.scope !== 'UNKNOWN'
+        || facility.access.requiresProof !== null
+        || facility.access.quantityLimits.length > 0;
+      const parsedAssertions = [
+        'identity',
+        'address',
+        'openingHours',
+        ...(accessClaimed ? ['access'] : []),
+        'acceptedMaterials',
+        ...(facility.location ? ['location'] : []),
+      ];
+
       await this.registry.markArtifactParsed({
         artifactId: input.artifact.id,
         parserKey: this.adapter.parserKey,
@@ -95,19 +108,13 @@ export class MunicipalPszokArtifactHandler implements ArtifactHandler {
         parseReport: {
           facilityKey: facility.key,
           sourceKey: source.source_key,
-          assertions: [
-            'identity',
-            'address',
-            'openingHours',
-            'access',
-            'acceptedMaterials',
-            ...(facility.location ? ['location'] : []),
-          ],
+          assertions: parsedAssertions,
           warnings: facility.quality.warnings,
         },
       });
 
-      const claims: FacilityClaim[] = ['identity', 'address', 'openingHours', 'access', 'acceptedMaterials'];
+      const claims: FacilityClaim[] = ['identity', 'address', 'openingHours', 'acceptedMaterials'];
+      if (accessClaimed) claims.push('access');
       if (facility.location) claims.push('location');
       if (facility.operationalStatus.state !== 'UNKNOWN') claims.push('operationalStatus');
 
