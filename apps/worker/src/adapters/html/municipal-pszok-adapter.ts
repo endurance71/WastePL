@@ -4,6 +4,7 @@ import type { HtmlArtifactInput, NormalizedFacilityV02 } from './pgk-koszalin-ps
 const BOBOLICE_SOURCE_KEY = 'bobolice-pszok';
 const SWIESZYNO_SOURCE_KEY = 'swieszyno-pszok';
 const SIANOW_SOURCE_KEY = 'sianow-pszok';
+const TYCHOWO_SOURCE_KEY = 'tychowo-pszok';
 
 type Weekly = NonNullable<NormalizedFacilityV02['openingHours']>['weekly'];
 
@@ -78,6 +79,24 @@ function sianowMaterials(text: string): FacilityMaterial[] {
 
   for (const [, pattern] of required) {
     requireText(text, pattern, SIANOW_SOURCE_KEY, 'published accepted-material catalogue changed');
+  }
+  return required.map(([material]) => material);
+}
+
+function tychowoMaterials(text: string): FacilityMaterial[] {
+  const required: Array<[FacilityMaterial, RegExp]> = [
+    ['PAPER', /Rodzaje odpadów.*papier/i],
+    ['GLASS', /Rodzaje odpadów.*szkło/i],
+    ['BIO', /Rodzaje odpadów.*odpady ulegające biodegradacji/i],
+    ['BATTERIES', /Rodzaje odpadów.*baterie i akumulatory/i],
+    ['ELECTRONICS', /Rodzaje odpadów.*sprzęt elektryczny i elektroniczny/i],
+    ['BULKY', /Rodzaje odpadów.*meble i inne odpady wielkogabarytowe/i],
+    ['TYRES', /Rodzaje odpadów.*zużyte opony/i],
+    ['CONSTRUCTION', /Rodzaje odpadów.*budowlane i rozbiórkowe/i],
+  ];
+
+  for (const [, pattern] of required) {
+    requireText(text, pattern, TYCHOWO_SOURCE_KEY, 'published accepted-material catalogue changed');
   }
   return required.map(([material]) => material);
 }
@@ -235,12 +254,65 @@ function parseSianow(input: HtmlArtifactInput, text: string): NormalizedFacility
   };
 }
 
+function parseTychowo(input: HtmlArtifactInput, text: string): NormalizedFacilityV02 {
+  requireText(text, /Biuletyn Informacji Publicznej Urząd Miejski w Tychowie/i, input.sourceKey, 'official BIP identity missing');
+  requireText(text, /PSZOK.*Tychow.*(?:ulicy|ul\.?)\s*Dolnej\s*8/i, input.sourceKey, 'Dolna 8 location missing');
+  requireText(text, /Godziny otwarcia Punktu.*Wtorek,\s*czwartek,\s*sobota\s*-?\s*8[:.]00\s*-\s*14[:.]30/i, input.sourceKey, 'Tuesday/Thursday/Saturday opening hours missing');
+  requireText(text, /Rodzaje odpadów, które będą odbierane w PSZOK/i, input.sourceKey, 'accepted-material catalogue missing');
+
+  return {
+    schemaVersion: '0.2.0',
+    key: 'pl-3201043-pszok-tychowo-dolna-8',
+    kind: 'PSZOK',
+    name: 'PSZOK Tychowo, ul. Dolna 8',
+    address: 'ul. Dolna 8, Tychowo',
+    location: null,
+    locationSourceKey: null,
+    externalIds: [],
+    acceptedMaterials: tychowoMaterials(text),
+    acceptedContainers: [],
+    openingHours: openingHours(input.sourceKey, [
+      { day: 'MONDAY', intervals: [] },
+      { day: 'TUESDAY', intervals: [{ opens: '08:00', closes: '14:30' }] },
+      { day: 'WEDNESDAY', intervals: [] },
+      { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '14:30' }] },
+      { day: 'FRIDAY', intervals: [] },
+      { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '14:30' }] },
+      { day: 'SUNDAY', intervals: [] },
+    ]),
+    access: {
+      scope: 'UNKNOWN',
+      requiresProof: null,
+      quantityLimits: [],
+      notes: ['Primary BIP HTML does not state PSZOK eligibility or proof requirements; linked regulation is not used as runtime evidence by this single-artifact profile.'],
+      sourceKey: null,
+    },
+    operationalStatus: unknownOperationalStatus(),
+    operatorName: null,
+    rulesUrl: input.url,
+    sourceKey: input.sourceKey,
+    quality: {
+      verificationStatus: 'OFFICIAL_SOURCE',
+      confidence: 0.97,
+      retrievedAt: input.retrievedAt,
+      warnings: [
+        'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+        'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+        'ACCESS_RULES_NOT_PUBLISHED_IN_PRIMARY_SOURCE',
+      ],
+    },
+  };
+}
+
 export class MunicipalPszokHtmlAdapter {
   readonly parserKey = 'municipal-pszok-html';
-  readonly parserVersion = '0.2.0';
+  readonly parserVersion = '0.3.0';
 
   supportsSourceKey(sourceKey: string): boolean {
-    return sourceKey === BOBOLICE_SOURCE_KEY || sourceKey === SWIESZYNO_SOURCE_KEY || sourceKey === SIANOW_SOURCE_KEY;
+    return sourceKey === BOBOLICE_SOURCE_KEY
+      || sourceKey === SWIESZYNO_SOURCE_KEY
+      || sourceKey === SIANOW_SOURCE_KEY
+      || sourceKey === TYCHOWO_SOURCE_KEY;
   }
 
   parse(input: HtmlArtifactInput): NormalizedFacilityV02 {
@@ -248,6 +320,7 @@ export class MunicipalPszokHtmlAdapter {
     if (input.sourceKey === BOBOLICE_SOURCE_KEY) return parseBobolice(input, text);
     if (input.sourceKey === SWIESZYNO_SOURCE_KEY) return parseSwieszyno(input, text);
     if (input.sourceKey === SIANOW_SOURCE_KEY) return parseSianow(input, text);
+    if (input.sourceKey === TYCHOWO_SOURCE_KEY) return parseTychowo(input, text);
     throw new Error(`Municipal PSZOK adapter: unsupported source key ${input.sourceKey}`);
   }
 }

@@ -16,7 +16,7 @@
     "docs:check": "node scripts/check-docs.mjs",
     "contracts:check": "node scripts/check-contracts.mjs && node scripts/check-manifest-rollout.mjs && node scripts/check-onboarding-metrics.mjs",
     "pilot:readiness": "pnpm --filter @wastepl/worker readiness",
-    "pilot:production-gate": "pnpm --filter @wastepl/worker readiness:production-runtime && pnpm --filter @wastepl/worker readiness:production-extended && pnpm --filter @wastepl/worker readiness:sianow-pszok-runtime && pnpm --filter @wastepl/api readiness:sianow-pszok-api && pnpm --filter @wastepl/api readiness:production-api && pnpm --filter @wastepl/worker readiness:tychowo-runtime",
+    "pilot:production-gate": "pnpm --filter @wastepl/worker readiness:production-runtime && pnpm --filter @wastepl/worker readiness:production-extended && pnpm --filter @wastepl/worker readiness:sianow-pszok-runtime && pnpm --filter @wastepl/worker readiness:tychowo-pszok-runtime && pnpm --filter @wastepl/api readiness:sianow-pszok-api && pnpm --filter @wastepl/api readiness:tychowo-pszok-api && pnpm --filter @wastepl/api readiness:production-api && pnpm --filter @wastepl/worker readiness:tychowo-runtime",
     "pilot:live-source": "pnpm --filter @wastepl/worker readiness:live-source",
     "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down"

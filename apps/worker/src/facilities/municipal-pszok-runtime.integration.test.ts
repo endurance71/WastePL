@@ -20,6 +20,7 @@ interface Profile {
   fixture: string;
   canonicalKey: string;
   expectedMaterials: string[];
+  expectedAccessClaim: boolean;
 }
 
 const profiles: Profile[] = [
@@ -31,6 +32,7 @@ const profiles: Profile[] = [
     fixture: 'bobolice-pszok.html',
     canonicalKey: 'pl-3209033-pszok-boboliczki',
     expectedMaterials: ['BULKY', 'ELECTRONICS', 'TEXTILES', 'TYRES', 'MEDICINES', 'BATTERIES', 'CONSTRUCTION', 'HAZARDOUS'],
+    expectedAccessClaim: true,
   },
   {
     sourceKey: 'swieszyno-pszok',
@@ -40,6 +42,7 @@ const profiles: Profile[] = [
     fixture: 'swieszyno-pszok.html',
     canonicalKey: 'pl-3209082-pszok-chalupy-13b',
     expectedMaterials: ['CONSTRUCTION'],
+    expectedAccessClaim: true,
   },
   {
     sourceKey: 'sianow-pszok',
@@ -49,6 +52,17 @@ const profiles: Profile[] = [
     fixture: 'sianow-pszok.html',
     canonicalKey: 'pl-3209073-pszok-sianow-lubuszan-80',
     expectedMaterials: ['BULKY', 'ELECTRONICS', 'TYRES', 'GREEN', 'CONSTRUCTION', 'MEDICINES', 'BATTERIES', 'HAZARDOUS', 'TEXTILES'],
+    expectedAccessClaim: true,
+  },
+  {
+    sourceKey: 'tychowo-pszok',
+    terc: '3201043',
+    municipalityName: 'Tychowo',
+    sourceUrl: 'https://bip.tychowo.pl/artykul/646/9305/oplata-za-gospodarowanie-odpadami-komunalnymi',
+    fixture: 'tychowo-pszok.html',
+    canonicalKey: 'pl-3201043-pszok-tychowo-dolna-8',
+    expectedMaterials: ['PAPER', 'GLASS', 'BIO', 'BATTERIES', 'ELECTRONICS', 'BULKY', 'TYRES', 'CONSTRUCTION'],
+    expectedAccessClaim: false,
   },
 ];
 
@@ -73,8 +87,8 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
            source_shape, evidence_status, activation_blocker, assessed_at
          ) VALUES (
            $1, 'MUNICIPALITY', 'Runtime integration', $2, 'HTML',
-           'municipal-pszok-html', $3, 'PSZOK', 'ACTIVE', 'pilot-koszalin-region@2026.4', true,
-           'DIRECT_CONTENT', 'VERIFIED', NULL, '2026-08-29T10:10:42Z'
+           'municipal-pszok-html', $3, 'PSZOK', 'ACTIVE', 'pilot-koszalin-region@2026.5', true,
+           'DIRECT_CONTENT', 'VERIFIED', NULL, '2026-08-29T11:47:09Z'
          )
          ON CONFLICT (source_key) WHERE source_key IS NOT NULL DO UPDATE SET
            municipality_id = EXCLUDED.municipality_id,
@@ -142,7 +156,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       const registry = new PgSourceRegistry(pool);
       const inserted = await registry.insertArtifact({
         sourceId,
-        retrievedAt: new Date('2026-08-29T10:10:42.000Z'),
+        retrievedAt: new Date('2026-08-29T11:47:09.000Z'),
         sha256: hash,
         storageUri: stored.uri,
         parserKey: 'municipal-pszok-html',
@@ -179,7 +193,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
         accepted_materials: profile.expectedMaterials,
         source_artifact_id: artifactId,
         hours_source_artifact_id: artifactId,
-        access_source_artifact_id: artifactId,
+        access_source_artifact_id: profile.expectedAccessClaim ? artifactId : null,
         verification_status: 'OFFICIAL_SOURCE',
       });
 
@@ -204,7 +218,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       expect(artifact.rows[0]).toMatchObject({
         status: 'PUBLISHED',
         parser_key: 'municipal-pszok-html',
-        parser_version: '0.2.0',
+        parser_version: '0.3.0',
       });
       expect(Number(artifact.rows[0]!.extraction_confidence)).toBeGreaterThanOrEqual(0.96);
 
@@ -233,7 +247,7 @@ integrationDescribe('municipal PSZOK immutable artifact runtime', () => {
       });
       const broken = await registry.insertArtifact({
         sourceId,
-        retrievedAt: new Date('2026-08-29T10:20:00.000Z'),
+        retrievedAt: new Date('2026-08-29T12:00:00.000Z'),
         sha256: brokenHash,
         storageUri: brokenStored.uri,
         parserKey: 'municipal-pszok-html',

@@ -10,7 +10,8 @@
     "test": "vitest run --no-file-parallelism",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "readiness:production-api": "tsx src/readiness/production-api-gate-100.ts",
-    "readiness:sianow-pszok-api": "tsx src/readiness/sianow-pszok-api-post-gate.ts"
+    "readiness:sianow-pszok-api": "tsx src/readiness/sianow-pszok-api-post-gate.ts",
+    "readiness:tychowo-pszok-api": "tsx src/readiness/tychowo-pszok-api-post-gate.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",

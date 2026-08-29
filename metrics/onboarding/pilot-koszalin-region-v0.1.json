@@ -14,46 +14,19 @@
       "parserKeys": ["pgk-koszalin-pdf-text"],
       "measurementMode": "HISTORICAL_BACKFILL",
       "adapterReuseClass": "NEW_ADAPTER",
-      "complexity": {
-        "parentArtifactCount": 0,
-        "childArtifactCount": 1,
-        "activeArtifactCount": 1,
-        "coordination": "SINGLE_ARTIFACT",
-        "serviceAreaComplexity": "MULTIPLE",
-        "manualReviewSurfaces": 0,
-        "drivers": [
-          "source-specific PDF text layout",
-          "weekday service areas with explicit-address coverage"
-        ]
-      },
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":1,"activeArtifactCount":1,"coordination":"SINGLE_ARTIFACT","serviceAreaComplexity":"MULTIPLE","manualReviewSurfaces":0,"drivers":["source-specific PDF text layout","weekday service areas with explicit-address coverage"]},
       "effort": {
-        "discovery": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "sourceAssessment": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "parserImplementation": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "regressionFixture": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "addressServiceAreaMapping": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "review": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null }
+        "discovery": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "sourceAssessment": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "parserImplementation": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "regressionFixture": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "addressServiceAreaMapping": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "review": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null}
       },
-      "firstImport": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "repeatUpdate": {
-        "status": "NOT_MEASURED",
-        "automatic": null,
-        "manualInterventions": null,
-        "evidenceRef": null
-      },
-      "evidenceRefs": [
-        "manifests/pilot-koszalin-region-2026.3.json",
-        "apps/worker/src/adapters/pdf-text/pgk-koszalin-adapter.ts",
-        "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      ],
-      "notes": [
-        "Original human-active onboarding minutes predate the measurement contract and remain UNKNOWN."
-      ]
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "repeatUpdate": {"status":"NOT_MEASURED","automatic":null,"manualInterventions":null,"evidenceRef":null},
+      "evidenceRefs": ["manifests/pilot-koszalin-region-2026.3.json","apps/worker/src/adapters/pdf-text/pgk-koszalin-adapter.ts","apps/worker/src/readiness/production-pilot-gate-2026.3.ts"],
+      "notes": ["Original human-active onboarding minutes predate the measurement contract and remain UNKNOWN."]
     },
     {
       "id": "koszalin-pszok-s02",
@@ -66,46 +39,19 @@
       "parserKeys": ["pgk-koszalin-pszok-html"],
       "measurementMode": "HISTORICAL_BACKFILL",
       "adapterReuseClass": "NEW_ADAPTER",
-      "complexity": {
-        "parentArtifactCount": 0,
-        "childArtifactCount": 2,
-        "activeArtifactCount": 2,
-        "coordination": "BUNDLE",
-        "serviceAreaComplexity": "NONE",
-        "manualReviewSurfaces": 1,
-        "drivers": [
-          "two required HTML bundle roles",
-          "one official facility remains REVIEW_REQUIRED when trusted geometry is unavailable"
-        ]
-      },
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":2,"activeArtifactCount":2,"coordination":"BUNDLE","serviceAreaComplexity":"NONE","manualReviewSurfaces":1,"drivers":["two required HTML bundle roles","one official facility remains REVIEW_REQUIRED when trusted geometry is unavailable"]},
       "effort": {
-        "discovery": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "sourceAssessment": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "parserImplementation": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "regressionFixture": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "addressServiceAreaMapping": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "review": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null }
+        "discovery": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "sourceAssessment": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "parserImplementation": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "regressionFixture": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "addressServiceAreaMapping": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "review": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null}
       },
-      "firstImport": {
-        "status": "REVIEW_REQUIRED",
-        "automatic": false,
-        "manualInterventions": 1,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "repeatUpdate": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-extended-gate-2026.3.ts"
-      },
-      "evidenceRefs": [
-        "manifests/pilot-koszalin-region-2026.3.json",
-        "apps/worker/src/adapters/html/pgk-koszalin-pszok-adapter.ts",
-        "apps/worker/src/readiness/production-pilot-extended-gate-2026.3.ts"
-      ],
-      "notes": [
-        "The manual intervention count represents the deterministic data-quality review surface, not invented operator time."
-      ]
+      "firstImport": {"status":"REVIEW_REQUIRED","automatic":false,"manualInterventions":1,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "repeatUpdate": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-extended-gate-2026.3.ts"},
+      "evidenceRefs": ["manifests/pilot-koszalin-region-2026.3.json","apps/worker/src/adapters/html/pgk-koszalin-pszok-adapter.ts","apps/worker/src/readiness/production-pilot-extended-gate-2026.3.ts"],
+      "notes": ["The manual intervention count represents the deterministic data-quality review surface, not invented operator time."]
     },
     {
       "id": "manowo-collection-s01",
@@ -118,46 +64,19 @@
       "parserKeys": ["pgk-koszalin-pdf-text"],
       "measurementMode": "HISTORICAL_BACKFILL",
       "adapterReuseClass": "EXTENDED_EXISTING",
-      "complexity": {
-        "parentArtifactCount": 0,
-        "childArtifactCount": 1,
-        "activeArtifactCount": 1,
-        "coordination": "SINGLE_ARTIFACT",
-        "serviceAreaComplexity": "SINGLE",
-        "manualReviewSurfaces": 0,
-        "drivers": [
-          "existing PGK PDF parser extended with municipality-specific locality coverage",
-          "LOCALITY rules backed by official SIMC"
-        ]
-      },
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":1,"activeArtifactCount":1,"coordination":"SINGLE_ARTIFACT","serviceAreaComplexity":"SINGLE","manualReviewSurfaces":0,"drivers":["existing PGK PDF parser extended with municipality-specific locality coverage","LOCALITY rules backed by official SIMC"]},
       "effort": {
-        "discovery": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "sourceAssessment": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "parserImplementation": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "regressionFixture": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "addressServiceAreaMapping": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "review": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null }
+        "discovery": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "sourceAssessment": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "parserImplementation": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "regressionFixture": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "addressServiceAreaMapping": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "review": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null}
       },
-      "firstImport": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "repeatUpdate": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "evidenceRefs": [
-        "manifests/pilot-koszalin-region-2026.3.json",
-        "apps/worker/src/readiness/production-pilot-gate-2026.3.ts",
-        "apps/api/test/golden/pilot-real-100-2026.json"
-      ],
-      "notes": [
-        "Replay, upstream failure/last-known-good and changed-artifact replacement are exercised on Manowo in the clean production gate."
-      ]
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "repeatUpdate": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "evidenceRefs": ["manifests/pilot-koszalin-region-2026.3.json","apps/worker/src/readiness/production-pilot-gate-2026.3.ts","apps/api/test/golden/pilot-real-100-2026.json"],
+      "notes": ["Replay, upstream failure/last-known-good and changed-artifact replacement are exercised on Manowo in the clean production gate."]
     },
     {
       "id": "bobolice-pszok-wave2",
@@ -170,46 +89,19 @@
       "parserKeys": ["municipal-pszok-html"],
       "measurementMode": "HISTORICAL_BACKFILL",
       "adapterReuseClass": "NEW_ADAPTER",
-      "complexity": {
-        "parentArtifactCount": 0,
-        "childArtifactCount": 1,
-        "activeArtifactCount": 1,
-        "coordination": "SINGLE_ARTIFACT",
-        "serviceAreaComplexity": "NONE",
-        "manualReviewSurfaces": 0,
-        "drivers": [
-          "direct official HTML content",
-          "coordinates deliberately remain null because source does not publish trusted geometry"
-        ]
-      },
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":1,"activeArtifactCount":1,"coordination":"SINGLE_ARTIFACT","serviceAreaComplexity":"NONE","manualReviewSurfaces":0,"drivers":["direct official HTML content","coordinates deliberately remain null because source does not publish trusted geometry"]},
       "effort": {
-        "discovery": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "sourceAssessment": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "parserImplementation": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "regressionFixture": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "addressServiceAreaMapping": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "review": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null }
+        "discovery": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "sourceAssessment": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "parserImplementation": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "regressionFixture": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "addressServiceAreaMapping": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "review": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null}
       },
-      "firstImport": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "repeatUpdate": {
-        "status": "NOT_MEASURED",
-        "automatic": null,
-        "manualInterventions": null,
-        "evidenceRef": null
-      },
-      "evidenceRefs": [
-        "docs/research/pilot-source-wave-2-assessment.md",
-        "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
-        "manifests/pilot-koszalin-region-2026.3.json"
-      ],
-      "notes": [
-        "Human-active minutes were not measured when wave 2 was implemented and remain UNKNOWN."
-      ]
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "repeatUpdate": {"status":"NOT_MEASURED","automatic":null,"manualInterventions":null,"evidenceRef":null},
+      "evidenceRefs": ["docs/research/pilot-source-wave-2-assessment.md","apps/worker/src/adapters/html/municipal-pszok-adapter.ts","manifests/pilot-koszalin-region-2026.3.json"],
+      "notes": ["Human-active minutes were not measured when wave 2 was implemented and remain UNKNOWN."]
     },
     {
       "id": "swieszyno-pszok-wave2",
@@ -222,46 +114,19 @@
       "parserKeys": ["municipal-pszok-html"],
       "measurementMode": "HISTORICAL_BACKFILL",
       "adapterReuseClass": "NEW_ADAPTER",
-      "complexity": {
-        "parentArtifactCount": 0,
-        "childArtifactCount": 1,
-        "activeArtifactCount": 1,
-        "coordination": "SINGLE_ARTIFACT",
-        "serviceAreaComplexity": "NONE",
-        "manualReviewSurfaces": 0,
-        "drivers": [
-          "direct official HTML content",
-          "accepted-material catalogue is intentionally partial because only source-backed material claims are published"
-        ]
-      },
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":1,"activeArtifactCount":1,"coordination":"SINGLE_ARTIFACT","serviceAreaComplexity":"NONE","manualReviewSurfaces":0,"drivers":["direct official HTML content","accepted-material catalogue is intentionally partial because only source-backed material claims are published"]},
       "effort": {
-        "discovery": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "sourceAssessment": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "parserImplementation": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "regressionFixture": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "addressServiceAreaMapping": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "review": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null }
+        "discovery": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "sourceAssessment": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "parserImplementation": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "regressionFixture": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "addressServiceAreaMapping": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "review": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null}
       },
-      "firstImport": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "repeatUpdate": {
-        "status": "NOT_MEASURED",
-        "automatic": null,
-        "manualInterventions": null,
-        "evidenceRef": null
-      },
-      "evidenceRefs": [
-        "docs/research/pilot-source-wave-2-assessment.md",
-        "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
-        "manifests/pilot-koszalin-region-2026.3.json"
-      ],
-      "notes": [
-        "Bobolice and Świeszyno were introduced in the same wave by the same new parser class; no unsupported sequencing assumption is used to claim reuse between them."
-      ]
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "repeatUpdate": {"status":"NOT_MEASURED","automatic":null,"manualInterventions":null,"evidenceRef":null},
+      "evidenceRefs": ["docs/research/pilot-source-wave-2-assessment.md","apps/worker/src/adapters/html/municipal-pszok-adapter.ts","manifests/pilot-koszalin-region-2026.3.json"],
+      "notes": ["Bobolice and Świeszyno were introduced in the same wave by the same new parser class; no unsupported sequencing assumption is used to claim reuse between them."]
     },
     {
       "id": "tychowo-collection-wave3",
@@ -274,48 +139,19 @@
       "parserKeys": ["municipal-collection-pdf-text"],
       "measurementMode": "HISTORICAL_BACKFILL",
       "adapterReuseClass": "NEW_ADAPTER",
-      "complexity": {
-        "parentArtifactCount": 1,
-        "childArtifactCount": 2,
-        "activeArtifactCount": 1,
-        "coordination": "MULTI_CHILD_ROUTE_SET",
-        "serviceAreaComplexity": "MULTIPLE",
-        "manualReviewSurfaces": 0,
-        "drivers": [
-          "parent index exposes standard and hard-to-reach child PDFs",
-          "only the deterministic standard subset is ACTIVE",
-          "city and explicit hard-to-reach exceptions are withheld rather than guessed"
-        ]
-      },
+      "complexity": {"parentArtifactCount":1,"childArtifactCount":2,"activeArtifactCount":1,"coordination":"MULTI_CHILD_ROUTE_SET","serviceAreaComplexity":"MULTIPLE","manualReviewSurfaces":0,"drivers":["parent index exposes standard and hard-to-reach child PDFs","only the deterministic standard subset is ACTIVE","city and explicit hard-to-reach exceptions are withheld rather than guessed"]},
       "effort": {
-        "discovery": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "sourceAssessment": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "parserImplementation": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "regressionFixture": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "addressServiceAreaMapping": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null },
-        "review": { "minutes": null, "basis": "UNKNOWN", "evidenceRef": null }
+        "discovery": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "sourceAssessment": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "parserImplementation": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "regressionFixture": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "addressServiceAreaMapping": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null},
+        "review": {"minutes":null,"basis":"UNKNOWN","evidenceRef":null}
       },
-      "firstImport": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/production-pilot-gate-2026.3.ts"
-      },
-      "repeatUpdate": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "docs/research/pilot-source-wave-3-assessment.md"
-      },
-      "evidenceRefs": [
-        "docs/research/pilot-source-wave-3-assessment.md",
-        "apps/worker/src/adapters/pdf-text/municipal-collection-adapter.ts",
-        "apps/worker/src/readiness/tychowo-real-address-post-gate.ts",
-        "apps/api/test/golden/pilot-real-100-2026.json"
-      ],
-      "notes": [
-        "Wave-3 assessment was prospective in evidence capture, but human-active minutes were not timed; the contract records effort as UNKNOWN instead of deriving it from Git timestamps."
-      ]
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/production-pilot-gate-2026.3.ts"},
+      "repeatUpdate": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"docs/research/pilot-source-wave-3-assessment.md"},
+      "evidenceRefs": ["docs/research/pilot-source-wave-3-assessment.md","apps/worker/src/adapters/pdf-text/municipal-collection-adapter.ts","apps/worker/src/readiness/tychowo-real-address-post-gate.ts","apps/api/test/golden/pilot-real-100-2026.json"],
+      "notes": ["Wave-3 assessment was prospective in evidence capture, but human-active minutes were not timed; the contract records effort as UNKNOWN instead of deriving it from Git timestamps."]
     },
     {
       "id": "sianow-pszok-wave4",
@@ -328,56 +164,44 @@
       "parserKeys": ["municipal-pszok-html"],
       "measurementMode": "PROSPECTIVE",
       "adapterReuseClass": "EXTENDED_EXISTING",
-      "complexity": {
-        "parentArtifactCount": 0,
-        "childArtifactCount": 1,
-        "activeArtifactCount": 1,
-        "coordination": "SINGLE_ARTIFACT",
-        "serviceAreaComplexity": "NONE",
-        "manualReviewSurfaces": 0,
-        "drivers": [
-          "direct official municipal HTML",
-          "existing municipal PSZOK adapter and production handler extended with one deterministic source profile",
-          "trusted coordinates are not published and remain null",
-          "proof-of-fee requirement is explicitly source-backed"
-        ]
-      },
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":1,"activeArtifactCount":1,"coordination":"SINGLE_ARTIFACT","serviceAreaComplexity":"NONE","manualReviewSurfaces":0,"drivers":["direct official municipal HTML","existing municipal PSZOK adapter and production handler extended with one deterministic source profile","trusted coordinates are not published and remain null","proof-of-fee requirement is explicitly source-backed"]},
       "effort": {
-        "discovery": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
-        "sourceAssessment": { "minutes": 1, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
-        "parserImplementation": { "minutes": 3, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
-        "regressionFixture": { "minutes": 2, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
-        "addressServiceAreaMapping": { "minutes": 0, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" },
-        "review": { "minutes": 8, "basis": "PROSPECTIVE_TIMER", "evidenceRef": "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md" }
+        "discovery": {"minutes":3,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md"},
+        "sourceAssessment": {"minutes":1,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md"},
+        "parserImplementation": {"minutes":3,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md"},
+        "regressionFixture": {"minutes":2,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md"},
+        "addressServiceAreaMapping": {"minutes":0,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md"},
+        "review": {"minutes":8,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md"}
       },
-      "firstImport": {
-        "status": "PASS",
-        "automatic": true,
-        "manualInterventions": 0,
-        "evidenceRef": "apps/worker/src/readiness/sianow-pszok-post-gate.ts"
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/sianow-pszok-post-gate.ts"},
+      "repeatUpdate": {"status":"NOT_MEASURED","automatic":null,"manualInterventions":null,"evidenceRef":null},
+      "evidenceRefs": ["metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md","manifests/pilot-koszalin-region-2026.4.json","apps/worker/test/fixtures/sianow-pszok.html","apps/worker/src/adapters/html/municipal-pszok-adapter.ts","apps/worker/src/facilities/municipal-pszok-artifact-handler.ts","apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts","apps/worker/src/readiness/sianow-pszok-post-gate.ts","apps/api/src/readiness/sianow-pszok-api-post-gate.ts"],
+      "notes": ["Closed prospective timer intervals total 17 human-active minutes across discovery, assessment, implementation, regression, mapping determination and review.","One earlier review follow-up interval was started but not closed before an interrupted session; its duration is disclosed in the worklog and is not reconstructed or imputed, so 17 minutes is an auditable measured lower bound rather than synthetic precision.","CI queue/runtime is excluded from effort minutes.","Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."]
+    },
+    {
+      "id": "tychowo-pszok-wave5",
+      "terc": "3201043",
+      "municipalityName": "Tychowo",
+      "dataType": "PSZOK",
+      "sourceWave": "pilot-source-wave-5",
+      "activatedInManifestVersion": "2026.5",
+      "sourceKeys": ["tychowo-pszok"],
+      "parserKeys": ["municipal-pszok-html"],
+      "measurementMode": "PROSPECTIVE",
+      "adapterReuseClass": "EXTENDED_EXISTING",
+      "complexity": {"parentArtifactCount":0,"childArtifactCount":1,"activeArtifactCount":1,"coordination":"SINGLE_ARTIFACT","serviceAreaComplexity":"NONE","manualReviewSurfaces":0,"drivers":["direct official BIP HTML","existing municipal PSZOK adapter and production handler extended with one deterministic source profile","access/operator/proof claims absent from the primary HTML remain intentionally unpublished","plastics-only wording is not silently widened to METALS_PLASTICS"]},
+      "effort": {
+        "discovery": {"minutes":1,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md"},
+        "sourceAssessment": {"minutes":1,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md"},
+        "parserImplementation": {"minutes":2,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md"},
+        "regressionFixture": {"minutes":2,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md"},
+        "addressServiceAreaMapping": {"minutes":0,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md"},
+        "review": {"minutes":20,"basis":"PROSPECTIVE_TIMER","evidenceRef":"metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md"}
       },
-      "repeatUpdate": {
-        "status": "NOT_MEASURED",
-        "automatic": null,
-        "manualInterventions": null,
-        "evidenceRef": null
-      },
-      "evidenceRefs": [
-        "metrics/onboarding/evidence/sianow-pszok-2026.4-worklog.md",
-        "manifests/pilot-koszalin-region-2026.4.json",
-        "apps/worker/test/fixtures/sianow-pszok.html",
-        "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
-        "apps/worker/src/facilities/municipal-pszok-artifact-handler.ts",
-        "apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts",
-        "apps/worker/src/readiness/sianow-pszok-post-gate.ts",
-        "apps/api/src/readiness/sianow-pszok-api-post-gate.ts"
-      ],
-      "notes": [
-        "Closed prospective timer intervals total 17 human-active minutes across discovery, assessment, implementation, regression, mapping determination and review.",
-        "One earlier review follow-up interval was started but not closed before an interrupted session; its duration is disclosed in the worklog and is not reconstructed or imputed, so 17 minutes is an auditable measured lower bound rather than synthetic precision.",
-        "CI queue/runtime is excluded from effort minutes.",
-        "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
-      ]
+      "firstImport": {"status":"PASS","automatic":true,"manualInterventions":0,"evidenceRef":"apps/worker/src/readiness/tychowo-pszok-post-gate.ts"},
+      "repeatUpdate": {"status":"NOT_MEASURED","automatic":null,"manualInterventions":null,"evidenceRef":null},
+      "evidenceRefs": ["metrics/onboarding/evidence/tychowo-pszok-2026.5-worklog.md","manifests/pilot-koszalin-region-2026.5.json","apps/worker/test/fixtures/tychowo-pszok.html","apps/worker/src/adapters/html/municipal-pszok-adapter.ts","apps/worker/src/facilities/municipal-pszok-artifact-handler.ts","apps/worker/src/facilities/municipal-pszok-runtime.integration.test.ts","apps/worker/src/readiness/tychowo-pszok-post-gate.ts","apps/api/src/readiness/tychowo-pszok-api-post-gate.ts"],
+      "notes": ["All six prospective timer intervals are explicitly closed and total 26 human-active minutes.","CI queue/runtime is excluded from effort minutes.","Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."]
     }
   ]
 }
