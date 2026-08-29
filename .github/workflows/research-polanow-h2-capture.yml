@@ -1,0 +1,32 @@
+name: research-polanow-h2-capture
+
+on:
+  push:
+    branches:
+      - research/polanow-h2-capture
+    paths:
+      - scripts/research-polanow-h2-capture.mjs
+      - .github/workflows/research-polanow-h2-capture.yml
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Probe exact Polanów H2 attachments
+        run: node scripts/research-polanow-h2-capture.mjs
+      - name: Upload capture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: polanow-h2-capture-${{ github.run_id }}
+          path: tmp/polanow-h2-capture/
+          if-no-files-found: error
+          retention-days: 7
