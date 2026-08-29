@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29. `main` przed PR `#71`: `ba1e1abb79202db520f75b9ec4ac3b5c173a2bd4`. Mechanizm live-source gate w PR `#71` przeszedł pełny deterministyczny CI #123 (`33244427495`) na headzie `9ae05998051d0490493acfce7911e02040ac6be8`; końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
+> Zweryfikowano: 2026-08-29. `main` przed PR `#72`: `ba1e1abb79202db520f75b9ec4ac3b5c173a2bd4`. Mechanizm live-source gate w PR `#72` przeszedł pełny deterministyczny CI #123 (`33244427495`) na headzie `9ae05998051d0490493acfce7911e02040ac6be8`; końcowa zmiana dokumentacyjna podlega finalnemu rerunowi przed merge.
 
 ## Etap
 
@@ -75,7 +75,7 @@ Historycznych minut nie rekonstruujemy z commitów, PR ani długości sesji. `20
 
 Audyt po rollout `2026.3` wykazał, że istniejący live gate był zestarzały: nadal ładował manifest `2026.2` i dokładnie sześć ACTIVE sources, więc nie sprawdzał aktywnego Tychowa.
 
-PR `#71` aktualizuje mechanizm przed pierwszym właściwym soakiem:
+PR `#72` aktualizuje mechanizm przed pierwszym właściwym soakiem:
 
 - gate wybiera najnowszy `pilot-koszalin-region-*` zamiast hardcoded `2026.2`;
 - wersje są sortowane numerycznie (`2026.10 > 2026.9`);
@@ -87,9 +87,9 @@ PR `#71` aktualizuje mechanizm przed pierwszym właściwym soakiem:
 - report gate version = `0.2.0`;
 - workflow nadal jest wyłącznie `workflow_dispatch`, używa izolowanej bazy i izolowanego bucketu oraz nie zapisuje produkcyjnych danych.
 
-Deterministyczny CI #123 na kodzie #71 przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, historyczne readiness, 100-real-address production gate, raporty i API smoke.
+Deterministyczny CI #123 na kodzie #72 przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, historyczne readiness, 100-real-address production gate, raporty i API smoke.
 
-**Ważne:** #71 aktualizuje mechanizm, ale nie stanowi samego live-source soaka. `#60` pozostaje otwarte, dopóki z aktualnego `main` nie zostanie wykonany i przejrzany rzeczywisty `workflow_dispatch` przeciw publicznym upstreamom.
+**Ważne:** #72 aktualizuje mechanizm, ale nie stanowi samego live-source soaka. `#60` pozostaje otwarte, dopóki z aktualnego `main` nie zostanie wykonany i przejrzany rzeczywisty `workflow_dispatch` przeciw publicznym upstreamom.
 
 ## Production runtime i provenance
 
@@ -122,7 +122,7 @@ Sianów ma blocker generic `odpady segregowane`. Świeszyno schedule wymaga stab
 
 ## Najbliższa kolejność
 
-1. Scalić PR `#71` po finalnym zielonym CI; `#60` pozostawić otwarte do faktycznego live runu.
+1. Scalić PR `#72` po finalnym zielonym CI; `#60` pozostawić otwarte do faktycznego live runu.
 2. Uruchomić i ręcznie przejrzeć `live-source-staging` z aktualnego `main`.
 3. Wybrać następną bezpieczną aktywację źródła i od początku mierzyć sześć faz onboardingu dla `#65`.
 4. Kontynuować collection coverage tylko tam, gdzie service-area mapping jest deterministyczny.
@@ -138,6 +138,6 @@ Sianów ma blocker generic `odpady segregowane`. Świeszyno schedule wymaga stab
 
 **#65 — warstwa pomiarowa: DONE w PR `#70`; realny human-time nadal UNKNOWN do pierwszej prospektywnej aktywacji.**
 
-**#60 — mechanizm live-source gate: aktualizacja #71 przeszła CI #123; rzeczywisty live soak nadal PENDING.**
+**#60 — mechanizm live-source gate: aktualizacja #72 przeszła CI #123; rzeczywisty live soak nadal PENDING.**
 
 **Zewnętrzny szeroki pilot konsumencki: NO-GO**, dopóki nie zostanie wykonany aktualny live-source soak i nie wzrośnie deterministyczne collection coverage.
