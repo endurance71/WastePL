@@ -1,1 +1,1 @@
-Trigger isolated Polanow H2 acquisition probe from commit 9c04d2a60d48ae7502d607ffe0daa6137783c7d4.
+Trigger isolated Polanow H2 acquisition probe with representative PDF text diagnostics.
