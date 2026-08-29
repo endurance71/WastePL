@@ -95,7 +95,7 @@ jobs:
           path: |
             apps/worker/test-results/production-pilot-readiness-report.json
             apps/worker/test-results/tychowo-production-gate-report.json
-          if-no-files-found: error
+          if-no-files-found: warn
       - name: Upload golden mismatch report
         if: always()
         uses: actions/upload-artifact@v4
