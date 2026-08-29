@@ -1,45 +1,49 @@
-# Tychowo PSZOK 2026.5 prospective onboarding worklog
+# Tychowo PSZOK 2026.5 — prospective onboarding worklog
 
-> Measurement mode: `PROSPECTIVE`. Timezone: `Europe/Warsaw`. Timer resolution: whole minutes rounded from explicit phase boundaries. CI/external waiting is excluded. No duration is reconstructed from Git timestamps.
+Measurement mode: `PROSPECTIVE_TIMER`.
 
-## Target
+Timezone: `Europe/Warsaw` (`UTC+02:00`).
 
-- Municipality: Tychowo (`3201043`)
-- Data type: `PSZOK`
-- Intended source key: `tychowo-pszok`
-- Intended manifest: `pilot-koszalin-region@2026.5`
-- Candidate parser: `municipal-pszok-html`
-- Expected reuse class: `EXTENDED_EXISTING`
+Only explicitly bounded human-active intervals are counted. CI queue/runtime is excluded. Durations below are rounded to the nearest whole minute for the machine-readable metrics record; the exact boundaries remain here as audit evidence.
 
-## Candidate official evidence
+## Phase intervals
 
-Primary current municipal HTML:
+| Phase | Start | End | Exact elapsed | Recorded minutes | Evidence / decision |
+| --- | --- | --- | ---: | ---: | --- |
+| discovery | 2026-08-29 13:44:37+02:00 | 2026-08-29 13:45:51+02:00 | 1m 14s | 1 | Compared remaining pilot municipalities; selected Tychowo PSZOK as the next direct official source instead of the cross-municipality Manowo facility model. |
+| source assessment | 2026-08-29 13:45:51+02:00 | 2026-08-29 13:47:09+02:00 | 1m 18s | 1 | Chose the official Tychowo BIP HTML as the sole runtime artifact. PDF-only operator/access/proof claims are deliberately excluded from this single-artifact profile. |
+| parser implementation | 2026-08-29 13:47:09+02:00 | 2026-08-29 13:48:42+02:00 | 1m 33s | 2 | Extended `municipal-pszok-html` to `0.3.0`; added Tychowo profile and made access provenance conditional when the source-backed scope is `UNKNOWN`. |
+| regression fixture | 2026-08-29 13:48:42+02:00 | 2026-08-29 13:50:30+02:00 | 1m 48s | 2 | Added frozen BIP evidence slice, parser/drift assertions and immutable-artifact runtime coverage. |
+| address/service-area mapping | 2026-08-29 13:50:30+02:00 | 2026-08-29 13:50:47+02:00 | 17s | 0 | PSZOK activation creates no collection service-area rule; existing safe Tychowo collection subset and difficult-address blocker remain unchanged. |
+| review | 2026-08-29 13:50:47+02:00 | 2026-08-29 14:11:13+02:00 | 20m 26s | 20 | Reviewed immutable `2026.5` rollout, source identity preservation, safe material mapping, parser-version provenance, worker/API post-gates and production-gate sequencing. |
 
-`https://tychowo.pl/cms/2153/gospodarka_odpadami`
+Recorded total: **26 human-active minutes**.
 
-The current 2026 page identifies PSZOK at ul. Dolna 8 in Tychowo and states that problem waste such as paints/lacquers, waste electrical/electronic equipment and expired medicines may be delivered there.
+## Source-backed scope
 
-The page links the official PSZOK regulation:
+Primary runtime source:
 
-`https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2153/pliki/regulamin_pszok.pdf`
+- `https://bip.tychowo.pl/artykul/646/9305/oplata-za-gospodarowanie-odpadami-komunalnymi`
 
-The regulation confirms Tuesday/Thursday/Saturday 08:00–14:30, operator Gminny Ośrodek Sportu i Gospodarki Komunalnej, eligible Tychowo households/property users, proof/identity rules and an explicit accepted-waste catalogue. Whether the PDF becomes a required runtime artifact or only corroborating assessment evidence is intentionally unresolved until sourceAssessment ends.
+Published canonically from that direct BIP HTML:
 
-## Phase log
+- PSZOK address: `ul. Dolna 8, Tychowo`;
+- opening hours: Tuesday, Thursday, Saturday `08:00–14:30`;
+- safe canonical material subset: `PAPER`, `GLASS`, `BIO`, `BATTERIES`, `ELECTRONICS`, `BULKY`, `TYRES`, `CONSTRUCTION`;
+- geometry remains `null`;
+- access scope remains `UNKNOWN`, proof requirement remains `null`, operator remains `null` because those claims are not present in the primary HTML runtime artifact;
+- plastics-only wording is not silently broadened to `METALS_PLASTICS`.
 
-| Phase | Start | End | Rounded minutes | State | Notes |
-| --- | --- | --- | ---: | --- | --- |
-| discovery | 2026-08-29 13:44:37+02:00 | 2026-08-29 13:45:51+02:00 | 1 | complete | Compared remaining pilot PSZOK candidates; Tychowo is a single local facility while Manowo spans multiple Koszalin locations and introduces cross-municipality reconciliation complexity. |
-| sourceAssessment | 2026-08-29 13:45:51+02:00 | — | — | active | Determine the minimum source-backed claims that can be activated safely from the direct HTML without silently depending on an unversioned child PDF. |
-| parserImplementation | — | — | — | pending | — |
-| regressionFixture | — | — | — | pending | — |
-| addressServiceAreaMapping | — | — | — | pending | PSZOK does not create collection service-area rules; this phase will still record the explicit scope determination. |
-| review | — | — | — | pending | — |
+The linked regulation was useful corroborating research but is **not** mixed into the canonical single-artifact provenance for this activation.
 
-## Guardrails
+## Rollout invariants
 
-- Tychowo collection coverage must remain unchanged.
-- No trusted coordinates will be invented.
-- If runtime uses only HTML, only claims present in that HTML may be emitted; PDF-only operator/access/material detail may not leak into canonical output.
-- If the PDF is made a required runtime artifact, it must be a separately immutable/versioned source identity or bundle member; parent-link discovery alone is insufficient provenance.
-- Existing historical manifests remain immutable.
+- `pilot-koszalin-region@2026.4` remains immutable.
+- `2026.5` adds and activates only `tychowo-pszok`.
+- Tychowo standard collection source remains ACTIVE.
+- Tychowo difficult-address collection source remains PLANNED with `EXPLICIT_ADDRESS_REFERENCE_GATE_NOT_YET_COMPLETE`.
+- Collection coverage therefore remains 3/8 municipalities.
+- PSZOK coverage increases from 4/8 to 5/8 municipalities.
+- Any-data municipality coverage remains 6/8 because Tychowo already had active collection data.
+- `ARTIFACT_PROCESSING_ENABLED` remains deployment opt-in.
+- Real public-upstream live soak from #60 remains a separate requirement.
