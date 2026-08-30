@@ -11,13 +11,14 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(new URL(relativePath, import.meta.url), 'utf8'));
 }
 
-const [schema, historical, wave2, wave3, wave4, wave5] = await Promise.all([
+const [schema, historical, wave2, wave3, wave4, wave5, wave6] = await Promise.all([
   readJson('../schemas/source-manifest-v0.1.schema.json'),
   readJson('../manifests/pilot-koszalin-region-2026.1.json'),
   readJson('../manifests/pilot-koszalin-region-2026.2.json'),
   readJson('../manifests/pilot-koszalin-region-2026.3.json'),
   readJson('../manifests/pilot-koszalin-region-2026.4.json'),
   readJson('../manifests/pilot-koszalin-region-2026.5.json'),
+  readJson('../manifests/pilot-koszalin-region-2026.6.json'),
 ]);
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -38,12 +39,19 @@ for (const [label, value] of [
   ['pilot source manifest 2026.3', wave3],
   ['pilot source manifest 2026.4', wave4],
   ['pilot source manifest 2026.5', wave5],
+  ['pilot source manifest 2026.6', wave6],
 ]) assertValid(value, label);
 
 if (historical.manifestId !== 'pilot-koszalin-region' || historical.version !== '2026.1') {
   throw new Error('Historical pilot manifest identity must remain pilot-koszalin-region@2026.1');
 }
-for (const [manifest, version] of [[wave2, '2026.2'], [wave3, '2026.3'], [wave4, '2026.4'], [wave5, '2026.5']]) {
+for (const [manifest, version] of [
+  [wave2, '2026.2'],
+  [wave3, '2026.3'],
+  [wave4, '2026.4'],
+  [wave5, '2026.5'],
+  [wave6, '2026.6'],
+]) {
   if (manifest.manifestId !== historical.manifestId || manifest.version !== version) {
     throw new Error(`Manifest must remain pilot-koszalin-region@${version}`);
   }
@@ -64,6 +72,7 @@ const manifestMaps = [
   ['2026.3', municipalities(wave3)],
   ['2026.4', municipalities(wave4)],
   ['2026.5', municipalities(wave5)],
+  ['2026.6', municipalities(wave6)],
 ];
 for (const [label, map] of manifestMaps) {
   if (map.size !== 8) throw new Error(`${label} must contain exactly 8 municipalities`);
@@ -80,10 +89,12 @@ const s2 = sources(wave2);
 const s3 = sources(wave3);
 const s4 = sources(wave4);
 const s5 = sources(wave5);
+const s6 = sources(wave6);
 for (const key of s1.keys()) if (!s2.has(key)) throw new Error(`2026.2 lost historical source ${key}`);
 for (const key of s2.keys()) if (!s3.has(key)) throw new Error(`2026.3 lost wave-2 source ${key}`);
 for (const key of s3.keys()) if (!s4.has(key)) throw new Error(`2026.4 lost wave-3 source ${key}`);
 for (const key of s4.keys()) if (!s5.has(key)) throw new Error(`2026.5 lost wave-4 source ${key}`);
+for (const key of s5.keys()) if (!s6.has(key)) throw new Error(`2026.6 lost wave-5 source ${key}`);
 
 const wave3NewKeys = [...s3.keys()].filter((key) => !s2.has(key)).sort();
 if (JSON.stringify(wave3NewKeys) !== JSON.stringify([
@@ -100,6 +111,10 @@ const wave5NewKeys = [...s5.keys()].filter((key) => !s4.has(key)).sort();
 if (JSON.stringify(wave5NewKeys) !== JSON.stringify(['tychowo-pszok'])) {
   throw new Error(`2026.5 may add only tychowo-pszok; got ${wave5NewKeys.join(', ')}`);
 }
+const wave6NewKeys = [...s6.keys()].filter((key) => !s5.has(key)).sort();
+if (JSON.stringify(wave6NewKeys) !== JSON.stringify(['polanow-collection-garbno-h2-2026'])) {
+  throw new Error(`2026.6 may add only polanow-collection-garbno-h2-2026; got ${wave6NewKeys.join(', ')}`);
+}
 
 const supportedParsers = new Map([
   ['pgk-koszalin-pdf-text', 'PDF_TEXT'],
@@ -108,7 +123,7 @@ const supportedParsers = new Map([
   ['municipal-pszok-html', 'HTML'],
 ]);
 
-for (const source of s5.values()) {
+for (const source of s6.values()) {
   if (source.status === 'PLANNED') {
     if (source.parserKey !== null) throw new Error(`PLANNED source ${source.key} must not claim a parser`);
     if (source.assessment && !source.assessment.activationBlocker) {
@@ -133,6 +148,7 @@ const active2 = activeKeys(s2);
 const active3 = activeKeys(s3);
 const active4 = activeKeys(s4);
 const active5 = activeKeys(s5);
+const active6 = activeKeys(s6);
 const newlyActive3 = [...active3].filter((key) => !active2.has(key)).sort();
 if (JSON.stringify(newlyActive3) !== JSON.stringify(['tychowo-collection-standard-2026'])) {
   throw new Error(`2026.3 may activate only safe Tychowo standard child; got ${newlyActive3.join(', ')}`);
@@ -148,26 +164,31 @@ if (JSON.stringify(newlyActive5) !== JSON.stringify(['tychowo-pszok'])) {
   throw new Error(`2026.5 may activate only Tychowo PSZOK; got ${newlyActive5.join(', ')}`);
 }
 if (active5.size !== 9) throw new Error(`2026.5 must contain exactly 9 ACTIVE source identities, got ${active5.size}`);
+const newlyActive6 = [...active6].filter((key) => !active5.has(key)).sort();
+if (JSON.stringify(newlyActive6) !== JSON.stringify(['polanow-collection-garbno-h2-2026'])) {
+  throw new Error(`2026.6 may activate only Polanów Garbno H2; got ${newlyActive6.join(', ')}`);
+}
+if (active6.size !== 10) throw new Error(`2026.6 must contain exactly 10 ACTIVE source identities, got ${active6.size}`);
 
-const sianowCollection = s5.get('sianow-collection-2026-h2');
-const sianowPszok = s5.get('sianow-pszok');
+const sianowCollection = s6.get('sianow-collection-2026-h2');
+const sianowPszok = s6.get('sianow-pszok');
 if (!sianowCollection || sianowCollection.status !== 'PLANNED' || sianowCollection.assessment?.activationBlocker !== 'GENERIC_SEGREGATED_COLUMN_NOT_CANONICALLY_MAPPED') {
   throw new Error('Sianów collection must remain PLANNED with its existing fraction-semantics blocker');
 }
 if (!sianowPszok || sianowPszok.status !== 'ACTIVE' || sianowPszok.terc !== '3209073' || sianowPszok.parserKey !== 'municipal-pszok-html') {
-  throw new Error('Sianów PSZOK must remain ACTIVE in 2026.5');
+  throw new Error('Sianów PSZOK must remain ACTIVE in 2026.6');
 }
 
-const tychowoParent = s5.get('tychowo-collection-2026');
-const tychowoStandard = s5.get('tychowo-collection-standard-2026');
-const tychowoDifficult = s5.get('tychowo-collection-difficult-2026');
-const tychowoPszok = s5.get('tychowo-pszok');
+const tychowoParent = s6.get('tychowo-collection-2026');
+const tychowoStandard = s6.get('tychowo-collection-standard-2026');
+const tychowoDifficult = s6.get('tychowo-collection-difficult-2026');
+const tychowoPszok = s6.get('tychowo-pszok');
 const expectedTychowoChildren = [
   'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianaharmonogram_tychowo_20261.pdf',
   'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianakopia_harmonogram_tychowo_2026_%E2%80%94_kolonijne.pdf',
 ];
 if (!tychowoParent || tychowoParent.url !== 'https://tychowo.pl/cms/2151/harmonogram-odbioru-odpadow-komunalnych-') {
-  throw new Error('2026.5 must preserve the current Tychowo CMS discovery parent');
+  throw new Error('2026.6 must preserve the current Tychowo CMS discovery parent');
 }
 if (JSON.stringify(tychowoParent.assessment?.childArtifactUrls) !== JSON.stringify(expectedTychowoChildren)) {
   throw new Error('Tychowo discovery source must preserve the two exact revised child PDFs');
@@ -188,10 +209,10 @@ if (
   tychowoPszok.assessment?.evidenceStatus !== 'VERIFIED' ||
   tychowoPszok.assessment?.activationBlocker !== null
 ) {
-  throw new Error('Tychowo PSZOK must be the only new verified ACTIVE source in 2026.5');
+  throw new Error('Tychowo PSZOK must remain verified and ACTIVE in 2026.6');
 }
 
-const bedzino = s5.get('bedzino-collection-2026-h2');
+const bedzino = s6.get('bedzino-collection-2026-h2');
 if (!bedzino || bedzino.status !== 'PLANNED') throw new Error('Będzino H2 must remain PLANNED');
 if (bedzino.assessment?.evidenceStatus !== 'VERIFIED' || bedzino.assessment?.childArtifactUrls?.length !== 14) {
   throw new Error('Będzino H2 must preserve all 14 exact current BIP attachments as evidence');
@@ -200,6 +221,40 @@ if (bedzino.assessment.activationBlocker !== 'H2_ROUTE_I_II_OSLONY_AND_DIFFICULT
   throw new Error('Będzino H2 must expose the address-deterministic route blocker');
 }
 
+const polanowParent = s6.get('polanow-collection-2026');
+const polanowGarbno = s6.get('polanow-collection-garbno-h2-2026');
+const expectedPolanowParentUrl = 'https://bip.polanow.pl/harmonogram-odbioru-odpadow-komunalnych---ii-polrocze-2026/d/70/2846/';
+const expectedPolanowGarbnoUrl = 'https://bip.polanow.pl/pobierz.php?d=zal&id=b9dd65849fc6ebcb56cb8e3ce17710d5';
+if (
+  !polanowParent ||
+  polanowParent.status !== 'PLANNED' ||
+  polanowParent.terc !== '3209063' ||
+  polanowParent.url !== expectedPolanowParentUrl ||
+  polanowParent.parserKey !== null ||
+  polanowParent.assessment?.shape !== 'ATTACHMENT_INDEX' ||
+  polanowParent.assessment?.evidenceStatus !== 'VERIFIED' ||
+  polanowParent.assessment?.activationBlocker !== 'DISCOVERY_ONLY_SAFE_CHILDREN_VERSIONED_AS_DIRECT_SOURCES' ||
+  polanowParent.assessment?.childArtifactUrls?.length !== 15
+) {
+  throw new Error('Polanów H2 parent must remain a verified, discovery-only 15-child index in 2026.6');
+}
+if (
+  !polanowGarbno ||
+  polanowGarbno.status !== 'ACTIVE' ||
+  polanowGarbno.terc !== '3209063' ||
+  polanowGarbno.url !== expectedPolanowGarbnoUrl ||
+  polanowGarbno.format !== 'PDF_TEXT' ||
+  polanowGarbno.parserKey !== 'municipal-collection-pdf-text' ||
+  polanowGarbno.assessment?.shape !== 'DIRECT_CONTENT' ||
+  polanowGarbno.assessment?.evidenceStatus !== 'VERIFIED' ||
+  polanowGarbno.assessment?.activationBlocker !== null
+) {
+  throw new Error('Polanów Garbno must be the only new verified ACTIVE source in 2026.6');
+}
+if (!polanowParent.assessment.childArtifactUrls.includes(expectedPolanowGarbnoUrl)) {
+  throw new Error('Polanów H2 discovery parent must enumerate the activated Garbno child');
+}
+
 console.log(
-  `WastePL manifest rollout OK: through 2026.5 with ${active5.size} ACTIVE sources; newly active=${newlyActive5.join(', ')}`,
+  `WastePL manifest rollout OK: through 2026.6 with ${active6.size} ACTIVE sources; newly active=${newlyActive6.join(', ')}`,
 );
