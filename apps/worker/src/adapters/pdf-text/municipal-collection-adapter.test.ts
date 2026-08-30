@@ -126,7 +126,7 @@ describe('MunicipalCollectionPdfTextAdapter', () => {
       ownerType: 'MUNICIPALITY',
       artifact: {
         parserKey: 'municipal-collection-pdf-text',
-        parserVersion: '0.1.1',
+        parserVersion: '0.2.0',
       },
     });
     await expect(validateWastePlDataset(dataset)).resolves.toBeUndefined();

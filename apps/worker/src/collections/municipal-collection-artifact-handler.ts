@@ -41,6 +41,11 @@ interface LocalityRow extends QueryResultRow {
   name: string;
 }
 
+const PUBLICATION_PROFILE_VERSIONS: Readonly<Record<string, string>> = {
+  'tychowo-collection-standard-2026': '0.1.1',
+  'polanow-collection-garbno-h2-2026': '0.2.0',
+};
+
 function municipalityType(value: string | null): NormalizedMunicipalityType {
   if (
     value === 'URBAN' ||
@@ -66,6 +71,24 @@ function ownerType(value: string): NormalizedSourceOwnerType {
     return value;
   }
   return 'OTHER_PUBLIC';
+}
+
+function applyPublicationProfileVersion(
+  sourceKey: string,
+  fallbackVersion: string,
+  dataset: ReturnType<MunicipalCollectionPdfTextAdapter['parse']>,
+): void {
+  const matchingSources = dataset.sources.filter((entry) => entry.sourceKey === sourceKey);
+  if (matchingSources.length !== 1 || !matchingSources[0]) {
+    throw new PermanentArtifactParseError(
+      `Municipal collection dataset must contain exactly one provenance record for ${sourceKey}`,
+      {
+        code: 'DATASET_SOURCE_PROVENANCE_MISMATCH',
+        metadata: { sourceKey, matchingSources: matchingSources.length },
+      },
+    );
+  }
+  matchingSources[0].artifact.parserVersion = PUBLICATION_PROFILE_VERSIONS[sourceKey] ?? fallbackVersion;
 }
 
 export class MunicipalCollectionArtifactHandler implements ArtifactHandler {
@@ -156,6 +179,7 @@ export class MunicipalCollectionArtifactHandler implements ArtifactHandler {
         storageUri: input.artifact.storageUri,
         ownerType: ownerType(source.owner_type),
       });
+      applyPublicationProfileVersion(source.source_key, adapter.parserVersion, dataset);
       await validateWastePlDataset(dataset);
       const diff = await this.publisher.publish(
         input.artifact.sourceId,

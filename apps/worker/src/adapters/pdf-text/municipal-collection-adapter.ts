@@ -1,5 +1,10 @@
 import type { WasteFractionCode } from '@wastepl/domain';
 import {
+  parsePolanowGarbnoH2,
+  POLANOW_GARBNO_H2_SOURCE_KEY,
+  supportsPolanowGarbnoH2,
+} from './polanow-garbno-profile.js';
+import {
   PdfTextParseError,
   type NormalizedCollectionEvent,
   type NormalizedDataset,
@@ -390,13 +395,14 @@ function parseTychowoStandard(
 
 export class MunicipalCollectionPdfTextAdapter {
   readonly parserKey = 'municipal-collection-pdf-text';
-  readonly parserVersion = '0.1.1';
+  readonly parserVersion = '0.2.0';
 
   constructor(private readonly context: MunicipalCollectionReferenceContext) {}
 
   supports(text: string): boolean {
     const normalized = normalizeText(text).toLocaleLowerCase('pl-PL');
-    return normalized.includes('gmina tychowo') && normalized.includes('harmonogram odbioru odpadów komunalnych');
+    const tychowo = normalized.includes('gmina tychowo') && normalized.includes('harmonogram odbioru odpadów komunalnych');
+    return tychowo || supportsPolanowGarbnoH2(text);
   }
 
   parse(input: PdfTextArtifactInput): NormalizedDataset {
@@ -411,6 +417,9 @@ export class MunicipalCollectionPdfTextAdapter {
         'Tychowo hard-to-reach schedule is intentionally not publishable until explicit-address reference coverage is complete',
         'MISSING_METADATA',
       );
+    }
+    if (input.sourceKey === POLANOW_GARBNO_H2_SOURCE_KEY) {
+      return parsePolanowGarbnoH2(input, this.context, this.parserKey, this.parserVersion);
     }
     throw new PdfTextParseError(`Unsupported municipal collection source ${input.sourceKey}`, 'UNSUPPORTED_TEMPLATE');
   }
