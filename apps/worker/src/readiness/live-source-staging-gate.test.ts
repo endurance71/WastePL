@@ -10,6 +10,7 @@ import {
   effectiveLiveProcessingOutcome,
   hasRequiredCanonicalEvidence,
   latestPilotManifestFilename,
+  requiresPolanowGarbnoReference,
 } from './live-source-staging-gate.js';
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -62,6 +63,7 @@ describe('live-source staging gate policy', () => {
     expect(keys).toContain('sianow-pszok');
     expect(keys).toContain('tychowo-pszok');
     expect(keys).toContain('polanow-collection-garbno-h2-2026');
+    expect(requiresPolanowGarbnoReference(manifest)).toBe(true);
   });
 
   it('recognizes a bundle member that was completed by its companion', () => {
