@@ -198,11 +198,11 @@ async function main(): Promise<void> {
       fraction: string;
       count: string;
     } & QueryResultRow>(
-      `SELECT fraction, count(*)::text AS count
+      `SELECT fraction_code AS fraction, count(*)::text AS count
        FROM collection_events
        WHERE service_area_id=$1 AND valid_to IS NULL
-       GROUP BY fraction
-       ORDER BY fraction`,
+       GROUP BY fraction_code
+       ORDER BY fraction_code`,
       [area.id],
     );
     const counts = Object.fromEntries(eventCounts.rows.map((row) => [row.fraction, Number(row.count)]));
