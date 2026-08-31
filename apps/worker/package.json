@@ -16,6 +16,8 @@
     "readiness:sianow-pszok-runtime": "tsx src/readiness/sianow-pszok-post-gate.ts",
     "readiness:tychowo-pszok-runtime": "tsx src/readiness/tychowo-pszok-post-gate.ts",
     "readiness:tychowo-runtime": "tsx src/readiness/tychowo-real-address-post-gate.ts",
+    "readiness:polanow-runtime": "tsx src/readiness/polanow-garbno-post-gate.ts",
+    "readiness:polanow-lkg": "tsx src/readiness/polanow-garbno-last-known-good-post-gate.ts",
     "readiness:live-source": "tsx src/readiness/live-source-staging-gate.ts",
     "readiness:polanow-acquisition": "tsx src/readiness/polanow-h2-acquisition-probe.ts",
     "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"
