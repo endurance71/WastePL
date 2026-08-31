@@ -580,7 +580,7 @@ async function main(): Promise<void> {
     if (prgRun.rejected > 0) throw new Error('LIVE_GATE_REFERENCE_IMPORT_REJECTED');
     await insertKoszalinSourceOnlySupportAddress(pool);
 
-    let polanowGarbnoReference: GateReport['reference'] extends { polanowGarbno: infer T } ? T : never = null;
+    let polanowGarbnoReference: NonNullable<GateReport['reference']>['polanowGarbno'] = null;
     if (requiresPolanowGarbnoReference(manifest)) {
       const polanowSnapshot = await loadPolanowGarbnoReferenceSnapshot();
       await hydratePolanowGarbnoReferenceBackbone(pool, polanowSnapshot);
