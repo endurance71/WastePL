@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-31. Bieżący baseline `main`: `c2722aa85269d90fe1a0d0eb3835cb2646fb30b1` (PR `#82`). Rollout `pilot-koszalin-region@2026.6` został wcześniej scalony w PR `#81`; pełny CI #161 przeszedł production runtime/API gates dla Polanowa. Pre-soak fix `#82` przeszedł pełny CI #163: docs/contracts, migracje, build, typecheck, testy, readiness, fixture-independent production gate i API smoke.
+> Zweryfikowano: 2026-08-31, commit `c2722aa85269d90fe1a0d0eb3835cb2646fb30b1`. Bieżący baseline `main` jest po PR `#82`. Rollout `pilot-koszalin-region@2026.6` został wcześniej scalony w PR `#81`; pełny CI #161 przeszedł production runtime/API gates dla Polanowa. Pre-soak fix `#82` przeszedł pełny CI #163: docs/contracts, migracje, build, typecheck, testy, readiness, fixture-independent production gate i API smoke.
 
 ## Etap
 
