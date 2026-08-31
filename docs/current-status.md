@@ -1,173 +1,161 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-29, commit `de6440d438f6ed1b8330b791ac1cdcf2e6f2ec9f` (PR `#75`). Pełny CI #147 (`33252595157`) przeszedł docs/contracts, migracje, build/typecheck, wszystkie testy, readiness, fixture-independent production gate, Sianów i Tychowo PSZOK worker/API post-gates, real-100 consumer gate, Tychowo collection 45/45 i API smoke. Merge policy wymaga dodatkowo zielonego CI na finalnym headzie dokumentacyjnym.
+> Zweryfikowano: 2026-08-31, commit `c2722aa85269d90fe1a0d0eb3835cb2646fb30b1`. Bieżący baseline `main` jest po PR `#82`. Rollout `pilot-koszalin-region@2026.6` został wcześniej scalony w PR `#81`; pełny CI #161 przeszedł production runtime/API gates dla Polanowa. Pre-soak fix `#82` przeszedł pełny CI #163: docs/contracts, migracje, build, typecheck, testy, readiness, fixture-independent production gate i API smoke.
 
 ## Etap
 
-Sprinty 01–04 dostarczyły produkcyjnie utwardzony Data Platform PoC: Source Registry, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne parsery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API i fixture-independent production gates.
+Sprinty 01–04 dostarczyły utwardzony **Data Platform PoC**: Source Registry, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne adaptery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API i fixture-independent production gates.
 
-Sprint 05 rozszerza rzeczywiste coverage i mierzy koszt onboardingu. `#64` dało clean production consumer gate na dokładnie 100 realnych adresach GUGiK PRG. `#65` dodało machine-readable onboarding economics. Rollouty `2026.4` i `2026.5` dostarczają dwa kolejne PSZOK-i z obowiązkowymi rekordami `PROSPECTIVE`: Sianów i Tychowo.
+Sprint 05 koncentruje się na dwóch rzeczach: zwiększaniu rzeczywistego collection coverage oraz mierzeniu kosztu onboardingu. Rollout `2026.6` aktywował pierwszy bezpieczny subset Polanowa i zwiększył collection coverage z 3/8 do **4/8**.
 
-WastePL nadal nie jest kompletnym produktem konsumenckim dla wszystkich ośmiu gmin. Brak danych jest traktowany jako brak pokrycia, nigdy jako powód do zgadywania harmonogramu.
+WastePL nadal nie jest kompletnym produktem konsumenckim dla całego pilota. Brak danych, niejednoznaczny route/address mapping albo nieudowodniona semantyka frakcji są jawnie traktowane jako brak pokrycia — nie jako powód do zgadywania.
 
-## Stan pilota po rollout `2026.5`
+## Stan pilota po rollout `2026.6`
 
 | Miara | Stan | Interpretacja |
 | --- | ---: | --- |
-| Gminy w manifeście | 8 | Docelowy zakres pilota. |
-| Gminy z jakimkolwiek aktywnym typem danych | 6 z 8 | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów. |
-| Gminy z aktywnym harmonogramem | 3 z 8 | Koszalin, Manowo i bezpieczny subset Tychowa. |
-| Gminy z aktywnym PSZOK | 5 z 8 | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo. |
-| Źródła ACTIVE | 9 | Nowym ACTIVE w `2026.5` jest wyłącznie `tychowo-pszok`. |
-| Źródła PLANNED | 8 | Jawne blockery; brak silent fallback. |
-| Real-address collection gate | 100/100 | 100% consumer API correctness. |
-| Krytyczne schedule/date mismatches | 0 | Tolerancja = 0. |
-| Ambiguous responses | 0 | Brak cichego rozstrzygania. |
-| Golden facilities | 8/8 | 100% istniejącego clean-runtime facility packa. |
-| Sianów PSZOK public API post-gate | PASS | Canonical facility zwracana przez `/v1/facilities`. |
-| Tychowo PSZOK public API post-gate | PASS | Canonical facility zwracana przez `/v1/facilities`. |
+| Gminy w manifeście | 8 | Docelowy zakres obecnego pilota. |
+| Gminy z jakimkolwiek ACTIVE typem danych | **7/8** | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów. Będzino pozostaje bez ACTIVE data source. |
+| Gminy z ACTIVE collection schedule | **4/8** | Koszalin, Manowo, bezpieczny subset Tychowa i Garbno w Polanowie. |
+| Gminy z ACTIVE PSZOK | **5/8** | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo. |
+| ACTIVE source identities | **10** | `2026.6` dodało `polanow-collection-garbno-h2-2026`. |
+| Historyczny real-address collection gate | **100/100** | Koszalin 9, Manowo 46, Tychowo 45; formalny kontrakt real-100 pozostaje niezmieniony. |
+| Tychowo collection post-gate | **45/45** | Jednoznaczny service-area resolution; parser provenance `municipal-collection-pdf-text@0.1.1`. |
+| Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; nie jest dopisywany do formalnego real-100 denominatora. |
+| Polanów public API correctness | **1.0** | 39/39, zero ambiguity i zero krytycznych wrong-date mismatches. |
+| Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
+| Live-source public-upstream soak `#60` | **PENDING** | Mechanizm jest gotowy dla `2026.6`, ale wymagany manualny `workflow_dispatch` nie został zastąpiony CI. |
 
-Tychowo PSZOK zwiększa PSZOK coverage z 4/8 do 5/8, ale nie zwiększa any-data municipality coverage, bo Tychowo już miało aktywny harmonogram. Collection coverage pozostaje dokładnie 3/8.
+## Rollout Polanów `2026.6`
 
-## Tychowo PSZOK — rollout `2026.5`
+Aktywowano wyłącznie source-backed, niepokrywający się subset **Garbno — zabudowa jednorodzinna**. Discovery parent H2 pozostaje discovery-only/`PLANNED`; difficult-access, multi-family i pozostałe dzieci nie zostały cicho rozszerzone do ACTIVE.
 
-Nowe źródło `tychowo-pszok` korzysta wyłącznie z oficjalnego, bezpośredniego BIP HTML. Parser `municipal-pszok-html` został rozszerzony do `0.3.0` o jawny profil Tychowa.
+Źródło:
 
-Canonical facility:
+- source key: `polanow-collection-garbno-h2-2026`;
+- manifest: `pilot-koszalin-region@2026.6`;
+- parser: `municipal-collection-pdf-text@0.2.0` z profilem specyficznym dla Garbna;
+- reference locality: Garbno, SIMC `0308749`, TERC `3209063`;
+- frozen official GUGiK PRG pack: 39 adresów;
+- canonical service area: `polanow-garbno-single-family`;
+- H2 events: 32 (`MIXED=13`, `BIO=11`, `OTHER=7`, `BULKY=1`).
 
-- key: `pl-3201043-pszok-tychowo-dolna-8`;
-- adres źródłowy: `ul. Dolna 8, Tychowo`;
-- godziny: wtorek, czwartek i sobota 08:00–14:30;
-- materiały: bezpieczny canonical subset `PAPER`, `GLASS`, `BIO`, `BATTERIES`, `ELECTRONICS`, `BULKY`, `TYRES`, `CONSTRUCTION`;
-- `location=null` — brak trusted coordinates w primary source;
-- `access.scope=UNKNOWN`, `requiresProof=null`, operator `null` — primary BIP HTML nie publikuje tych reguł;
-- `access.sourceKey=null` i `access_source_artifact_id=null` — brak fałszywego provenance dla nieopublikowanej reguły dostępu;
-- wording o tworzywach nie jest cicho rozszerzany do `METALS_PLASTICS`.
+CI #161 potwierdził:
 
-Powiązany regulamin był użyty wyłącznie jako materiał research/corroboration. Nie jest mieszany do canonical single-artifact provenance.
+- 39/39 real PRG addresses rozwiązuje się do dokładnie jednego aktywnego service area;
+- public `/v1/collection` zwraca 39/39 poprawnych harmonogramów;
+- critical wrong-date mismatches = 0;
+- ambiguous responses = 0;
+- pierwszy import `PUBLISHED`;
+- replay jest idempotentny;
+- podczas kontrolowanego HTTP 503 liczba aktywnych eventów pozostaje 32 → 32;
+- po recovery source health wraca do `HEALTHY`;
+- stare real-100 i Tychowo 45/45 nadal przechodzą bez regresji.
 
-CI #147 potwierdził na clean production DB:
+Nie rozszerzamy `OTHER` na `PAPER` / `GLASS` / `METALS_PLASTICS` bez primary-source evidence.
 
-- sync `pilot-koszalin-region@2026.5` z 9 ACTIVE sources;
-- immutable artifact → production dispatcher → `municipal-pszok-html@0.3.0` → canonical facility;
-- first import `PUBLISHED`;
-- replay `PUBLISHED` i brak duplikacji;
-- source-backed provenance bez access provenance dla `UNKNOWN`;
-- source health `HEALTHY`;
-- public `/v1/facilities?terc=3201043&kind=PSZOK` zwraca poprawny facility contract;
-- standard collection Tychowa pozostaje ACTIVE, a difficult-address child pozostaje PLANNED z blockerem `EXPLICIT_ADDRESS_REFERENCE_GATE_NOT_YET_COMPLETE`.
+## Realne address gates
 
-## Sianów PSZOK — rollout `2026.4`
+### Formalny real-100
 
-Źródło `sianow-pszok` nadal korzysta z oficjalnej bezpośredniej strony Gminy i Miasta Sianów. Po wspólnym rozszerzeniu parser family jego bieżący runtime provenance wskazuje `municipal-pszok-html@0.3.0`; canonical semantics Sianowa nie zostały zmienione.
-
-Canonical facility:
-
-- key: `pl-3209073-pszok-sianow-lubuszan-80`;
-- adres: `ul. Łubuszan 80, Sianów`;
-- operator: Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie;
-- godziny: poniedziałek 08:00–16:00, czwartek 08:00–16:00, sobota 08:00–14:00;
-- access: `MUNICIPALITY_RESIDENTS`, `requiresProof=true`;
-- geometry: `null`;
-- materiały ograniczone do source-backed canonical subset.
-
-CI #147 ponownie potwierdził Sianów worker first import + replay + provenance oraz public API post-gate. Harmonogram Sianowa pozostaje `PLANNED` z blockerem `GENERIC_SEGREGATED_COLUMN_NOT_CANONICALLY_MAPPED`.
-
-## Realny golden pack 100 adresów
-
-Frozen evidence znajduje się w `apps/worker/test/fixtures/reference/prg-pilot-real-100-20260828.json` i nie wymaga internetu w PR CI.
-
-Rozkład:
+Frozen pack `apps/worker/test/fixtures/reference/prg-pilot-real-100-20260828.json` pozostaje stałym kontraktem:
 
 - Koszalin: 9/9;
 - Manowo: 46/46;
 - Tychowo: 45/45;
-- łącznie: 100/100.
+- razem: **100/100**.
 
-Każdy liczony przypadek ma realny identyfikator `prg-adresy.*`. Production gate odrzuca syntetyczne `wastepl-gate-*`. `Bogusława II 1-3` pozostaje source-only support row z `prg_id=NULL` i nie jest liczony do 100 realnych punktów PRG.
+Każdy liczony przypadek ma realny identyfikator `prg-adresy.*`. Source-only pomocnicze rekordy nie zwiększają denominatora.
 
-CI #147: collection correctness `1.0` przy wymaganym minimum `0.99`, critical schedule/date mismatches = `0`, facilities = `8/8`; osobny Tychowo post-gate ponownie potwierdził 45/45 deterministycznych adresów PRG.
+### Polanów Garbno
 
-## Tychowo collection
+Polanów ma osobny frozen official PRG snapshot z 39 punktami. Jest testowany dodatkowo, ale nie zmienia historycznej definicji real-100. Łącznie repo posiada więc 100 przypadków formalnego gate'a oraz 39 dodatkowych audytowanych przypadków Polanowa, przy zachowaniu osobnych kontraktów i provenance.
 
-Realny PRG ujawnił różnicę źródłową `Pobądź` vs oficjalne PRG/TERYT `Pobądz`, SIMC `0313704`. Parser `municipal-collection-pdf-text@0.1.1` obsługuje jeden jawny alias `Pobądź -> Pobądz`; nie używa fuzzy matching.
+## Facilities / PSZOK
 
-Aktywny standard subset Tychowa ma 3 service areas i 45/45 realnych przypadków rozwiązuje się do dokładnie jednego service area. Miasto Tychowo i hard-to-reach properties pozostają poza aktywnym zakresem do czasu jednoznacznego modelu źródłowego. Dodanie PSZOK nie zmieniło tych reguł.
+PSZOK coverage pozostaje **5/8**. Aktywne facilities zachowują source/artifact provenance i nie dostają wymyślonych współrzędnych ani reguł dostępu.
+
+- Sianów PSZOK: `municipal-pszok-html@0.3.0`, public API post-gate PASS;
+- Tychowo PSZOK: `municipal-pszok-html@0.3.0`, public API post-gate PASS;
+- brak trusted coordinates nadal oznacza `location=null`.
+
+Trusted geocoding powinien być osobną warstwą z własnym provenance, a nie sposobem na przypisanie gminie informacji, których primary source nie publikuje.
 
 ## Onboarding economics `#65`
 
-Źródłem prawdy pozostają:
+Machine-readable źródła prawdy:
 
 - `schemas/onboarding-metrics-v0.1.schema.json`;
 - `metrics/onboarding/pilot-koszalin-region-v0.1.json`;
 - `metrics/onboarding/pilot-koszalin-region-summary-v0.1.json`;
-- `scripts/check-onboarding-metrics.mjs` w `contracts:check`.
+- `scripts/check-onboarding-metrics.mjs`.
 
-Po `2026.5` baseline obejmuje 8 rekordów aktywacji, w tym dwa `PROSPECTIVE`.
+Stan przez `2026.6`:
 
 | Miara | Wynik |
 | --- | ---: |
-| Activation records | 8 |
-| Prospective records | 2 |
-| First-import manual intervention | 1/8 = 12,5% |
-| Repeat-update automation | 3/3 = 100% |
-| Adapter reuse inny niż `NEW_ADAPTER` | 3/8 = 37,5% |
-| Human-effort phases measured | 12/48 = 25% |
-| Fully measured records wg kontraktu | 2 |
-| Sianów PSZOK | 17 min zamkniętych timerów; measured lower bound |
-| Tychowo PSZOK | 26 min; wszystkie sześć interwałów jawnie zamknięte |
+| Activation records | **9** |
+| Prospective records | **3** |
+| Historical backfill records | 6 |
+| First-import automation | **8/9 = 88,89%** |
+| First-import manual intervention | **1/9 = 11,11%** — target PASS |
+| Repeat-update automation | **3/3 = 100%** — target PASS |
+| Adapter reuse inny niż `NEW_ADAPTER` | **4/9 = 44,44%** |
+| Human-effort phase observations | **18/54 = 33,33%** |
+| Fully measured records | **3** |
 
-Tychowo PSZOK ma pełny prospektywny pomiar:
-
-- discovery 1 min;
-- source assessment 1 min;
-- parser implementation 2 min;
-- regression fixture/runtime 2 min;
-- address/service-area determination 0 min (17 sekund; PSZOK nie tworzy collection rules);
-- review/rollout 20 min;
-- razem **26 human-active minutes**.
-
-CI queue/runtime nie jest liczony do human effort. Historycznych minut nadal nie rekonstruujemy z commitów, PR ani długości sesji. Sianów pozostaje uczciwie opisany jako 17-minutowy lower bound z powodu jednego niezamkniętego historycznie interwału; Tychowo jest pierwszym rekordem bez tej luki.
-
-Kontrakt `#65` w CI #147 raportuje: 9 ACTIVE sources pokrytych przez 8 activation records, first-import manual intervention `1/8`, repeat automation `3/3`, human effort coverage `12/48`.
+Nie imputujemy brakującego czasu i nie rekonstruujemy historycznych minut z długości PR/commitów. Obecna próbka jest nadal zbyt mała, aby ekstrapolować unit economics na skalę krajową.
 
 ## Live-source staging/drift gate `#60`
 
-PR `#72` został scalony do `main` jako `0d85caa3b37dfdbc139e8080e721c5b707a9535d` i usunął hardcoded manifest `2026.2`. Gate wybiera najnowszy `pilot-koszalin-region-*`, sortuje wersje numerycznie i korzysta z frozen real-100 PRG backbone.
+`live-source-staging` pozostaje celowo `workflow_dispatch`-only i nie jest częścią deterministycznego PR CI. Gate wybiera najnowszy manifest numerycznie i dla `2026.6` oczekuje **10 ACTIVE source identities**.
 
-W `2026.5` policy test potwierdza, że najnowszy manifest ma 9 ACTIVE sources i obejmuje `tychowo-collection-standard-2026`, `sianow-pszok` oraz `tychowo-pszok`. Facility sources wymagają canonical evidence, a ukończony bundle nie pozostaje fałszywie w `WAITING_FOR_COMPANION`.
+PR `#82` naprawił ważny pre-soak problem: aktywny parser Polanowa wymaga authoritative locality context dla Garbna, a staging gate wcześniej hydratował wyłącznie historyczny real-100 backbone. Gate `0.3.0` ładuje teraz frozen official Garbno/SIMC context do izolowanej bazy, używając source-backed helpera z production gate. Nie importuje tego jako produkcyjnej mutacji i nie zmienia real-100 denominatora.
 
-**Ważne:** deterministyczne CI potwierdza mechanizm, ale nie zastępuje rzeczywistego soaka. `#60` pozostaje otwarte, dopóki z aktualnego `main` nie zostanie wykonany i ręcznie przejrzany `workflow_dispatch` przeciw publicznym upstreamom. Dostępny w tej sesji konektor GitHub nie udostępnia operacji `workflow_dispatch`, więc run nie jest pozorowany ani zastępowany fixture CI.
+CI #163 potwierdza mechanizm i brak regresji, ale **nie spełnia acceptance `#60`**. Issue można zamknąć dopiero po:
 
-## Production runtime i provenance
+1. ręcznym uruchomieniu `live-source-staging` z aktualnego `main`;
+2. rzeczywistym pobraniu wszystkich 10 publicznych upstreamów;
+3. przejrzeniu JSON/Markdown artifact;
+4. ocenie fetch, parser/template drift, bundle completeness i canonical evidence;
+5. braku nierozstrzygniętego krytycznego failure albo świadomym sklasyfikowaniu problemu do naprawy/review.
 
-W runtime są zarejestrowane m.in.:
+## Consumer PWA `#51`
 
-- `pgk-koszalin-pdf-text`;
-- `municipal-collection-pdf-text`;
-- `pgk-koszalin-pszok-html`;
-- `municipal-pszok-html@0.3.0`.
+Backendowe i jakościowe start gates związane z real-address coverage są spełnione. Formalnym brakującym warunkiem rozpoczęcia implementacji thin PWA jest teraz **#60**.
 
-Harmonogramy i facilities zachowują artifact UUID, SHA-256, parser key/version i source provenance. Publikacje są transakcyjne, replay idempotentny, collection history jest temporalna, a Koszalin PSZOK używa bundle `main + faq` z last-known-good semantics.
+Po zamknięciu #60 rekomendowany pierwszy pion PWA:
 
-`ARTIFACT_PROCESSING_ENABLED` pozostaje deploymentowo opt-in.
+1. wyszukanie/rozwiązanie adresu przez publiczne API;
+2. najbliższa zbiórka + lista kolejnych eventów;
+3. frakcja, data, freshness i source provenance;
+4. jawne `unsupported` / `ambiguous` / `stale` / `review` states;
+5. zapis adresu tylko lokalnie, bez kont;
+6. lista najbliższych PSZOK;
+7. mapa tylko tam, gdzie istnieje trusted location;
+8. mobile-first, installable PWA i podstawowy a11y/Lighthouse gate.
 
-## Pozostałe NO-GO / blockery
+Frontend nie może zawierać parserów ani gminnych reguł biznesowych.
 
-- Sianów collection: generic `odpady segregowane` nie ma bezpiecznego canonical splitu;
-- Będzino: route I/II, OSŁONY i trudnodostępne nie mają jeszcze deterministycznej relacji route/address;
-- Świeszyno schedule: legacy child host wymaga stabilnego artifact capture;
-- Bobolice collection: mixed image/attachment H2 wymaga deterministycznego child adaptera;
-- Polanów: current H2 child set nie jest jeszcze kanonicznie enumerowany;
-- Tychowo city i hard-to-reach: nadal poza safe collection subsetem;
-- ogólnopolski produkcyjny feed punktów systemu kaucyjnego nie jest ustalony.
+## Otwarte blockery danych
+
+- **Sianów collection:** generic `odpady segregowane` nie ma bezpiecznego canonical splitu;
+- **Będzino:** route I/II, OSŁONY i trudnodostępne nie mają deterministycznej relacji route/address;
+- **Świeszyno collection:** legacy child host nadal wymaga stabilnego artifact capture;
+- **Bobolice collection:** H2 mixed image/attachment wymaga deterministycznego child adaptera;
+- **Tychowo:** city i hard-to-reach pozostają poza safe collection subsetem;
+- **Polanów:** Garbno jest ACTIVE, ale difficult-access, multi-family i pozostałe dzieci pozostają poza aktywnym zakresem do czasu osobnych deterministic gates;
+- **system kaucyjny:** brak ustalonego ogólnopolskiego produkcyjnego feedu punktów przyjmowania opakowań.
 
 ## Najbliższa kolejność
 
-1. Wykonać i ręcznie przejrzeć `live-source-staging` z aktualnego `main`, gdy dostępne będzie wywołanie `workflow_dispatch`; dopiero wtedy domknąć `#60`.
-2. Przenieść priorytet z kolejnych prostych PSZOK-ów na wzrost collection coverage ponad 3/8 — najpierw tam, gdzie da się deterministycznie domknąć child artifacts i service-area mapping.
-3. Zachować prospektywne timery dla każdej następnej aktywacji i mierzyć realny repeat update po zmianie upstreamu.
-4. PWA `#51` rozpocząć dopiero po spełnieniu live-soak start gate i przy zachowaniu obecnych data-quality gates.
+1. **P0 — #60:** wykonać i ręcznie przejrzeć realny `live-source-staging` z aktualnego `main`.
+2. **P1 — #51:** po zamknięciu #60 rozpocząć thin consumer PWA na istniejącym publicznym API.
+3. **P1 — collection 4/8 → 5/8:** równolegle wybrać następny subset według determinism, adapter cost, source stability, address coverage i ambiguity risk.
+4. **P1 — facilities:** trusted geocoding z osobnym provenance.
+5. **P2 — notifications:** dopiero po walidacji PWA UX.
+6. **P2 — deposit-return:** osobny national-feed workstream; nie blokuje collection MVP.
+7. **P2 — fala 20 gmin:** dopiero po dalszym dowodzie adapter reuse, repeat-update automation i realnego human-active onboarding cost.
 
 ## Stan decyzji
 
@@ -175,14 +163,12 @@ Harmonogramy i facilities zachowują artifact UUID, SHA-256, parser key/version 
 
 **Automatyczna publikacja dla wspieranych źródeł: GO pod istniejącymi gate'ami.**
 
-**Rollout `2026.5`: pełny code/runtime gate PASS w CI #147; merge policy wymaga zielonego CI również na finalnym headzie dokumentacyjnym.**
-
-**Collection coverage: 3/8 — bez sztucznego zaliczania facility activation jako harmonogramu.**
+**Rollout `2026.6`: GO — collection coverage 4/8, Polanów Garbno 39/39, zero ambiguity i zero critical wrong-date mismatches.**
 
 **PSZOK coverage: 5/8.**
 
-**#65: dwa PROSPECTIVE records; drugi ma wszystkie sześć faz jawnie zamknięte, a machine-readable targety first-import/repeat-update są spełnione.**
+**#60: mechanizm gotowy dla 10 ACTIVE sources, ale rzeczywisty public-upstream soak nadal PENDING.**
 
-**#60: mechanizm śledzi najnowszy manifest, teraz 9 ACTIVE; rzeczywisty live soak nadal PENDING.**
+**Thin PWA: warunkowe GO po zamknięciu #60.**
 
-**Zewnętrzny szeroki pilot konsumencki: NO-GO**, dopóki nie zostanie wykonany aktualny live-source soak i nie wzrośnie deterministyczne collection coverage.
+**Szeroki zewnętrzny pilot konsumencki: nadal NO-GO** do czasu realnego live soaka i dalszego zwiększenia collection coverage / operacyjnego dowodu utrzymywalności źródeł.
