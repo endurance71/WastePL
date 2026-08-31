@@ -18,6 +18,11 @@ import { PgSourceManifestSync } from '../manifests/source-manifest-sync.js';
 import type { SourceManifest } from '../manifests/source-manifest.js';
 import { PgOfficialReferenceImporter } from '../reference/pg-reference-importer.js';
 import {
+  GARBNO_REAL_ADDRESS_COUNT,
+  hydratePolanowGarbnoReferenceBackbone,
+  loadPolanowGarbnoReferenceSnapshot,
+} from './polanow-garbno-reference.js';
+import {
   REAL_GOLDEN_REFERENCE_COUNTS,
   hydrateRealGoldenReferenceBackbone,
   insertKoszalinSourceOnlySupportAddress,
@@ -37,6 +42,7 @@ const fixtureRoot = resolve(repoRoot, 'apps/worker/test/fixtures');
 export const LIVE_GATE_MIN_MANIFEST_VERSION = '2026.3';
 const PILOT_MANIFEST_ID = 'pilot-koszalin-region';
 const PILOT_MANIFEST_PATTERN = /^pilot-koszalin-region-(\d{4}\.\d+)\.json$/;
+const POLANOW_GARBNO_SOURCE_KEY = 'polanow-collection-garbno-h2-2026';
 
 export type LiveSourceOutcome =
   | 'HEALTHY'
@@ -161,6 +167,12 @@ interface GateReport {
     localitiesHydrated: number;
     streetsHydrated: number;
     sourceOnlySupportAddresses: number;
+    polanowGarbno: {
+      snapshotDate: string;
+      simc: string;
+      authoritativePrgAddressesInSnapshot: number;
+      localityHydrated: true;
+    } | null;
   };
   sourceResults: LiveSourceResult[];
   bundleChecks: Array<Record<string, unknown>>;
@@ -215,6 +227,10 @@ export function activeSourceKeysFromManifest(manifest: SourceManifest): string[]
     .filter((source) => source.status === 'ACTIVE')
     .map((source) => source.key)
     .sort();
+}
+
+export function requiresPolanowGarbnoReference(manifest: SourceManifest): boolean {
+  return activeSourceKeysFromManifest(manifest).includes(POLANOW_GARBNO_SOURCE_KEY);
 }
 
 async function loadLatestPilotManifest(): Promise<{ manifest: SourceManifest; version: string }> {
@@ -513,7 +529,7 @@ async function main(): Promise<void> {
   const expectedActiveKeys = activeSourceKeysFromManifest(manifest);
   const report: GateReport = {
     gate: 'live-source-staging-soak',
-    gateVersion: '0.2.0',
+    gateVersion: '0.3.0',
     manifest: `${PILOT_MANIFEST_ID}@${version}`,
     mode: 'LIVE_HTTP_ISOLATED_RUNTIME',
     startedAt: startedAt.toISOString(),
@@ -563,12 +579,26 @@ async function main(): Promise<void> {
     });
     if (prgRun.rejected > 0) throw new Error('LIVE_GATE_REFERENCE_IMPORT_REJECTED');
     await insertKoszalinSourceOnlySupportAddress(pool);
+
+    let polanowGarbnoReference: GateReport['reference'] extends { polanowGarbno: infer T } ? T : never = null;
+    if (requiresPolanowGarbnoReference(manifest)) {
+      const polanowSnapshot = await loadPolanowGarbnoReferenceSnapshot();
+      await hydratePolanowGarbnoReferenceBackbone(pool, polanowSnapshot);
+      polanowGarbnoReference = {
+        snapshotDate: polanowSnapshot.snapshotDate,
+        simc: polanowSnapshot.selection.simc,
+        authoritativePrgAddressesInSnapshot: GARBNO_REAL_ADDRESS_COUNT,
+        localityHydrated: true,
+      };
+    }
+
     report.reference = {
       snapshotDate: snapshot.snapshotDate,
       realAddresses: REAL_GOLDEN_REFERENCE_COUNTS.realAddresses,
       localitiesHydrated: backbone.localities,
       streetsHydrated: backbone.streets,
       sourceOnlySupportAddresses: REAL_GOLDEN_REFERENCE_COUNTS.sourceOnlySupportAddresses,
+      polanowGarbno: polanowGarbnoReference,
     };
 
     const manifestSync = await new PgSourceManifestSync(pool).sync(manifest, new Date());
