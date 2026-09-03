@@ -44,6 +44,11 @@ import {
   loadSwieszynoChalupyReferenceSnapshot,
 } from './swieszyno-chalupy-reference.js';
 import {
+  KLANINO_REAL_ADDRESS_COUNT,
+  hydrateBoboliceKlaninoReferenceBackbone,
+  loadBoboliceKlaninoReferenceSnapshot,
+} from './bobolice-klanino-reference.js';
+import {
   REAL_GOLDEN_REFERENCE_COUNTS,
   hydrateRealGoldenReferenceBackbone,
   insertKoszalinSourceOnlySupportAddress,
@@ -66,6 +71,7 @@ const PILOT_MANIFEST_PATTERN = /^pilot-koszalin-region-(\d{4}\.\d+)\.json$/;
 const POLANOW_GARBNO_SOURCE_KEY = 'polanow-collection-garbno-h2-2026';
 const BEDZINO_DWOREK_SOURCE_KEY = 'bedzino-collection-trasa-1-safe-h2-2026';
 const SWIESZYNO_CHALUPY_SOURCE_KEY = 'swieszyno-collection-trasa-1-safe-h2-2026';
+const BOBOLICE_KLANINO_SOURCE_KEY = 'bobolice-collection-klanino-safe-h2-2026';
 
 export type LiveSourceOutcome =
   | 'HEALTHY'
@@ -214,6 +220,12 @@ interface GateReport {
       authoritativePrgAddressesInSnapshot: number;
       localityHydrated: true;
     } | null;
+    boboliceKlanino: {
+      snapshotDate: string;
+      simc: string;
+      authoritativePrgAddressesInSnapshot: number;
+      localityHydrated: true;
+    } | null;
   };
   sourceResults: LiveSourceResult[];
   bundleChecks: Array<Record<string, unknown>>;
@@ -284,6 +296,10 @@ export function requiresSianowGrabowkoReference(manifest: SourceManifest): boole
 
 export function requiresSwieszynoChalupyReference(manifest: SourceManifest): boolean {
   return activeSourceKeysFromManifest(manifest).includes(SWIESZYNO_CHALUPY_SOURCE_KEY);
+}
+
+export function requiresBoboliceKlaninoReference(manifest: SourceManifest): boolean {
+  return activeSourceKeysFromManifest(manifest).includes(BOBOLICE_KLANINO_SOURCE_KEY);
 }
 
 async function loadLatestPilotManifest(): Promise<{ manifest: SourceManifest; version: string }> {
@@ -681,6 +697,18 @@ async function main(): Promise<void> {
       };
     }
 
+    let boboliceKlaninoReference: NonNullable<GateReport['reference']>['boboliceKlanino'] = null;
+    if (requiresBoboliceKlaninoReference(manifest)) {
+      const boboliceSnapshot = await loadBoboliceKlaninoReferenceSnapshot();
+      await hydrateBoboliceKlaninoReferenceBackbone(pool);
+      boboliceKlaninoReference = {
+        snapshotDate: boboliceSnapshot.snapshotDate,
+        simc: boboliceSnapshot.selection.simc,
+        authoritativePrgAddressesInSnapshot: KLANINO_REAL_ADDRESS_COUNT,
+        localityHydrated: true,
+      };
+    }
+
     report.reference = {
       snapshotDate: snapshot.snapshotDate,
       realAddresses: REAL_GOLDEN_REFERENCE_COUNTS.realAddresses,
@@ -691,6 +719,7 @@ async function main(): Promise<void> {
       bedzinoDworek: bedzinoDworekReference,
       sianowGrabowko: sianowGrabowkoReference,
       swieszynoChalupy: swieszynoChalupyReference,
+      boboliceKlanino: boboliceKlaninoReference,
     };
 
     const manifestSync = await new PgSourceManifestSync(pool).sync(manifest, new Date());

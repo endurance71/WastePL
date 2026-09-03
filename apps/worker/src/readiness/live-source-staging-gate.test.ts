@@ -14,6 +14,7 @@ import {
   requiresBedzinoDworekReference,
   requiresSianowGrabowkoReference,
   requiresSwieszynoChalupyReference,
+  requiresBoboliceKlaninoReference,
 } from './live-source-staging-gate.js';
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -58,10 +59,10 @@ describe('live-source staging gate policy', () => {
 
     const manifestRoot = resolve(repoRoot, 'manifests');
     const latest = latestPilotManifestFilename(await readdir(manifestRoot));
-    expect(latest).toBe('pilot-koszalin-region-2026.9.json');
+    expect(latest).toBe('pilot-koszalin-region-2026.10.json');
     const manifest = JSON.parse(await readFile(resolve(manifestRoot, latest), 'utf8')) as SourceManifest;
     const keys = activeSourceKeysFromManifest(manifest);
-    expect(keys).toHaveLength(13);
+    expect(keys).toHaveLength(14);
     expect(keys).toContain('tychowo-collection-standard-2026');
     expect(keys).toContain('sianow-pszok');
     expect(keys).toContain('tychowo-pszok');
@@ -69,10 +70,12 @@ describe('live-source staging gate policy', () => {
     expect(keys).toContain('bedzino-collection-trasa-1-safe-h2-2026');
     expect(keys).toContain('sianow-collection-dabrowa-grabowko-safe-h2-2026');
     expect(keys).toContain('swieszyno-collection-trasa-1-safe-h2-2026');
+    expect(keys).toContain('bobolice-collection-klanino-safe-h2-2026');
     expect(requiresPolanowGarbnoReference(manifest)).toBe(true);
     expect(requiresBedzinoDworekReference(manifest)).toBe(true);
     expect(requiresSianowGrabowkoReference(manifest)).toBe(true);
     expect(requiresSwieszynoChalupyReference(manifest)).toBe(true);
+    expect(requiresBoboliceKlaninoReference(manifest)).toBe(true);
   });
 
   it('recognizes a bundle member that was completed by its companion', () => {
