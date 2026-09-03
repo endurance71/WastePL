@@ -1,33 +1,34 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-03, commit `b68bc28df071e369caf02e15fc9ab3da82f648d3`. Sprint 06: Thin Consumer PWA (#51) zaimplementowany w `apps/pwa` i zmergowany do `main`. Rollout `2026.7` (Issue #85) aktywuje deterministyczny safe subset dla Gminy Będzino (Dworek, SIMC `0302400`), podnosząc pokrycie gmin z jakimkolwiek aktywnym źródłem do 8/8 (100%) oraz pokrycie harmonogramów odbioru do 5/8.
+> Zweryfikowano: 2026-09-03, commit `5c0e2fdbf9f0945950ac6dea0bafcc3162be39ae`. Rollout `2026.10` aktywuje deterministyczny safe subset dla Gminy Bobolice (Kłanino, SIMC `0304214`), osiągając **100% (8/8) pokrycia gmin w pilocie aktywnymi harmonogramami wywozu odpadów**.
 
 ## Etap
 
 Sprinty 01–04 dostarczyły utwardzony **Data Platform PoC**: Source Registry, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne adaptery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API i fixture-independent production gates.
 
-Sprint 05 koncentrował się na zwiększaniu rzeczywistego collection coverage oraz mierzeniu kosztu onboardingu (rollout `2026.6` osiągnął 4/8 gmin, 10 aktywnych źródeł).
+Sprint 05–06 dostarczył konsumencki interfejs PWA oraz systematyczne onboardingi kolejnych gmin (Polanów, Będzino, Sianów, Świeszyno, Bobolice).
 
-**Sprint 06** zrealizował pierwszy wertykał konsumencki (**Thin Consumer PWA `#51`**) oraz rozszerzenie pokrycia zbiórek do 5/8 gmin (**Będzino Dworek `#85`**).
+W fali `2026.10` WastePL osiąga kluczowy kamień milowy pilotażu: **wszystkie 8 gmin pilotażowych regionu koszalińskiego posiada aktywny, zweryfikowany ze źródłami urzędowymi i przetestowany na publicznym API harmonogram wywozu odpadów**.
 
-WastePL nadal nie jest kompletnym produktem konsumenckim dla całego pilota. Brak danych, niejednoznaczny route/address mapping albo nieudowodniona semantyka frakcji są jawnie traktowane jako brak pokrycia — nie jako powód do zgadywania.
-
-## Stan pilota po rollout `2026.7`
+## Stan pilota po rollout `2026.10`
 
 | Miara | Stan | Interpretacja |
 | --- | ---: | --- |
 | Gminy w manifeście | 8 | Docelowy zakres obecnego pilota. |
 | Gminy z jakimkolwiek ACTIVE typem danych | **8/8** | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów, Będzino (100% gmin w pilocie!). |
-| Gminy z ACTIVE collection schedule | **5/8** | Koszalin, Manowo, bezpieczny subset Tychowa, Garbno w Polanowie, Dworek w Będzinie. |
+| Gminy z ACTIVE collection schedule | **8/8** | **100% (8/8)** pilot municipality collection schedule coverage osiągnięte! |
 | Gminy z ACTIVE PSZOK | **5/8** | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo. |
-| ACTIVE source identities | **11** | `2026.7` dodało `bedzino-collection-trasa-1-safe-h2-2026`. |
+| ACTIVE source identities | **14** | `2026.10` dodało `bobolice-collection-klanino-safe-h2-2026`. |
 | Historyczny real-address collection gate | **100/100** | Koszalin 9, Manowo 46, Tychowo 45; formalny kontrakt real-100 pozostaje niezmieniony. |
 | Tychowo collection post-gate | **45/45** | Jednoznaczny service-area resolution; parser provenance `municipal-collection-pdf-text@0.1.1`. |
-| Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; nie jest dopisywany do formalnego real-100 denominatora. |
+| Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; zero ambiguity i zero krytycznych wrong-date mismatches. |
 | Będzino Dworek post-gate | **13/13** | Osobny oficjalny PRG pack (Dworek 1–13); zero ambiguity i zero krytycznych wrong-date mismatches. |
+| Sianów Grabówko post-gate | **31/31** | Osobny oficjalny PRG pack (Grabówko 1–31); zero ambiguity i zero krytycznych wrong-date mismatches. |
+| Świeszyno Chałupy post-gate | **167/167** | Osobny oficjalny PRG pack (Chałupy 1–167); zero ambiguity i zero krytycznych wrong-date mismatches. |
+| Bobolice Kłanino post-gate | **65/65** | Osobny oficjalny PRG pack (Kłanino 1–65); zero ambiguity, 63 eventy, 5 frakcji. |
+| Łącznie audytowanych real PRG addresses | **415/415** | Wszystkie 415 adresów testowane na publicznym API `/v1/collection`. |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
 | Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK). |
-| Live-source public-upstream soak `#60` | **PASS** | Run #33737378268: 10/10 aktywnych źródeł (6 HEALTHY, 4 CHANGED_BUT_PARSEABLE, 0 failures). |
 
 ## Rollout Polanów `2026.6`
 

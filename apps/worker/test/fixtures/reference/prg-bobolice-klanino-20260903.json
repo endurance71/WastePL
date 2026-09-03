@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": "1.0.0",
+  "snapshotDate": "2026-09-03",
+  "source": {
+    "provider": "GUGIK_PRG",
+    "dataset": "PRG_ADDRESSES",
+    "filter": {
+      "municipalityTerc": "3209033",
+      "locality": "Kłanino",
+      "simc": "0304214"
+    }
+  },
+  "selection": {
+    "municipalityTerc": "3209033",
+    "locality": "Kłanino",
+    "simc": "0304214",
+    "serviceArea": "bobolice-safe-h2-klanino",
+    "total": 65
+  },
+  "addresses": [
+    {
+      "prgId": "prg-bobolice-klanino-1",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "1",
+      "postalCode": "76-020",
+      "x2180": 334034.35,
+      "y2180": 687740.18,
+      "coordinates": {
+        "epsg2180": {
+          "x": 334034.35,
+          "y": 687740.18
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-2",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "2",
+      "postalCode": "76-020",
+      "x2180": 334016.38,
+      "y2180": 687779.05,
+      "coordinates": {
+        "epsg2180": {
+          "x": 334016.38,
+          "y": 687779.05
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-3",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "3",
+      "postalCode": "76-020",
+      "x2180": 333994.12,
+      "y2180": 687800.73,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333994.12,
+          "y": 687800.73
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-4",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "4",
+      "postalCode": "76-020",
+      "x2180": 333992.75,
+      "y2180": 687819.29,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333992.75,
+          "y": 687819.29
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-5",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "5",
+      "postalCode": "76-020",
+      "x2180": 333970.87,
+      "y2180": 687843.7,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333970.87,
+          "y": 687843.7
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-6",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "6",
+      "postalCode": "76-020",
+      "x2180": 333945.68,
+      "y2180": 687887.84,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333945.68,
+          "y": 687887.84
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-7",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "7",
+      "postalCode": "76-020",
+      "x2180": 333946.07,
+      "y2180": 687950.14,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333946.07,
+          "y": 687950.14
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-8",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "8",
+      "postalCode": "76-020",
+      "x2180": 333937.9,
+      "y2180": 687995.7,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333937.9,
+          "y": 687995.7
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-8a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "8a",
+      "postalCode": "76-020",
+      "x2180": 333953.15,
+      "y2180": 687984.29,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333953.15,
+          "y": 687984.29
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-9",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "9",
+      "postalCode": "76-020",
+      "x2180": 333953.1,
+      "y2180": 688028.95,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333953.1,
+          "y": 688028.95
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-10",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "10",
+      "postalCode": "76-020",
+      "x2180": 333914.62,
+      "y2180": 688049.07,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333914.62,
+          "y": 688049.07
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-10a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "10a",
+      "postalCode": "76-020",
+      "x2180": 333950.29,
+      "y2180": 688059.91,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333950.29,
+          "y": 688059.91
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-11",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "11",
+      "postalCode": "76-020",
+      "x2180": 333945.68,
+      "y2180": 688076.02,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333945.68,
+          "y": 688076.02
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-12",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "12",
+      "postalCode": "76-020",
+      "x2180": 333929.47,
+      "y2180": 688117.82,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333929.47,
+          "y": 688117.82
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-13",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "13",
+      "postalCode": "76-020",
+      "x2180": 333958.46,
+      "y2180": 688115.09,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333958.46,
+          "y": 688115.09
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-14",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "14",
+      "postalCode": "76-020",
+      "x2180": 333930.73,
+      "y2180": 688106.3,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333930.73,
+          "y": 688106.3
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-15",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "15",
+      "postalCode": "76-020",
+      "x2180": 333927.55,
+      "y2180": 688139.4,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333927.55,
+          "y": 688139.4
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-16",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "16",
+      "postalCode": "76-020",
+      "x2180": 333970.13,
+      "y2180": 688142.33,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333970.13,
+          "y": 688142.33
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-16a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "16A",
+      "postalCode": "76-020",
+      "x2180": 334014.88,
+      "y2180": 688162.2,
+      "coordinates": {
+        "epsg2180": {
+          "x": 334014.88,
+          "y": 688162.2
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-17",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "17",
+      "postalCode": "76-020",
+      "x2180": 333909.47,
+      "y2180": 688166.61,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333909.47,
+          "y": 688166.61
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-17a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "17A",
+      "postalCode": "76-020",
+      "x2180": 333908.11,
+      "y2180": 688177.65,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333908.11,
+          "y": 688177.65
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-18",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "18",
+      "postalCode": "76-020",
+      "x2180": 333905.46,
+      "y2180": 688199.67,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333905.46,
+          "y": 688199.67
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-19",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "19",
+      "postalCode": "76-020",
+      "x2180": 333931.82,
+      "y2180": 688215.44,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333931.82,
+          "y": 688215.44
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-20",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "20",
+      "postalCode": "76-020",
+      "x2180": 333908.77,
+      "y2180": 688228.22,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333908.77,
+          "y": 688228.22
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-21",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "21",
+      "postalCode": "76-020",
+      "x2180": 334494.59,
+      "y2180": 688323.99,
+      "coordinates": {
+        "epsg2180": {
+          "x": 334494.59,
+          "y": 688323.99
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-22",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "22",
+      "postalCode": "76-020",
+      "x2180": 334076.03,
+      "y2180": 688336.81,
+      "coordinates": {
+        "epsg2180": {
+          "x": 334076.03,
+          "y": 688336.81
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-23",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "23",
+      "postalCode": "76-020",
+      "x2180": 334052.29,
+      "y2180": 688377.41,
+      "coordinates": {
+        "epsg2180": {
+          "x": 334052.29,
+          "y": 688377.41
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-24",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "24",
+      "postalCode": "76-020",
+      "x2180": 333894.1,
+      "y2180": 688632.78,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333894.1,
+          "y": 688632.78
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-26",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "26",
+      "postalCode": "76-020",
+      "x2180": 333898.4,
+      "y2180": 688661.85,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333898.4,
+          "y": 688661.85
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-27",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "27",
+      "postalCode": "76-020",
+      "x2180": 333874.58,
+      "y2180": 688685.68,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333874.58,
+          "y": 688685.68
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-28",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "28",
+      "postalCode": "76-020",
+      "x2180": 333902.55,
+      "y2180": 688691.01,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333902.55,
+          "y": 688691.01
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-29",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "29",
+      "postalCode": "76-020",
+      "x2180": 333880.09,
+      "y2180": 688715.23,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333880.09,
+          "y": 688715.23
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-29a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "29A",
+      "postalCode": "76-020",
+      "x2180": 333880.38,
+      "y2180": 688745.62,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333880.38,
+          "y": 688745.62
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-30",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "30",
+      "postalCode": "76-020",
+      "x2180": 333907.52,
+      "y2180": 688720.82,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333907.52,
+          "y": 688720.82
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-31",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "31",
+      "postalCode": "76-020",
+      "x2180": 333912.01,
+      "y2180": 688749.53,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333912.01,
+          "y": 688749.53
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-32",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "32",
+      "postalCode": "76-020",
+      "x2180": 333801.85,
+      "y2180": 688671.06,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333801.85,
+          "y": 688671.06
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-33",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "33",
+      "postalCode": "76-020",
+      "x2180": 333816.69,
+      "y2180": 688648.4,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333816.69,
+          "y": 688648.4
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-34",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "34",
+      "postalCode": "76-020",
+      "x2180": 333838.8,
+      "y2180": 688617.1,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333838.8,
+          "y": 688617.1
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-35",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "35",
+      "postalCode": "76-020",
+      "x2180": 333833.2,
+      "y2180": 688346.11,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333833.2,
+          "y": 688346.11
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-35a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "35A",
+      "postalCode": "76-020",
+      "x2180": 333789.28,
+      "y2180": 688346.78,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333789.28,
+          "y": 688346.78
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-36",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "36",
+      "postalCode": "76-020",
+      "x2180": 333752.32,
+      "y2180": 688348.35,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333752.32,
+          "y": 688348.35
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-37",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "37",
+      "postalCode": "76-020",
+      "x2180": 333713.84,
+      "y2180": 688349.53,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333713.84,
+          "y": 688349.53
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-38",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "38",
+      "postalCode": "76-020",
+      "x2180": 333662.48,
+      "y2180": 688350.31,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333662.48,
+          "y": 688350.31
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-39",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "39",
+      "postalCode": "76-020",
+      "x2180": 333844.66,
+      "y2180": 688312.75,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333844.66,
+          "y": 688312.75
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-40",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "40",
+      "postalCode": "76-020",
+      "x2180": 333859.7,
+      "y2180": 688266.85,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333859.7,
+          "y": 688266.85
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-41",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "41",
+      "postalCode": "76-020",
+      "x2180": 333872.87,
+      "y2180": 688219.42,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333872.87,
+          "y": 688219.42
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-41a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "41A",
+      "postalCode": "76-020",
+      "x2180": 333816.42,
+      "y2180": 688254.97,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333816.42,
+          "y": 688254.97
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-42",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "42",
+      "postalCode": "76-020",
+      "x2180": 333874.91,
+      "y2180": 688203.49,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333874.91,
+          "y": 688203.49
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-43",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "43",
+      "postalCode": "76-020",
+      "x2180": 333876.71,
+      "y2180": 688189.21,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333876.71,
+          "y": 688189.21
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-44",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "44",
+      "postalCode": "76-020",
+      "x2180": 333841.02,
+      "y2180": 688189.18,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333841.02,
+          "y": 688189.18
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-44a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "44A",
+      "postalCode": "76-020",
+      "x2180": 333858.11,
+      "y2180": 688160.66,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333858.11,
+          "y": 688160.66
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-45",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "45",
+      "postalCode": "76-020",
+      "x2180": 333880.2,
+      "y2180": 688112.57,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333880.2,
+          "y": 688112.57
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-46",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "46",
+      "postalCode": "76-020",
+      "x2180": 333887.33,
+      "y2180": 688057.54,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333887.33,
+          "y": 688057.54
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-47",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "47",
+      "postalCode": "76-020",
+      "x2180": 333843.06,
+      "y2180": 688012.98,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333843.06,
+          "y": 688012.98
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-47a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "47A",
+      "postalCode": "76-020",
+      "x2180": 333885.55,
+      "y2180": 688032.36,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333885.55,
+          "y": 688032.36
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-48",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "48",
+      "postalCode": "76-020",
+      "x2180": 333829.06,
+      "y2180": 687959,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333829.06,
+          "y": 687959
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-48a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "48a",
+      "postalCode": "76-020",
+      "x2180": 333869.88,
+      "y2180": 687919.94,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333869.88,
+          "y": 687919.94
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-49",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "49",
+      "postalCode": "76-020",
+      "x2180": 333901.93,
+      "y2180": 687898.58,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333901.93,
+          "y": 687898.58
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-50",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "50",
+      "postalCode": "76-020",
+      "x2180": 333786.58,
+      "y2180": 687842.79,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333786.58,
+          "y": 687842.79
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-51",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "51",
+      "postalCode": "76-020",
+      "x2180": 333779.75,
+      "y2180": 687861.54,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333779.75,
+          "y": 687861.54
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-52",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "52",
+      "postalCode": "76-020",
+      "x2180": 333769.39,
+      "y2180": 687811.93,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333769.39,
+          "y": 687811.93
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-53",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "53",
+      "postalCode": "76-020",
+      "x2180": 333731.11,
+      "y2180": 687791.82,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333731.11,
+          "y": 687791.82
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-54",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "54",
+      "postalCode": "76-020",
+      "x2180": 333659.63,
+      "y2180": 687748.07,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333659.63,
+          "y": 687748.07
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-55a",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "55A",
+      "postalCode": "76-020",
+      "x2180": 333878.42,
+      "y2180": 688788.2,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333878.42,
+          "y": 688788.2
+        }
+      }
+    },
+    {
+      "prgId": "prg-bobolice-klanino-55b",
+      "locality": "Kłanino",
+      "simc": "0304214",
+      "street": null,
+      "ulic": null,
+      "buildingNumber": "55B",
+      "postalCode": "76-020",
+      "x2180": 333858.11,
+      "y2180": 688790.74,
+      "coordinates": {
+        "epsg2180": {
+          "x": 333858.11,
+          "y": 688790.74
+        }
+      }
+    }
+  ]
+}

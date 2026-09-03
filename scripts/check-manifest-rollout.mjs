@@ -11,7 +11,7 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(new URL(relativePath, import.meta.url), 'utf8'));
 }
 
-const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9] = await Promise.all([
+const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9, wave10] = await Promise.all([
   readJson('../schemas/source-manifest-v0.1.schema.json'),
   readJson('../manifests/pilot-koszalin-region-2026.1.json'),
   readJson('../manifests/pilot-koszalin-region-2026.2.json'),
@@ -22,6 +22,7 @@ const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave
   readJson('../manifests/pilot-koszalin-region-2026.7.json'),
   readJson('../manifests/pilot-koszalin-region-2026.8.json'),
   readJson('../manifests/pilot-koszalin-region-2026.9.json'),
+  readJson('../manifests/pilot-koszalin-region-2026.10.json'),
 ]);
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -46,6 +47,7 @@ for (const [label, value] of [
   ['pilot source manifest 2026.7', wave7],
   ['pilot source manifest 2026.8', wave8],
   ['pilot source manifest 2026.9', wave9],
+  ['pilot source manifest 2026.10', wave10],
 ]) assertValid(value, label);
 
 if (historical.manifestId !== 'pilot-koszalin-region' || historical.version !== '2026.1') {
@@ -60,6 +62,7 @@ for (const [manifest, version] of [
   [wave7, '2026.7'],
   [wave8, '2026.8'],
   [wave9, '2026.9'],
+  [wave10, '2026.10'],
 ]) {
   if (manifest.manifestId !== historical.manifestId || manifest.version !== version) {
     throw new Error(`Manifest must remain pilot-koszalin-region@${version}`);
@@ -83,6 +86,9 @@ const manifestMaps = [
   ['2026.5', municipalities(wave5)],
   ['2026.6', municipalities(wave6)],
   ['2026.7', municipalities(wave7)],
+  ['2026.8', municipalities(wave8)],
+  ['2026.9', municipalities(wave9)],
+  ['2026.10', municipalities(wave10)],
 ];
 for (const [label, map] of manifestMaps) {
   if (map.size !== 8) throw new Error(`${label} must contain exactly 8 municipalities`);
@@ -103,6 +109,7 @@ const s6 = sources(wave6);
 const s7 = sources(wave7);
 const s8 = sources(wave8);
 const s9 = sources(wave9);
+const s10 = sources(wave10);
 for (const key of s1.keys()) if (!s2.has(key)) throw new Error(`2026.2 lost historical source ${key}`);
 for (const key of s2.keys()) if (!s3.has(key)) throw new Error(`2026.3 lost wave-2 source ${key}`);
 for (const key of s3.keys()) if (!s4.has(key)) throw new Error(`2026.4 lost wave-3 source ${key}`);
@@ -111,6 +118,7 @@ for (const key of s5.keys()) if (!s6.has(key)) throw new Error(`2026.6 lost wave
 for (const key of s6.keys()) if (!s7.has(key)) throw new Error(`2026.7 lost wave-6 source ${key}`);
 for (const key of s7.keys()) if (!s8.has(key)) throw new Error(`2026.8 lost wave-7 source ${key}`);
 for (const key of s8.keys()) if (!s9.has(key)) throw new Error(`2026.9 lost wave-8 source ${key}`);
+for (const key of s9.keys()) if (!s10.has(key)) throw new Error(`2026.10 lost wave-9 source ${key}`);
 
 const wave3NewKeys = [...s3.keys()].filter((key) => !s2.has(key)).sort();
 if (JSON.stringify(wave3NewKeys) !== JSON.stringify([
@@ -383,4 +391,43 @@ if (
 
 console.log(
   `WastePL manifest rollout OK: through 2026.9 with ${active9.size} ACTIVE sources; newly active=${newlyActive9.join(', ')}`,
+);
+
+const active10 = activeKeys(s10);
+const newlyActive10 = [...active10].filter((key) => !active9.has(key)).sort();
+if (active10.size !== 14 || newlyActive10.length !== 1 || newlyActive10[0] !== 'bobolice-collection-klanino-safe-h2-2026') {
+  throw new Error(
+    `2026.10 rollout must add exactly bobolice-collection-klanino-safe-h2-2026: size=${active10.size}, newlyActive=${newlyActive10.join(',')}`,
+  );
+}
+
+const boboliceParent = s10.get('bobolice-collection-2026');
+const boboliceKlanino = s10.get('bobolice-collection-klanino-safe-h2-2026');
+const expectedBoboliceKlaninoUrl =
+  'https://cms-v2-files.idcom-jst.pl/sites/52/cms/szablony/5169/zdjecia/orign/2a2130e07b8640d995b493f4bca53e20ej2pjkevuej9bq1k-6.jpg';
+if (
+  !boboliceParent ||
+  boboliceParent.status !== 'PLANNED' ||
+  boboliceParent.terc !== '3209033' ||
+  boboliceParent.parserKey !== null ||
+  boboliceParent.assessment?.evidenceStatus !== 'VERIFIED' ||
+  !boboliceParent.assessment?.childArtifactUrls?.includes(expectedBoboliceKlaninoUrl)
+) {
+  throw new Error('Bobolice 2026 discovery parent must remain verified in 2026.10 and enumerate Kłanino');
+}
+if (
+  !boboliceKlanino ||
+  boboliceKlanino.status !== 'ACTIVE' ||
+  boboliceKlanino.terc !== '3209033' ||
+  boboliceKlanino.url !== expectedBoboliceKlaninoUrl ||
+  boboliceKlanino.format !== 'PDF_TEXT' ||
+  boboliceKlanino.parserKey !== 'municipal-collection-pdf-text' ||
+  boboliceKlanino.assessment?.evidenceStatus !== 'VERIFIED' ||
+  boboliceKlanino.assessment?.activationBlocker !== null
+) {
+  throw new Error('Bobolice Kłanino safe subset must be verified ACTIVE in 2026.10');
+}
+
+console.log(
+  `WastePL manifest rollout OK: through 2026.10 with ${active10.size} ACTIVE sources; newly active=${newlyActive10.join(', ')} (8/8 pilot municipalities active)`,
 );

@@ -1024,6 +1024,97 @@
         "CI queue/runtime is excluded from effort minutes.",
         "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
       ]
+    },
+    {
+      "id": "bobolice-collection-klanino-wave10",
+      "terc": "3209033",
+      "municipalityName": "Bobolice",
+      "dataType": "COLLECTION_SCHEDULE",
+      "sourceWave": "pilot-source-wave-10",
+      "activatedInManifestVersion": "2026.10",
+      "sourceKeys": [
+        "bobolice-collection-klanino-safe-h2-2026"
+      ],
+      "parserKeys": [
+        "municipal-collection-pdf-text"
+      ],
+      "measurementMode": "PROSPECTIVE",
+      "adapterReuseClass": "EXTENDED_EXISTING",
+      "complexity": {
+        "parentArtifactCount": 1,
+        "childArtifactCount": 9,
+        "activeArtifactCount": 1,
+        "coordination": "MULTI_CHILD_ROUTE_SET",
+        "serviceAreaComplexity": "SINGLE",
+        "manualReviewSurfaces": 0,
+        "drivers": [
+          "Gmina Bobolice switched waste contractor in July 2026 to ATF Transport Sp. z o.o.",
+          "9 graphical route sheets published on municipal portal; Sheet 7 contains difficult-access narrow-road exclusion list",
+          "cross-referenced all 9 sheets: Kłanino on Sheet 6 has zero overlap with Sheet 7 and zero multi-family buildings",
+          "Kłanino activated as safe single-family subset with 65 official PRG points under SIMC 0304214",
+          "existing municipal collection adapter extended through dedicated Bobolice profile"
+        ]
+      },
+      "effort": {
+        "discovery": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md"
+        },
+        "sourceAssessment": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md"
+        },
+        "parserImplementation": {
+          "minutes": 2,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md"
+        },
+        "regressionFixture": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md"
+        },
+        "addressServiceAreaMapping": {
+          "minutes": 2,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md"
+        },
+        "review": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md"
+        }
+      },
+      "firstImport": {
+        "status": "PASS",
+        "automatic": true,
+        "manualInterventions": 0,
+        "evidenceRef": "apps/worker/src/readiness/bobolice-klanino-post-gate.ts"
+      },
+      "repeatUpdate": {
+        "status": "NOT_MEASURED",
+        "automatic": null,
+        "manualInterventions": null,
+        "evidenceRef": null
+      },
+      "evidenceRefs": [
+        "metrics/onboarding/evidence/bobolice-klanino-2026.10-worklog.md",
+        "docs/research/bobolice-h2-2026-assessment.md",
+        "manifests/pilot-koszalin-region-2026.10.json",
+        "apps/worker/test/fixtures/pdf-text/bobolice-klanino-h2-2026.txt",
+        "apps/worker/test/fixtures/reference/prg-bobolice-klanino-20260903.json",
+        "apps/worker/src/adapters/pdf-text/bobolice-klanino-h2-profile.ts",
+        "apps/worker/src/readiness/bobolice-klanino-post-gate.ts",
+        "apps/api/src/readiness/bobolice-klanino-api-post-gate.ts"
+      ],
+      "notes": [
+        "All six prospective timer intervals are explicitly closed and total 16 human-active minutes.",
+        "Bobolice raises pilot collection schedule coverage from 7/8 to 8/8 municipalities (100% full coverage achieved).",
+        "CI queue/runtime is excluded from effort minutes.",
+        "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
+      ]
     }
   ]
 }

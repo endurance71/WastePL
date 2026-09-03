@@ -1,15 +1,15 @@
 {
   "schemaVersion": "0.1.0",
   "pilotManifestId": "pilot-koszalin-region",
-  "throughManifestVersion": "2026.9",
-  "activationRecords": 12,
+  "throughManifestVersion": "2026.10",
+  "activationRecords": 13,
   "historicalBackfillRecords": 6,
-  "prospectiveRecords": 6,
+  "prospectiveRecords": 7,
   "effortMeasurement": {
-    "phaseObservations": 72,
-    "knownPhaseObservations": 36,
-    "fullyMeasuredRecords": 6,
-    "coverageRate": 0.5,
+    "phaseObservations": 78,
+    "knownPhaseObservations": 42,
+    "fullyMeasuredRecords": 7,
+    "coverageRate": 0.5385,
     "totalKnownHumanMinutes": null,
     "interpretation": "Human-time economics are not yet estimable from the full sample because some phases are UNKNOWN; no missing time is imputed."
   },
@@ -17,19 +17,19 @@
     "counts": {
       "REUSED_UNCHANGED": 0,
       "REUSED_WITH_CONFIGURATION": 0,
-      "EXTENDED_EXISTING": 7,
+      "EXTENDED_EXISTING": 8,
       "NEW_ADAPTER": 5
     },
-    "nonNewAdapterRecords": 7,
-    "observedReuseRate": 0.5833,
+    "nonNewAdapterRecords": 8,
+    "observedReuseRate": 0.6154,
     "sampleWarning": "Small pilot sample; do not extrapolate this rate to national onboarding economics."
   },
   "firstImport": {
-    "measuredRecords": 12,
-    "automaticRecords": 11,
-    "automaticSuccessRate": 0.9167,
+    "measuredRecords": 13,
+    "automaticRecords": 12,
+    "automaticSuccessRate": 0.9231,
     "recordsWithManualIntervention": 1,
-    "manualInterventionRate": 0.0833,
+    "manualInterventionRate": 0.0769,
     "targetManualInterventionRate": "<0.25",
     "targetResult": "PASS"
   },
