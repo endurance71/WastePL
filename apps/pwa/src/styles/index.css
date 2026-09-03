@@ -1,0 +1,260 @@
+:root {
+  --bg-main: #090d16;
+  --bg-card: #111827;
+  --bg-card-hover: #172235;
+  --bg-subtle: #1e293b;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  
+  /* Fraction brand colors */
+  --fraction-bio: #22c55e;
+  --fraction-bio-bg: rgba(34, 197, 94, 0.15);
+  --fraction-bio-border: rgba(34, 197, 94, 0.3);
+  
+  --fraction-plastic: #eab308;
+  --fraction-plastic-bg: rgba(234, 179, 8, 0.15);
+  --fraction-plastic-border: rgba(234, 179, 8, 0.3);
+  
+  --fraction-paper: #38bdf8;
+  --fraction-paper-bg: rgba(56, 189, 248, 0.15);
+  --fraction-paper-border: rgba(56, 189, 248, 0.3);
+  
+  --fraction-glass: #10b981;
+  --fraction-glass-bg: rgba(16, 185, 129, 0.15);
+  --fraction-glass-border: rgba(16, 185, 129, 0.3);
+  
+  --fraction-residual: #94a3b8;
+  --fraction-residual-bg: rgba(148, 163, 184, 0.15);
+  --fraction-residual-border: rgba(148, 163, 184, 0.3);
+  
+  --fraction-bulky: #a855f7;
+  --fraction-bulky-bg: rgba(168, 85, 247, 0.15);
+  --fraction-bulky-border: rgba(168, 85, 247, 0.3);
+
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+  
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.5;
+}
+
+.app-container {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 16px 20px 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.brand-badge span {
+  color: #38bdf8;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.card:focus-within {
+  border-color: var(--border-focus);
+}
+
+.btn-primary {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #0369a1;
+}
+
+.btn-secondary {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-input {
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  padding: 14px 16px 14px 44px;
+  font-size: 1rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.fraction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fraction-badge.bio {
+  background: var(--fraction-bio-bg);
+  color: var(--fraction-bio);
+  border: 1px solid var(--fraction-bio-border);
+}
+
+.fraction-badge.metals_plastics {
+  background: var(--fraction-plastic-bg);
+  color: var(--fraction-plastic);
+  border: 1px solid var(--fraction-plastic-border);
+}
+
+.fraction-badge.paper {
+  background: var(--fraction-paper-bg);
+  color: var(--fraction-paper);
+  border: 1px solid var(--fraction-paper-border);
+}
+
+.fraction-badge.glass {
+  background: var(--fraction-glass-bg);
+  color: var(--fraction-glass);
+  border: 1px solid var(--fraction-glass-border);
+}
+
+.fraction-badge.residual {
+  background: var(--fraction-residual-bg);
+  color: var(--fraction-residual);
+  border: 1px solid var(--fraction-residual-border);
+}
+
+.fraction-badge.bulky {
+  background: var(--fraction-bulky-bg);
+  color: var(--fraction-bulky);
+  border: 1px solid var(--fraction-bulky-border);
+}
+
+.fraction-badge.other {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-item {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.notice-box {
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.notice-warning {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  color: #fef08a;
+}
+
+.notice-info {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #bae6fd;
+}
+
+.notice-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fecaca;
+}

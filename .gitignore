@@ -8,3 +8,5 @@ coverage/
 *.log
 .tmp/
 apps/api/test-results/
+*.tsbuildinfo
+
