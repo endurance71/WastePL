@@ -174,64 +174,66 @@ async function main(): Promise<void> {
 
     const serviceArea = await pool.query<{
       id: string;
-      external_key: string;
-      name: string;
+      external_key: string | null;
       building_type: string | null;
+      active: boolean;
     } & QueryResultRow>(
-      `SELECT sa.id, sa.external_key, sa.name, sa.building_type
-       FROM service_areas sa
-       JOIN municipalities m ON m.id=sa.municipality_id
-       WHERE sa.external_key=$1 AND m.terc=$2`,
-      [DWOREK_SERVICE_AREA, BEDZINO_TERC],
+      `SELECT id, external_key, building_type, active
+       FROM service_areas
+       WHERE external_key=$1`,
+      [DWOREK_SERVICE_AREA],
     );
     const area = serviceArea.rows[0];
-    if (!area || area.building_type !== 'SINGLE_FAMILY') {
-      throw new Error(`Będzino Dworek service area missing: ${JSON.stringify(area ?? null)}`);
+    if (!area || !area.active || area.external_key !== DWOREK_SERVICE_AREA || area.building_type !== 'SINGLE_FAMILY') {
+      throw new Error(`Dworek service area was not published deterministically: ${JSON.stringify(area ?? null)}`);
     }
 
-    const coverageRules = await pool.query<{
-      coverage_type: string;
-      priority: number;
-      simc: string | null;
+    const eventCounts = await pool.query<{
+      fraction: string;
+      count: string;
     } & QueryResultRow>(
-      `SELECT coverage_type, priority, simc FROM service_area_coverage WHERE service_area_id=$1`,
-      [area.id],
-    );
-    if (
-      coverageRules.rows.length !== 1 ||
-      coverageRules.rows[0]?.coverage_type !== 'LOCALITY' ||
-      coverageRules.rows[0]?.priority !== 50 ||
-      coverageRules.rows[0]?.simc !== '0302400'
-    ) {
-      throw new Error(`Będzino Dworek coverage rule drifted: ${JSON.stringify(coverageRules.rows)}`);
-    }
-
-    const events = await pool.query<{ fraction: string; count: string } & QueryResultRow>(
-      `SELECT fraction, count(*)::text AS count
+      `SELECT fraction_code AS fraction, count(*)::text AS count
        FROM collection_events
        WHERE service_area_id=$1 AND valid_to IS NULL
-       GROUP BY fraction
-       ORDER BY fraction`,
+       GROUP BY fraction_code
+       ORDER BY fraction_code`,
       [area.id],
     );
-    const counts = Object.fromEntries(events.rows.map((row) => [row.fraction, Number(row.count)]));
-    if (counts.MIXED !== 13 || counts.BIO !== 11 || counts.OTHER !== 21) {
-      throw new Error(`Będzino Dworek event counts drifted: ${JSON.stringify(counts)}`);
+    const counts = Object.fromEntries(eventCounts.rows.map((row) => [row.fraction, Number(row.count)]));
+    if (counts.MIXED !== 13 || counts.BIO !== 11 || counts.OTHER !== 21 || Object.keys(counts).length !== 3) {
+      throw new Error(`Dworek event counts drifted: ${JSON.stringify(counts)}`);
     }
 
     const ids = snapshot.addresses.map((address) => address.prgId);
+    const activeAddresses = await scalarCount(
+      pool,
+      `SELECT count(*)::text AS count
+       FROM addresses a
+       JOIN municipalities m ON m.id=a.municipality_id
+       WHERE m.terc=$1 AND a.active=true AND a.prg_id=ANY($2::text[])`,
+      [BEDZINO_TERC, ids],
+    );
+    if (activeAddresses !== DWOREK_REAL_ADDRESS_COUNT) {
+      throw new Error(`Only ${activeAddresses}/${DWOREK_REAL_ADDRESS_COUNT} frozen Dworek PRG addresses are active`);
+    }
+
     const coverage = await pool.query<{
       prg_id: string;
       service_area_count: string;
       external_keys: string[];
     } & QueryResultRow>(
       `SELECT a.prg_id,
-              count(DISTINCT c.service_area_id)::text AS service_area_count,
-              array_agg(DISTINCT sa.external_key) AS external_keys
+              count(DISTINCT sa.id)::text AS service_area_count,
+              array_agg(DISTINCT sa.external_key ORDER BY sa.external_key) AS external_keys
        FROM addresses a
-       LEFT JOIN service_area_coverage c ON c.coverage_type='LOCALITY' AND c.simc=a.simc
-       LEFT JOIN service_areas sa ON sa.id=c.service_area_id
+       JOIN service_area_rules sar ON sar.locality_id=a.locality_id AND sar.rule_type='LOCALITY'
+       JOIN service_areas sa ON sa.id=sar.service_area_id AND sa.active=true
        WHERE a.prg_id=ANY($1::text[])
+         AND a.active=true
+         AND EXISTS (
+           SELECT 1 FROM collection_events ce
+           WHERE ce.service_area_id=sa.id AND ce.valid_to IS NULL
+         )
        GROUP BY a.prg_id
        ORDER BY a.prg_id`,
       [ids],
