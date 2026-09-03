@@ -1,0 +1,34 @@
+name: bedzino-prg-probe
+
+on:
+  push:
+    branches:
+      - probe/bedzino-prg
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bedzino-prg-probe
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Query official GUGiK PRG WFS for Gmina Będzino
+        run: node scripts/probe-bedzino-prg.mjs
+      - name: Upload frozen probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bedzino-prg-${{ github.run_id }}
+          path: |
+            test-results/bedzino-prg-report.json
+            test-results/bedzino-prg.gml
+          if-no-files-found: error
