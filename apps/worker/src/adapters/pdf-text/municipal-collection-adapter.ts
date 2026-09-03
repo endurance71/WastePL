@@ -15,6 +15,11 @@ import {
   supportsSianowH2,
 } from './sianow-h2-profile.js';
 import {
+  parseSwieszynoH2,
+  SWIESZYNO_SAFE_H2_SOURCE_KEY,
+  supportsSwieszynoH2,
+} from './swieszyno-h2-profile.js';
+import {
   PdfTextParseError,
   type NormalizedCollectionEvent,
   type NormalizedDataset,
@@ -412,7 +417,7 @@ export class MunicipalCollectionPdfTextAdapter {
   supports(text: string): boolean {
     const normalized = normalizeText(text).toLocaleLowerCase('pl-PL');
     const tychowo = normalized.includes('gmina tychowo') && normalized.includes('harmonogram odbioru odpadów komunalnych');
-    return tychowo || supportsPolanowGarbnoH2(text) || supportsBedzinoH2(text) || supportsSianowH2(text);
+    return tychowo || supportsPolanowGarbnoH2(text) || supportsBedzinoH2(text) || supportsSianowH2(text) || supportsSwieszynoH2(text);
   }
 
   parse(input: PdfTextArtifactInput): NormalizedDataset {
@@ -436,6 +441,9 @@ export class MunicipalCollectionPdfTextAdapter {
     }
     if (input.sourceKey === SIANOW_SAFE_H2_SOURCE_KEY) {
       return parseSianowH2(input, this.context, this.parserKey, this.parserVersion);
+    }
+    if (input.sourceKey === SWIESZYNO_SAFE_H2_SOURCE_KEY) {
+      return parseSwieszynoH2(input, this.context, this.parserKey, this.parserVersion);
     }
     throw new PdfTextParseError(`Unsupported municipal collection source ${input.sourceKey}`, 'UNSUPPORTED_TEMPLATE');
   }

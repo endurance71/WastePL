@@ -20,14 +20,15 @@ Aktualny pilot:
 
 - 8 gmin w manifeście;
 - 8/8 gmin z co najmniej jednym ACTIVE typem danych;
-- 6/8 gmin z ACTIVE collection schedule (Koszalin, Polanów, Manowo, Tychowo, Będzino, Sianów);
+- 7/8 gmin z ACTIVE collection schedule (Koszalin, Polanów, Manowo, Tychowo, Będzino, Sianów, Świeszyno);
 - 5/8 gmin z ACTIVE PSZOK;
-- 12 ACTIVE source identities;
+- 13 ACTIVE source identities;
 - formalny real-100 gate = 100/100;
 - dodatkowy Polanów Garbno gate = 39/39;
 - dodatkowy Będzino Dworek gate = 13/13;
 - dodatkowy Sianów Grabówko gate = 31/31;
-- onboarding summary przez `2026.8`: 11 activation records, 5 prospective, reuse 6/11, first-import automation 10/11, repeat-update automation 3/3.
+- dodatkowy Świeszyno Chałupy gate = 167/167;
+- onboarding summary przez `2026.9`: 12 activation records, 6 prospective, reuse 7/12, first-import automation 11/12, repeat-update automation 3/3.
 
 ## P0 — domknąć real-source survivability `#60`
 
