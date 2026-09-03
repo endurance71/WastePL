@@ -7,6 +7,7 @@ const SIANOW_SOURCE_KEY = 'sianow-pszok';
 const TYCHOWO_SOURCE_KEY = 'tychowo-pszok';
 const POLANOW_SOURCE_KEY = 'polanow-pszok';
 const BEDZINO_SOURCE_KEY = 'bedzino-pszok';
+const MANOWO_SOURCE_KEY = 'manowo-pszok';
 
 type Weekly = NonNullable<NormalizedFacilityV02['openingHours']>['weekly'];
 
@@ -141,6 +142,28 @@ function bedzinoMaterials(text: string): FacilityMaterial[] {
 
   for (const [, pattern] of required) {
     requireText(text, pattern, BEDZINO_SOURCE_KEY, 'published accepted-material catalogue changed');
+  }
+  return required.map(([material]) => material);
+}
+
+function manowoMaterials(text: string): FacilityMaterial[] {
+  const required: Array<[FacilityMaterial, RegExp]> = [
+    ['BULKY', /wielkogabarytow/i],
+    ['CONSTRUCTION', /budowlan|remont|gruz/i],
+    ['GREEN', /biodegrad/i],
+    ['HAZARDOUS', /niebezpieczn/i],
+    ['MEDICINES', /leki/i],
+    ['BATTERIES', /baterie|akumulatory/i],
+    ['ELECTRONICS', /elektryczn|elektroniczn/i],
+    ['TYRES', /opony/i],
+    ['TEXTILES', /odzież|tekstylia/i],
+    ['PAPER', /papier/i],
+    ['METALS_PLASTICS', /tworzywa|metale/i],
+    ['GLASS', /szkł/i],
+  ];
+
+  for (const [, pattern] of required) {
+    requireText(text, pattern, MANOWO_SOURCE_KEY, 'published accepted-material catalogue changed');
   }
   return required.map(([material]) => material);
 }
@@ -449,6 +472,56 @@ function parseBedzino(input: HtmlArtifactInput, text: string): NormalizedFacilit
   };
 }
 
+function parseManowo(input: HtmlArtifactInput, text: string): NormalizedFacilityV02 {
+  requireText(text, /Przedsiębiorstwo Gospodarki Komunalnej/i, input.sourceKey, 'PGK Koszalin operator statement missing');
+  requireText(text, /Komunalna\s*5/i, input.sourceKey, 'ul. Komunalna 5 location missing');
+  requireText(text, /wtorek.{1,25}?0?8[.:]00\s*[–—-]\s*16[.:]00/i, input.sourceKey, 'Tuesday opening hours missing');
+  requireText(text, /czwartek.{1,25}?0?8[.:]00\s*[–—-]\s*16[.:]00/i, input.sourceKey, 'Thursday opening hours missing');
+  requireText(text, /mieszkańców Gminy Manowo/i, input.sourceKey, 'resident eligibility statement missing');
+
+  return {
+    schemaVersion: '0.2.0',
+    key: 'pl-3209042-pszok-manowo-komunalna-5',
+    kind: 'PSZOK',
+    name: 'PSZOK Manowo (PGK Koszalin), ul. Komunalna 5',
+    address: 'ul. Komunalna 5, 75-724 Koszalin',
+    location: null,
+    locationSourceKey: null,
+    externalIds: [],
+    acceptedMaterials: manowoMaterials(text),
+    acceptedContainers: [],
+    openingHours: openingHours(input.sourceKey, [
+      { day: 'MONDAY', intervals: [] },
+      { day: 'TUESDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'WEDNESDAY', intervals: [] },
+      { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+      { day: 'FRIDAY', intervals: [] },
+      { day: 'SATURDAY', intervals: [] },
+      { day: 'SUNDAY', intervals: [] },
+    ]),
+    access: {
+      scope: 'MUNICIPALITY_RESIDENTS',
+      requiresProof: null,
+      quantityLimits: [],
+      notes: ['PSZOK dla mieszkańców Gminy Manowo w ramach porozumienia z PGK Koszalin.'],
+      sourceKey: input.sourceKey,
+    },
+    operationalStatus: unknownOperationalStatus(),
+    operatorName: 'Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie',
+    rulesUrl: input.url,
+    sourceKey: input.sourceKey,
+    quality: {
+      verificationStatus: 'OFFICIAL_SOURCE',
+      confidence: 0.98,
+      retrievedAt: input.retrievedAt,
+      warnings: [
+        'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+        'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+      ],
+    },
+  };
+}
+
 export class MunicipalPszokHtmlAdapter {
   readonly parserKey = 'municipal-pszok-html';
   readonly parserVersion = '0.3.0';
@@ -459,7 +532,8 @@ export class MunicipalPszokHtmlAdapter {
       || sourceKey === SIANOW_SOURCE_KEY
       || sourceKey === TYCHOWO_SOURCE_KEY
       || sourceKey === POLANOW_SOURCE_KEY
-      || sourceKey === BEDZINO_SOURCE_KEY;
+      || sourceKey === BEDZINO_SOURCE_KEY
+      || sourceKey === MANOWO_SOURCE_KEY;
   }
 
   parse(input: HtmlArtifactInput): NormalizedFacilityV02 {
@@ -470,6 +544,7 @@ export class MunicipalPszokHtmlAdapter {
     if (input.sourceKey === TYCHOWO_SOURCE_KEY) return parseTychowo(input, text);
     if (input.sourceKey === POLANOW_SOURCE_KEY) return parsePolanow(input, text);
     if (input.sourceKey === BEDZINO_SOURCE_KEY) return parseBedzino(input, text);
+    if (input.sourceKey === MANOWO_SOURCE_KEY) return parseManowo(input, text);
     throw new Error(`Municipal PSZOK adapter: unsupported source key ${input.sourceKey}`);
   }
 }

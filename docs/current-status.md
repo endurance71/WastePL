@@ -1,24 +1,24 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-03, commit `cc29b5b57ae9cdae3fcf62b15c8e478df478768c`. Rollout `2026.12` aktywuje oficjalny stacjonarny PSZOK Gminy Będzino (Będzino 17, GZK Będzino), osiągając **87.5% (7/8) pokrycia gmin w pilocie aktywnymi punktami PSZOK** przy zachowaniu **100% (8/8) pokrycia harmonogramami wywozu**.
+> Zweryfikowano: 2026-09-03, commit `ebc77ad3b40b7c9174b2198a8cb6e5bbe1373645`. Rollout `2026.13` aktywuje stacjonarny PSZOK Gminy Manowo (ul. Komunalna 5, PGK Koszalin), osiągając historyczne **100% (8/8) pokrycia gmin aktywnymi punktami PSZOK** oraz **100% (8/8) pokrycia harmonogramami wywozu** w całym regionie pilotażowym WastePL.
 
 ## Etap
 
 Sprinty 01–04 dostarczyły utwardzony **Data Platform PoC**: Source Registry, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne adaptery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API i fixture-independent production gates.
 
-Sprint 05–06 dostarczył konsumencki interfejs PWA oraz systematyczne onboardingi kolejnych gmin (Polanów, Będzino, Sianów, Świeszyno, Bobolice).
+Sprint 05–06 dostarczył konsumencki interfejs PWA oraz systematyczne onboardingi kolejnych gmin (Polanów, Będzino, Sianów, Świeszyno, Bobolice, Manowo).
 
-W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu, a w fali `2026.12` rozszerza pokrycie PSZOK do 7/8 gmin (Koszalin, Bobolice, Świeszyno, Sianów, Tychowo, Polanów, Będzino).
+W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu, a w fali `2026.13` osiąga pełne **100% (8/8) pokrycia PSZOK** dla wszystkich 8 gmin regionu (Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów, Będzino).
 
-## Stan pilota po rollout `2026.12`
+## Stan pilota po rollout `2026.13`
 
 | Miara | Stan | Interpretacja |
 | --- | ---: | --- |
 | Gminy w manifeście | 8 | Docelowy zakres obecnego pilota. |
 | Gminy z jakimkolwiek ACTIVE typem danych | **8/8** | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów, Będzino (100% gmin w pilocie!). |
 | Gminy z ACTIVE collection schedule | **8/8** | **100% (8/8)** pilot municipality collection schedule coverage osiągnięte! |
-| Gminy z ACTIVE PSZOK | **7/8** | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo, Polanów, Będzino (87.5% gmin!). |
-| ACTIVE source identities | **16** | `2026.12` dodało `bedzino-pszok`. |
+| Gminy z ACTIVE PSZOK | **8/8** | **100% (8/8)** pilot municipality PSZOK coverage osiągnięte! Wszystkie 8 gmin z aktywnym PSZOK! |
+| ACTIVE source identities | **17** | `2026.13` dodało `manowo-pszok`. |
 | Historyczny real-address collection gate | **100/100** | Koszalin 9, Manowo 46, Tychowo 45; formalny kontrakt real-100 pozostaje niezmieniony. |
 | Tychowo collection post-gate | **45/45** | Jednoznaczny service-area resolution; parser provenance `municipal-collection-pdf-text@0.1.1`. |
 | Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; zero ambiguity i zero krytycznych wrong-date mismatches. |
@@ -28,6 +28,7 @@ W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu,
 | Bobolice Kłanino post-gate | **65/65** | Osobny oficjalny PRG pack (Kłanino 1–65); zero ambiguity, 63 eventy, 5 frakcji. |
 | Polanów PSZOK post-gate | **PASS** | Ul. Stawna 2, ZUK Polanów, 10 frakcji, Pn/Śr 7:00–14:30, Sb 10:00–14:00. |
 | Będzino PSZOK post-gate | **PASS** | Będzino 17, GZK Będzino, 12 frakcji, Wt 10:00–16:00, Czw 12:00–18:00, Sb 8:00–14:00. |
+| Manowo PSZOK post-gate | **PASS** | Ul. Komunalna 5 Koszalin, PGK Koszalin, 12 frakcji, Wt 08:00–16:00, Czw 08:00–16:00. |
 | Łącznie audytowanych real PRG addresses | **415/415** | Wszystkie 415 adresów testowane na publicznym API `/v1/collection`. |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
 | Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK). |
@@ -124,19 +125,19 @@ Machine-readable źródła prawdy:
 - `metrics/onboarding/pilot-koszalin-region-summary-v0.1.json`;
 - `scripts/check-onboarding-metrics.mjs`.
 
-Stan przez `2026.12`:
+Stan przez `2026.13`:
 
 | Miara | Wynik |
 | --- | ---: |
-| Activation records | **15** |
-| Prospective records | **9** |
+| Activation records | **16** |
+| Prospective records | **10** |
 | Historical backfill records | 6 |
-| First-import automation | **14/15 = 93,33%** |
-| First-import manual intervention | **1/15 = 6,67%** — target PASS |
+| First-import automation | **15/16 = 93,75%** |
+| First-import manual intervention | **1/16 = 6,25%** — target PASS |
 | Repeat-update automation | **3/3 = 100%** — target PASS |
-| Adapter reuse inny niż `NEW_ADAPTER` | **10/15 = 66,67%** |
-| Human-effort phase observations | **54/90 = 60,00%** |
-| Fully measured records | **9** |
+| Adapter reuse inny niż `NEW_ADAPTER` | **11/16 = 68,75%** |
+| Human-effort phase observations | **60/96 = 62,50%** |
+| Fully measured records | **10** |
 
 Nie imputujemy brakującego czasu i nie rekonstruujemy historycznych minut z długości PR/commitów. Obecna próbka jest nadal zbyt mała, aby ekstrapolować unit economics na skalę krajową.
 
