@@ -30,8 +30,9 @@ W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu,
 | Będzino PSZOK post-gate | **PASS** | Będzino 17, GZK Będzino, 12 frakcji, Wt 10:00–16:00, Czw 12:00–18:00, Sb 8:00–14:00. |
 | Manowo PSZOK post-gate | **PASS** | Ul. Komunalna 5 Koszalin, PGK Koszalin, 12 frakcji, Wt 08:00–16:00, Czw 08:00–16:00. |
 | Łącznie audytowanych real PRG addresses | **415/415** | Wszystkie 415 adresów testowane na publicznym API `/v1/collection`. |
+| Trusted PSZOK Geocoding (PRG GUGiK) | **8/8 (100%)** | Wszystkie 8 punktów PSZOK posiada zweryfikowane urzędowe współrzędne PRG (GUGiK). |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
-| Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK). |
+| Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK, interaktywna mapa Leaflet + OpenStreetMap, nawigacja GPS). |
 
 ## Rollout Polanów `2026.6`
 

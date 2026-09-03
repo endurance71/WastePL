@@ -75,6 +75,7 @@ export interface FacilityOpeningHours {
 
 export interface FacilityItem {
   id: string;
+  canonicalKey?: string | null;
   kind: 'PSZOK' | 'APTEKA' | 'RECYCLING_POINT';
   name: string;
   address: string;
