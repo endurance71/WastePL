@@ -9,4 +9,5 @@ coverage/
 .tmp/
 apps/api/test-results/
 *.tsbuildinfo
+*.pdf
 

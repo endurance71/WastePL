@@ -19,13 +19,15 @@ WastePL ma utwardzony Data Platform PoC i wystarczająco dużo realnego coverage
 Aktualny pilot:
 
 - 8 gmin w manifeście;
-- 7/8 gmin z co najmniej jednym ACTIVE typem danych;
-- 4/8 gmin z ACTIVE collection schedule;
+- 8/8 gmin z co najmniej jednym ACTIVE typem danych;
+- 6/8 gmin z ACTIVE collection schedule (Koszalin, Polanów, Manowo, Tychowo, Będzino, Sianów);
 - 5/8 gmin z ACTIVE PSZOK;
-- 10 ACTIVE source identities;
+- 12 ACTIVE source identities;
 - formalny real-100 gate = 100/100;
 - dodatkowy Polanów Garbno gate = 39/39;
-- onboarding summary przez `2026.6`: 9 activation records, 3 prospective, reuse 4/9, first-import automation 8/9, repeat-update automation 3/3.
+- dodatkowy Będzino Dworek gate = 13/13;
+- dodatkowy Sianów Grabówko gate = 31/31;
+- onboarding summary przez `2026.8`: 11 activation records, 5 prospective, reuse 6/11, first-import automation 10/11, repeat-update automation 3/3.
 
 ## P0 — domknąć real-source survivability `#60`
 

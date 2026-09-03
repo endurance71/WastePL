@@ -11,7 +11,7 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(new URL(relativePath, import.meta.url), 'utf8'));
 }
 
-const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7] = await Promise.all([
+const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8] = await Promise.all([
   readJson('../schemas/source-manifest-v0.1.schema.json'),
   readJson('../manifests/pilot-koszalin-region-2026.1.json'),
   readJson('../manifests/pilot-koszalin-region-2026.2.json'),
@@ -20,6 +20,7 @@ const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7] = await Pro
   readJson('../manifests/pilot-koszalin-region-2026.5.json'),
   readJson('../manifests/pilot-koszalin-region-2026.6.json'),
   readJson('../manifests/pilot-koszalin-region-2026.7.json'),
+  readJson('../manifests/pilot-koszalin-region-2026.8.json'),
 ]);
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -42,6 +43,7 @@ for (const [label, value] of [
   ['pilot source manifest 2026.5', wave5],
   ['pilot source manifest 2026.6', wave6],
   ['pilot source manifest 2026.7', wave7],
+  ['pilot source manifest 2026.8', wave8],
 ]) assertValid(value, label);
 
 if (historical.manifestId !== 'pilot-koszalin-region' || historical.version !== '2026.1') {
@@ -54,6 +56,7 @@ for (const [manifest, version] of [
   [wave5, '2026.5'],
   [wave6, '2026.6'],
   [wave7, '2026.7'],
+  [wave8, '2026.8'],
 ]) {
   if (manifest.manifestId !== historical.manifestId || manifest.version !== version) {
     throw new Error(`Manifest must remain pilot-koszalin-region@${version}`);
@@ -95,12 +98,14 @@ const s4 = sources(wave4);
 const s5 = sources(wave5);
 const s6 = sources(wave6);
 const s7 = sources(wave7);
+const s8 = sources(wave8);
 for (const key of s1.keys()) if (!s2.has(key)) throw new Error(`2026.2 lost historical source ${key}`);
 for (const key of s2.keys()) if (!s3.has(key)) throw new Error(`2026.3 lost wave-2 source ${key}`);
 for (const key of s3.keys()) if (!s4.has(key)) throw new Error(`2026.4 lost wave-3 source ${key}`);
 for (const key of s4.keys()) if (!s5.has(key)) throw new Error(`2026.5 lost wave-4 source ${key}`);
 for (const key of s5.keys()) if (!s6.has(key)) throw new Error(`2026.6 lost wave-5 source ${key}`);
 for (const key of s6.keys()) if (!s7.has(key)) throw new Error(`2026.7 lost wave-6 source ${key}`);
+for (const key of s7.keys()) if (!s8.has(key)) throw new Error(`2026.8 lost wave-7 source ${key}`);
 
 const wave3NewKeys = [...s3.keys()].filter((key) => !s2.has(key)).sort();
 if (JSON.stringify(wave3NewKeys) !== JSON.stringify([
@@ -125,6 +130,10 @@ const wave7NewKeys = [...s7.keys()].filter((key) => !s6.has(key)).sort();
 if (JSON.stringify(wave7NewKeys) !== JSON.stringify(['bedzino-collection-trasa-1-safe-h2-2026'])) {
   throw new Error(`2026.7 may add only bedzino-collection-trasa-1-safe-h2-2026; got ${wave7NewKeys.join(', ')}`);
 }
+const wave8NewKeys = [...s8.keys()].filter((key) => !s7.has(key)).sort();
+if (JSON.stringify(wave8NewKeys) !== JSON.stringify(['sianow-collection-dabrowa-grabowko-safe-h2-2026'])) {
+  throw new Error(`2026.8 may add only sianow-collection-dabrowa-grabowko-safe-h2-2026; got ${wave8NewKeys.join(', ')}`);
+}
 
 const supportedParsers = new Map([
   ['pgk-koszalin-pdf-text', 'PDF_TEXT'],
@@ -133,7 +142,7 @@ const supportedParsers = new Map([
   ['municipal-pszok-html', 'HTML'],
 ]);
 
-for (const source of s7.values()) {
+for (const source of s8.values()) {
   if (source.status === 'PLANNED') {
     if (source.parserKey !== null) throw new Error(`PLANNED source ${source.key} must not claim a parser`);
     if (source.assessment && !source.assessment.activationBlocker) {
@@ -289,4 +298,42 @@ if (!polanowParent.assessment.childArtifactUrls.includes(expectedPolanowGarbnoUr
 
 console.log(
   `WastePL manifest rollout OK: through 2026.7 with ${active7.size} ACTIVE sources; newly active=${newlyActive7.join(', ')}`,
+);
+
+const active8 = activeKeys(s8);
+const newlyActive8 = [...active8].filter((key) => !active7.has(key)).sort();
+if (active8.size !== 12 || newlyActive8.length !== 1 || newlyActive8[0] !== 'sianow-collection-dabrowa-grabowko-safe-h2-2026') {
+  throw new Error(
+    `2026.8 rollout must add exactly sianow-collection-dabrowa-grabowko-safe-h2-2026: size=${active8.size}, newlyActive=${newlyActive8.join(',')}`,
+  );
+}
+
+const sianowParent = s8.get('sianow-collection-2026-h2');
+const sianowGrabowko = s8.get('sianow-collection-dabrowa-grabowko-safe-h2-2026');
+const expectedSianowGrabowkoUrl = 'https://sianow.pl/wp-content/uploads/2026/06/9-Dabrowa-i-Grabowko.pdf';
+if (
+  !sianowParent ||
+  sianowParent.status !== 'PLANNED' ||
+  sianowParent.terc !== '3209073' ||
+  sianowParent.parserKey !== null ||
+  sianowParent.assessment?.evidenceStatus !== 'VERIFIED' ||
+  !sianowParent.assessment?.childArtifactUrls?.includes(expectedSianowGrabowkoUrl)
+) {
+  throw new Error('Sianów H2 discovery parent must remain verified in 2026.8 and enumerate Grabówko');
+}
+if (
+  !sianowGrabowko ||
+  sianowGrabowko.status !== 'ACTIVE' ||
+  sianowGrabowko.terc !== '3209073' ||
+  sianowGrabowko.url !== expectedSianowGrabowkoUrl ||
+  sianowGrabowko.format !== 'PDF_TEXT' ||
+  sianowGrabowko.parserKey !== 'municipal-collection-pdf-text' ||
+  sianowGrabowko.assessment?.evidenceStatus !== 'VERIFIED' ||
+  sianowGrabowko.assessment?.activationBlocker !== null
+) {
+  throw new Error('Sianów Grabówko safe subset must be verified ACTIVE in 2026.8');
+}
+
+console.log(
+  `WastePL manifest rollout OK: through 2026.8 with ${active8.size} ACTIVE sources; newly active=${newlyActive8.join(', ')}`,
 );
