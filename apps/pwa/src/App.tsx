@@ -261,6 +261,7 @@ export const App: React.FC = () => {
                         events={schedule.events}
                         source={schedule.source}
                         quality={schedule.quality}
+                        addressText={schedule.address.canonicalText}
                       />
                     </>
                   ) : (
