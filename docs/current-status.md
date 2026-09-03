@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-03, commit `5c0e2fdbf9f0945950ac6dea0bafcc3162be39ae`. Rollout `2026.10` aktywuje deterministyczny safe subset dla Gminy Bobolice (Kłanino, SIMC `0304214`), osiągając **100% (8/8) pokrycia gmin w pilocie aktywnymi harmonogramami wywozu odpadów**.
+> Zweryfikowano: 2026-09-03, commit `d366e525259ae12c72eba8ba54f5b1e9e1af40c5`. Rollout `2026.11` aktywuje oficjalny stacjonarny PSZOK Gminy Polanów (ul. Stawna 2, ZUK Polanów), osiągając **75% (6/8) pokrycia gmin w pilocie aktywnymi punktami PSZOK** przy zachowaniu **100% (8/8) pokrycia harmonogramami wywozu**.
 
 ## Etap
 
@@ -8,17 +8,17 @@ Sprinty 01–04 dostarczyły utwardzony **Data Platform PoC**: Source Registry, 
 
 Sprint 05–06 dostarczył konsumencki interfejs PWA oraz systematyczne onboardingi kolejnych gmin (Polanów, Będzino, Sianów, Świeszyno, Bobolice).
 
-W fali `2026.10` WastePL osiąga kluczowy kamień milowy pilotażu: **wszystkie 8 gmin pilotażowych regionu koszalińskiego posiada aktywny, zweryfikowany ze źródłami urzędowymi i przetestowany na publicznym API harmonogram wywozu odpadów**.
+W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu, a w fali `2026.11` rozszerza pokrycie PSZOK do 6/8 gmin (Koszalin, Bobolice, Świeszyno, Sianów, Tychowo, Polanów).
 
-## Stan pilota po rollout `2026.10`
+## Stan pilota po rollout `2026.11`
 
 | Miara | Stan | Interpretacja |
 | --- | ---: | --- |
 | Gminy w manifeście | 8 | Docelowy zakres obecnego pilota. |
 | Gminy z jakimkolwiek ACTIVE typem danych | **8/8** | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów, Będzino (100% gmin w pilocie!). |
 | Gminy z ACTIVE collection schedule | **8/8** | **100% (8/8)** pilot municipality collection schedule coverage osiągnięte! |
-| Gminy z ACTIVE PSZOK | **5/8** | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo. |
-| ACTIVE source identities | **14** | `2026.10` dodało `bobolice-collection-klanino-safe-h2-2026`. |
+| Gminy z ACTIVE PSZOK | **6/8** | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo, Polanów (75% gmin!). |
+| ACTIVE source identities | **15** | `2026.11` dodało `polanow-pszok`. |
 | Historyczny real-address collection gate | **100/100** | Koszalin 9, Manowo 46, Tychowo 45; formalny kontrakt real-100 pozostaje niezmieniony. |
 | Tychowo collection post-gate | **45/45** | Jednoznaczny service-area resolution; parser provenance `municipal-collection-pdf-text@0.1.1`. |
 | Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; zero ambiguity i zero krytycznych wrong-date mismatches. |
@@ -26,6 +26,7 @@ W fali `2026.10` WastePL osiąga kluczowy kamień milowy pilotażu: **wszystkie 
 | Sianów Grabówko post-gate | **31/31** | Osobny oficjalny PRG pack (Grabówko 1–31); zero ambiguity i zero krytycznych wrong-date mismatches. |
 | Świeszyno Chałupy post-gate | **167/167** | Osobny oficjalny PRG pack (Chałupy 1–167); zero ambiguity i zero krytycznych wrong-date mismatches. |
 | Bobolice Kłanino post-gate | **65/65** | Osobny oficjalny PRG pack (Kłanino 1–65); zero ambiguity, 63 eventy, 5 frakcji. |
+| Polanów PSZOK post-gate | **PASS** | Ul. Stawna 2, ZUK Polanów, 10 frakcji, Pn/Śr 7:00–14:30, Sb 10:00–14:00. |
 | Łącznie audytowanych real PRG addresses | **415/415** | Wszystkie 415 adresów testowane na publicznym API `/v1/collection`. |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
 | Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK). |

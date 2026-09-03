@@ -5,6 +5,7 @@ const BOBOLICE_SOURCE_KEY = 'bobolice-pszok';
 const SWIESZYNO_SOURCE_KEY = 'swieszyno-pszok';
 const SIANOW_SOURCE_KEY = 'sianow-pszok';
 const TYCHOWO_SOURCE_KEY = 'tychowo-pszok';
+const POLANOW_SOURCE_KEY = 'polanow-pszok';
 
 type Weekly = NonNullable<NormalizedFacilityV02['openingHours']>['weekly'];
 
@@ -97,6 +98,26 @@ function tychowoMaterials(text: string): FacilityMaterial[] {
 
   for (const [, pattern] of required) {
     requireText(text, pattern, TYCHOWO_SOURCE_KEY, 'published accepted-material catalogue changed');
+  }
+  return required.map(([material]) => material);
+}
+
+function polanowMaterials(text: string): FacilityMaterial[] {
+  const required: Array<[FacilityMaterial, RegExp]> = [
+    ['BULKY', /wielkogabarytowe/i],
+    ['CONSTRUCTION', /budowlane i rozbiórkowe/i],
+    ['HAZARDOUS', /odpady niebezpieczne/i],
+    ['MEDICINES', /przeterminowane leki/i],
+    ['BATTERIES', /zużyte baterie/i],
+    ['ELECTRONICS', /sprzęt elektryczny i elektroniczny/i],
+    ['TYRES', /zużyte opony/i],
+    ['PAPER', /papier/i],
+    ['METALS_PLASTICS', /metale|tworzywa sztuczne/i],
+    ['GLASS', /szkło/i],
+  ];
+
+  for (const [, pattern] of required) {
+    requireText(text, pattern, POLANOW_SOURCE_KEY, 'published accepted-material catalogue changed');
   }
   return required.map(([material]) => material);
 }
@@ -304,6 +325,56 @@ function parseTychowo(input: HtmlArtifactInput, text: string): NormalizedFacilit
   };
 }
 
+function parsePolanow(input: HtmlArtifactInput, text: string): NormalizedFacilityV02 {
+  requireText(text, /Zakładu Usług Komunalnych w Polanowie/i, input.sourceKey, 'ZUK Polanów operator statement missing');
+  requireText(text, /ul\.?\s*Stawna\s*2/i, input.sourceKey, 'Stawna 2 location missing');
+  requireText(text, /poniedziałek i środę.*7[.:]00.*14[.:]30/i, input.sourceKey, 'Monday and Wednesday opening hours missing');
+  requireText(text, /sobotę.*10[.:]00.*14[.:]00/i, input.sourceKey, 'Saturday opening hours missing');
+  requireText(text, /mieszkańcy zamieszkujący na terenie miasta i gminy Polanów/i, input.sourceKey, 'resident eligibility statement missing');
+
+  return {
+    schemaVersion: '0.2.0',
+    key: 'pl-3209063-pszok-polanow-stawna-2',
+    kind: 'PSZOK',
+    name: 'PSZOK Polanów, ul. Stawna 2',
+    address: 'ul. Stawna 2, 76-010 Polanów',
+    location: null,
+    locationSourceKey: null,
+    externalIds: [],
+    acceptedMaterials: polanowMaterials(text),
+    acceptedContainers: [],
+    openingHours: openingHours(input.sourceKey, [
+      { day: 'MONDAY', intervals: [{ opens: '07:00', closes: '14:30' }] },
+      { day: 'TUESDAY', intervals: [] },
+      { day: 'WEDNESDAY', intervals: [{ opens: '07:00', closes: '14:30' }] },
+      { day: 'THURSDAY', intervals: [] },
+      { day: 'FRIDAY', intervals: [] },
+      { day: 'SATURDAY', intervals: [{ opens: '10:00', closes: '14:00' }] },
+      { day: 'SUNDAY', intervals: [] },
+    ]),
+    access: {
+      scope: 'MUNICIPALITY_RESIDENTS',
+      requiresProof: null,
+      quantityLimits: [],
+      notes: ['Z usług PSZOK mogą korzystać wszyscy mieszkańcy zamieszkujący na terenie miasta i gminy Polanów, którzy ponoszą opłaty za gospodarowanie odpadami komunalnymi na rzecz Gminy Polanów.'],
+      sourceKey: input.sourceKey,
+    },
+    operationalStatus: unknownOperationalStatus(),
+    operatorName: 'Zakład Usług Komunalnych w Polanowie',
+    rulesUrl: input.url,
+    sourceKey: input.sourceKey,
+    quality: {
+      verificationStatus: 'OFFICIAL_SOURCE',
+      confidence: 0.98,
+      retrievedAt: input.retrievedAt,
+      warnings: [
+        'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+        'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+      ],
+    },
+  };
+}
+
 export class MunicipalPszokHtmlAdapter {
   readonly parserKey = 'municipal-pszok-html';
   readonly parserVersion = '0.3.0';
@@ -312,7 +383,8 @@ export class MunicipalPszokHtmlAdapter {
     return sourceKey === BOBOLICE_SOURCE_KEY
       || sourceKey === SWIESZYNO_SOURCE_KEY
       || sourceKey === SIANOW_SOURCE_KEY
-      || sourceKey === TYCHOWO_SOURCE_KEY;
+      || sourceKey === TYCHOWO_SOURCE_KEY
+      || sourceKey === POLANOW_SOURCE_KEY;
   }
 
   parse(input: HtmlArtifactInput): NormalizedFacilityV02 {
@@ -321,6 +393,7 @@ export class MunicipalPszokHtmlAdapter {
     if (input.sourceKey === SWIESZYNO_SOURCE_KEY) return parseSwieszyno(input, text);
     if (input.sourceKey === SIANOW_SOURCE_KEY) return parseSianow(input, text);
     if (input.sourceKey === TYCHOWO_SOURCE_KEY) return parseTychowo(input, text);
+    if (input.sourceKey === POLANOW_SOURCE_KEY) return parsePolanow(input, text);
     throw new Error(`Municipal PSZOK adapter: unsupported source key ${input.sourceKey}`);
   }
 }

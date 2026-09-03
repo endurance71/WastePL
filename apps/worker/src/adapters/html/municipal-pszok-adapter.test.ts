@@ -20,6 +20,10 @@ const tychowoHtml = readFileSync(
   new URL('../../../test/fixtures/tychowo-pszok.html', import.meta.url),
   'utf8',
 );
+const polanowHtml = readFileSync(
+  new URL('../../../test/fixtures/polanow-pszok.html', import.meta.url),
+  'utf8',
+);
 
 function artifact(html: string, sourceKey: string, url: string) {
   return {
@@ -257,5 +261,77 @@ describe('MunicipalPszokHtmlAdapter', () => {
       'tychowo-pszok',
       'https://bip.tychowo.pl/artykul/646/9305/oplata-za-gospodarowanie-odpadami-komunalnymi',
     ))).toThrow('Tuesday/Thursday/Saturday opening hours missing');
+  });
+
+  it('normalizes Polanów PSZOK without inventing geometry', async () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const facility = adapter.parse(artifact(
+      polanowHtml,
+      'polanow-pszok',
+      'https://bip.polanow.pl/punkt-selektywnego-zbierania-odpadow-komunalnych-(pszok)/d/70/79/',
+    ));
+
+    await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    expect(facility).toMatchObject({
+      key: 'pl-3209063-pszok-polanow-stawna-2',
+      kind: 'PSZOK',
+      name: 'PSZOK Polanów, ul. Stawna 2',
+      address: 'ul. Stawna 2, 76-010 Polanów',
+      operatorName: 'Zakład Usług Komunalnych w Polanowie',
+      location: null,
+      locationSourceKey: null,
+      access: {
+        scope: 'MUNICIPALITY_RESIDENTS',
+        sourceKey: 'polanow-pszok',
+      },
+      quality: {
+        verificationStatus: 'OFFICIAL_SOURCE',
+        confidence: 0.98,
+        warnings: [
+          'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+          'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+        ],
+      },
+    });
+
+    expect(facility.acceptedMaterials).toEqual([
+      'BULKY',
+      'CONSTRUCTION',
+      'HAZARDOUS',
+      'MEDICINES',
+      'BATTERIES',
+      'ELECTRONICS',
+      'TYRES',
+      'PAPER',
+      'METALS_PLASTICS',
+      'GLASS',
+    ]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'MONDAY')?.intervals)
+      .toEqual([{ opens: '07:00', closes: '14:30' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'TUESDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'WEDNESDAY')?.intervals)
+      .toEqual([{ opens: '07:00', closes: '14:30' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'THURSDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'FRIDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SATURDAY')?.intervals)
+      .toEqual([{ opens: '10:00', closes: '14:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SUNDAY')?.intervals)
+      .toEqual([]);
+  });
+
+  it('fails visibly when Polanów PSZOK hours drift', () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const broken = polanowHtml.replace(
+      'w każdy poniedziałek i środę w godzinach od 7.00 do 14.30',
+      'w każdy poniedziałek i środę w godzinach od 8.00 do 16.00',
+    );
+    expect(() => adapter.parse(artifact(
+      broken,
+      'polanow-pszok',
+      'https://bip.polanow.pl/punkt-selektywnego-zbierania-odpadow-komunalnych-(pszok)/d/70/79/',
+    ))).toThrow('Monday and Wednesday opening hours missing');
   });
 });
