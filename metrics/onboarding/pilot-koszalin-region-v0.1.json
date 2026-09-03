@@ -934,6 +934,96 @@
         "CI queue/runtime is excluded from effort minutes.",
         "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
       ]
+    },
+    {
+      "id": "swieszyno-chalupy-collection-wave9",
+      "terc": "3209082",
+      "municipalityName": "Świeszyno",
+      "dataType": "COLLECTION_SCHEDULE",
+      "sourceWave": "pilot-source-wave-9",
+      "activatedInManifestVersion": "2026.9",
+      "sourceKeys": [
+        "swieszyno-collection-trasa-1-safe-h2-2026"
+      ],
+      "parserKeys": [
+        "municipal-collection-pdf-text"
+      ],
+      "measurementMode": "PROSPECTIVE",
+      "adapterReuseClass": "EXTENDED_EXISTING",
+      "complexity": {
+        "parentArtifactCount": 1,
+        "childArtifactCount": 4,
+        "activeArtifactCount": 1,
+        "coordination": "MULTI_CHILD_ROUTE_SET",
+        "serviceAreaComplexity": "SINGLE",
+        "manualReviewSurfaces": 0,
+        "drivers": [
+          "Gmina Świeszyno publishes 4 route PDFs on municipal BIP host (2 single-family, 2 multi-family)",
+          "overlap matrix revealed multi-family collisions for Konikowo and Niekłonice; isolated Chałupy as zero-overlap rural locality",
+          "Chałupy is activated as safe single-family subset with 167 official PRG points under SIMC 0313377",
+          "existing municipal collection PDF text adapter extended through dedicated Świeszyno profile"
+        ]
+      },
+      "effort": {
+        "discovery": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md"
+        },
+        "sourceAssessment": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md"
+        },
+        "parserImplementation": {
+          "minutes": 2,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md"
+        },
+        "regressionFixture": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md"
+        },
+        "addressServiceAreaMapping": {
+          "minutes": 2,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md"
+        },
+        "review": {
+          "minutes": 3,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md"
+        }
+      },
+      "firstImport": {
+        "status": "PASS",
+        "automatic": true,
+        "manualInterventions": 0,
+        "evidenceRef": "apps/worker/src/readiness/swieszyno-chalupy-post-gate.ts"
+      },
+      "repeatUpdate": {
+        "status": "NOT_MEASURED",
+        "automatic": null,
+        "manualInterventions": null,
+        "evidenceRef": null
+      },
+      "evidenceRefs": [
+        "metrics/onboarding/evidence/swieszyno-chalupy-2026.9-worklog.md",
+        "docs/research/swieszyno-h2-2026-assessment.md",
+        "manifests/pilot-koszalin-region-2026.9.json",
+        "apps/worker/test/fixtures/pdf-text/swieszyno-trasa-1-2026.txt",
+        "apps/worker/test/fixtures/reference/prg-swieszyno-chalupy-20260903.json",
+        "apps/worker/src/adapters/pdf-text/swieszyno-h2-profile.ts",
+        "apps/worker/src/readiness/swieszyno-chalupy-post-gate.ts",
+        "apps/api/src/readiness/swieszyno-chalupy-api-post-gate.ts"
+      ],
+      "notes": [
+        "All six prospective timer intervals are explicitly closed and total 16 human-active minutes.",
+        "Świeszyno raises pilot collection schedule coverage from 6/8 to 7/8 municipalities (87.5%).",
+        "CI queue/runtime is excluded from effort minutes.",
+        "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
+      ]
     }
   ]
 }
