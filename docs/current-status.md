@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-03, commit `d366e525259ae12c72eba8ba54f5b1e9e1af40c5`. Rollout `2026.11` aktywuje oficjalny stacjonarny PSZOK Gminy Polanów (ul. Stawna 2, ZUK Polanów), osiągając **75% (6/8) pokrycia gmin w pilocie aktywnymi punktami PSZOK** przy zachowaniu **100% (8/8) pokrycia harmonogramami wywozu**.
+> Zweryfikowano: 2026-09-03, commit `c349139bf106a35d3376d9e46e9bf5d5816fac47`. Rollout `2026.11` aktywuje oficjalny stacjonarny PSZOK Gminy Polanów (ul. Stawna 2, ZUK Polanów), osiągając **75% (6/8) pokrycia gmin w pilocie aktywnymi punktami PSZOK** przy zachowaniu **100% (8/8) pokrycia harmonogramami wywozu**.
 
 ## Etap
 
