@@ -258,3 +258,35 @@ header {
   border: 1px solid rgba(239, 68, 68, 0.25);
   color: #fecaca;
 }
+
+/* PSZOK Map & Leaflet Customization */
+.pszok-map-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.leaflet-container {
+  font-family: var(--font-family) !important;
+  background: #0f172a !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+.custom-pszok-pin-icon {
+  background: transparent;
+  border: none;
+}
+

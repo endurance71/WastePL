@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0.0",
+  "snapshotDate": "2026-09-03",
+  "source": {
+    "provider": "Główny Urząd Geodezji i Kartografii (GUGiK)",
+    "dataset": "Państwowy Rejestr Granic — Krajowa Integracja Numeracji Adresowej",
+    "uugUrl": "https://services.gugik.gov.pl/uug/",
+    "coordinateSystemSource": "EPSG:2180",
+    "coordinateSystemCanonical": "EPSG:4326"
+  },
+  "facilities": [
+    {
+      "canonicalKey": "pl-3261011-pszok-komunalna-5",
+      "terc": "3261011",
+      "municipalityName": "Koszalin",
+      "name": "PSZOK – ul. Komunalna 5",
+      "address": "ul. Komunalna 5, 75-724 Koszalin",
+      "prgId": "326101_1.0016.5",
+      "epsg2180": { "x": 317115.38, "y": 705596.03 },
+      "epsg4326": { "lat": 54.181975, "lon": 16.196550 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3209042-pszok-manowo-komunalna-5",
+      "terc": "3209042",
+      "municipalityName": "Manowo",
+      "name": "PSZOK Manowo (PGK Koszalin), ul. Komunalna 5",
+      "address": "ul. Komunalna 5, 75-724 Koszalin",
+      "prgId": "326101_1.0016.5",
+      "epsg2180": { "x": 317115.38, "y": 705596.03 },
+      "epsg4326": { "lat": 54.181975, "lon": 16.196550 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3209012-pszok-bedzino-17",
+      "terc": "3209012",
+      "municipalityName": "Będzino",
+      "name": "PSZOK Będzino, Będzino 17",
+      "address": "Będzino 17, 76-037 Będzino",
+      "prgId": "320901_2.0002.17",
+      "epsg2180": { "x": 303914.14, "y": 709267.53 },
+      "epsg4326": { "lat": 54.210061, "lon": 15.992090 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3209063-pszok-polanow-stawna-2",
+      "terc": "3209063",
+      "municipalityName": "Polanów",
+      "name": "PSZOK Polanów, ul. Stawna 2",
+      "address": "ul. Stawna 2, 76-010 Polanów",
+      "prgId": "320906_4.0001.2",
+      "epsg2180": { "x": 348564.58, "y": 697122.73 },
+      "epsg4326": { "lat": 54.116111, "lon": 16.682412 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3201043-pszok-tychowo-dolna-8",
+      "terc": "3201043",
+      "municipalityName": "Tychowo",
+      "name": "PSZOK Tychowo, ul. Dolna 8",
+      "address": "ul. Dolna 8, 78-220 Tychowo",
+      "prgId": "320104_4.0001.8",
+      "epsg2180": { "x": 319280.43, "y": 675877.93 },
+      "epsg4326": { "lat": 53.915871, "lon": 16.247403 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3209073-pszok-sianow-lubuszan-80",
+      "terc": "3209073",
+      "municipalityName": "Sianów",
+      "name": "PSZOK Sianów, ul. Łubuszan 80",
+      "address": "ul. Łubuszan 80, 76-004 Sianów",
+      "prgId": "320907_4.0001.80",
+      "epsg2180": { "x": 325506.94, "y": 710009.76 },
+      "epsg4326": { "lat": 54.224536, "lon": 16.322462 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3209082-pszok-chalupy-13b",
+      "terc": "3209082",
+      "municipalityName": "Świeszyno",
+      "name": "PSZOK Chałupy 13B",
+      "address": "Chałupy 13B, 76-024 Chałupy",
+      "prgId": "320908_2.0004.13B",
+      "epsg2180": { "x": 316311.76, "y": 700202.01 },
+      "epsg4326": { "lat": 54.133252, "lon": 16.187536 },
+      "confidence": 1.0,
+      "provider": "GUGiK_PRG"
+    },
+    {
+      "canonicalKey": "pl-3209033-pszok-boboliczki",
+      "terc": "3209033",
+      "municipalityName": "Bobolice",
+      "name": "PSZOK Boboliczki",
+      "address": "Boboliczki, gmina Bobolice",
+      "prgId": "320903_5.0003",
+      "epsg2180": { "x": 340336.00, "y": 683493.00 },
+      "epsg4326": { "lat": 53.991194, "lon": 16.563781 },
+      "confidence": 0.95,
+      "provider": "GUGiK_PRG"
+    }
+  ]
+}

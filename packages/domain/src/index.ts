@@ -43,6 +43,7 @@ export const SERVICE_AREA_SPECIFICITY = [
 ] as const;
 
 export * from './deposit-source-policy.js';
+export * from './facility-geocoding.js';
 export * from './facility-reconciliation.js';
 export * from './facility.js';
 export * from './service-area.js';
