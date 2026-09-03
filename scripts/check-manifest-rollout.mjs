@@ -184,7 +184,7 @@ const tychowoStandard = s6.get('tychowo-collection-standard-2026');
 const tychowoDifficult = s6.get('tychowo-collection-difficult-2026');
 const tychowoPszok = s6.get('tychowo-pszok');
 const expectedTychowoChildren = [
-  'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianaharmonogram_tychowo_20261.pdf',
+  'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmiana2harmonogram_tychowo_2026.pdf',
   'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianakopia_harmonogram_tychowo_2026_%E2%80%94_kolonijne.pdf',
 ];
 if (!tychowoParent || tychowoParent.url !== 'https://tychowo.pl/cms/2151/harmonogram-odbioru-odpadow-komunalnych-') {

@@ -191,7 +191,11 @@ export class PgkKoszalinPszokHtmlAdapter {
     requireText(faqText, /100\s*kg.*rocznie.*gospodarstwo/i, 'construction limit missing');
 
     const coordinates = /(-?\d{2}\.\d{4,})\s*,\s*(-?\d{2}\.\d{4,})/.exec(mainText);
-    if (!coordinates) throw new Error('PGK PSZOK adapter: published coordinates missing');
+    const location = coordinates
+      ? { lat: Number(coordinates[1]), lon: Number(coordinates[2]) }
+      : null;
+    const locationSourceKey = coordinates ? input.main.sourceKey : null;
+    const warnings = coordinates ? [] : ['TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE'];
 
     const acceptedMaterials = materialSet(faqText);
     if (acceptedMaterials.length < 5) {
@@ -207,8 +211,8 @@ export class PgkKoszalinPszokHtmlAdapter {
       kind: 'PSZOK',
       name: 'PSZOK – ul. Komunalna 5',
       address: 'ul. Komunalna 5, Koszalin',
-      location: { lat: Number(coordinates[1]), lon: Number(coordinates[2]) },
-      locationSourceKey: input.main.sourceKey,
+      location,
+      locationSourceKey,
       externalIds: [],
       acceptedMaterials,
       acceptedContainers: [],
@@ -220,9 +224,9 @@ export class PgkKoszalinPszokHtmlAdapter {
       sourceKey: input.main.sourceKey,
       quality: {
         verificationStatus: 'OFFICIAL_SOURCE',
-        confidence: 0.99,
+        confidence: coordinates ? 0.99 : 0.9,
         retrievedAt,
-        warnings: [],
+        warnings,
       },
     };
 

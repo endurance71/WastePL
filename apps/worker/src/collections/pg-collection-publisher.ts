@@ -128,8 +128,15 @@ function mapPublication(row: PublicationRow, replayed: boolean): CollectionPubli
   };
 }
 
+export interface PgCollectionPublisherOptions {
+  autoCreateExplicitAddresses?: boolean;
+}
+
 export class PgCollectionPublisher {
-  constructor(private readonly pool: Pool) {}
+  constructor(
+    private readonly pool: Pool,
+    private readonly options: PgCollectionPublisherOptions = {},
+  ) {}
 
   async publish(
     sourceId: string,
@@ -536,6 +543,20 @@ export class PgCollectionPublisher {
       (row) => normalizedLabel(row.canonical_text) === target,
     );
     if (matches.length === 0) {
+      if (this.options.autoCreateExplicitAddresses) {
+        const localityResult = await client.query<{ id: string } & QueryResultRow>(
+          `SELECT id FROM localities WHERE municipality_id = $1 ORDER BY id LIMIT 1`,
+          [municipalityId],
+        );
+        const localityId = localityResult.rows[0]?.id ?? null;
+        const inserted = await client.query<{ id: string } & QueryResultRow>(
+          `INSERT INTO addresses (municipality_id, locality_id, building_number, canonical_text, active)
+           VALUES ($1, $2, $3, $4, true)
+           RETURNING id`,
+          [municipalityId, localityId, explicitAddress.split(',')[0]!.trim(), explicitAddress],
+        );
+        if (inserted.rows[0]?.id) return inserted.rows[0].id;
+      }
       throw new CollectionPublicationError(
         `Address ${explicitAddress} was not found in authoritative address data`,
         'ADDRESS_NOT_FOUND',
