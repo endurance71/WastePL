@@ -1115,6 +1115,93 @@
         "CI queue/runtime is excluded from effort minutes.",
         "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
       ]
+    },
+    {
+      "id": "polanow-pszok-wave11",
+      "terc": "3209063",
+      "municipalityName": "Polanów",
+      "dataType": "PSZOK",
+      "sourceWave": "pilot-source-wave-11",
+      "activatedInManifestVersion": "2026.11",
+      "sourceKeys": [
+        "polanow-pszok"
+      ],
+      "parserKeys": [
+        "municipal-pszok-html"
+      ],
+      "measurementMode": "PROSPECTIVE",
+      "adapterReuseClass": "EXTENDED_EXISTING",
+      "complexity": {
+        "parentArtifactCount": 1,
+        "childArtifactCount": 0,
+        "activeArtifactCount": 1,
+        "coordination": "SINGLE_ARTIFACT",
+        "serviceAreaComplexity": "NONE",
+        "manualReviewSurfaces": 0,
+        "drivers": [
+          "Direct official BIP HTML article 79 published by Gmina Polanów",
+          "Single HTML artifact publishes address, operator, weekly hours and accepted materials",
+          "Existing municipal PSZOK HTML adapter extended (100% reuse)"
+        ]
+      },
+      "effort": {
+        "discovery": {
+          "minutes": 1,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md"
+        },
+        "sourceAssessment": {
+          "minutes": 2,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md"
+        },
+        "parserImplementation": {
+          "minutes": 1,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md"
+        },
+        "regressionFixture": {
+          "minutes": 0,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md"
+        },
+        "addressServiceAreaMapping": {
+          "minutes": 0,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md"
+        },
+        "review": {
+          "minutes": 10,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md"
+        }
+      },
+      "firstImport": {
+        "status": "PASS",
+        "automatic": true,
+        "manualInterventions": 0,
+        "evidenceRef": "apps/worker/src/readiness/polanow-pszok-post-gate.ts"
+      },
+      "repeatUpdate": {
+        "status": "NOT_MEASURED",
+        "automatic": null,
+        "manualInterventions": null,
+        "evidenceRef": null
+      },
+      "evidenceRefs": [
+        "metrics/onboarding/evidence/polanow-pszok-2026.11-worklog.md",
+        "manifests/pilot-koszalin-region-2026.11.json",
+        "apps/worker/test/fixtures/polanow-pszok.html",
+        "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
+        "apps/worker/src/readiness/polanow-pszok-post-gate.ts",
+        "apps/api/src/readiness/polanow-pszok-api-post-gate.ts"
+      ],
+      "notes": [
+        "All six prospective timer intervals are explicitly closed and total 14 human-active minutes.",
+        "Polanów raises pilot PSZOK coverage from 5/8 to 6/8 municipalities (75%).",
+        "CI queue/runtime is excluded from effort minutes.",
+        "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
+      ]
     }
   ]
 }

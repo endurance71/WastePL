@@ -22,6 +22,7 @@
     "readiness:sianow-runtime": "tsx src/readiness/sianow-grabowko-post-gate.ts",
     "readiness:swieszyno-runtime": "tsx src/readiness/swieszyno-chalupy-post-gate.ts",
     "readiness:bobolice-runtime": "tsx src/readiness/bobolice-klanino-post-gate.ts",
+    "readiness:polanow-pszok-runtime": "tsx src/readiness/polanow-pszok-post-gate.ts",
     "readiness:live-source": "tsx src/readiness/live-source-staging-gate.ts",
     "readiness:polanow-acquisition": "tsx src/readiness/polanow-h2-acquisition-probe.ts",
     "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"
