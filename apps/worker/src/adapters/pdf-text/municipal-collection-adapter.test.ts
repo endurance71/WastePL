@@ -73,7 +73,7 @@ function input(sourceKey = 'tychowo-collection-standard-2026'): PdfTextArtifactI
   return {
     text: STANDARD_TEXT,
     sourceKey,
-    url: 'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianaharmonogram_tychowo_20261.pdf',
+    url: 'https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmiana2harmonogram_tychowo_2026.pdf',
     sha256: sha256Hex(Buffer.from(STANDARD_TEXT)),
     retrievedAt: '2026-08-28T16:00:00.000Z',
     storageUri: 's3://test/tychowo-standard',

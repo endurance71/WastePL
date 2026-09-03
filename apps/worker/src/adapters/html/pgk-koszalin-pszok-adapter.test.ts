@@ -111,4 +111,16 @@ describe('PgkKoszalinPszokHtmlAdapter', () => {
     broken.faq.html = broken.faq.html.replace('100 kg rocznie', 'limit nieopublikowany');
     expect(() => adapter.parse(broken)).toThrow('construction limit missing');
   });
+
+  it('normalizes Komunalna 5 with location: null when coordinates are not published in main HTML', async () => {
+    const adapter = new PgkKoszalinPszokHtmlAdapter();
+    const noCoords = input();
+    noCoords.main.html = noCoords.main.html.replace('54.212266, 16.183616', '');
+    const facility = adapter.parse(noCoords);
+
+    await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    expect(facility.location).toBeNull();
+    expect(facility.locationSourceKey).toBeNull();
+    expect(facility.quality.warnings).toContain('TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE');
+  });
 });

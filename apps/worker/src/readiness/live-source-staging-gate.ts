@@ -17,6 +17,12 @@ import { createArtifactRuntimeProcessor } from '../main.js';
 import { PgSourceManifestSync } from '../manifests/source-manifest-sync.js';
 import type { SourceManifest } from '../manifests/source-manifest.js';
 import { PgOfficialReferenceImporter } from '../reference/pg-reference-importer.js';
+import { PgCollectionPublisher } from '../collections/pg-collection-publisher.js';
+import { PgkKoszalinCollectionArtifactHandler } from '../collections/collection-artifact-handler.js';
+import { MunicipalCollectionArtifactHandler } from '../collections/municipal-collection-artifact-handler.js';
+import { PgkKoszalinPszokBundleArtifactHandler } from '../facilities/pgk-koszalin-pszok-bundle-artifact-handler.js';
+import { MunicipalPszokArtifactHandler } from '../facilities/municipal-pszok-artifact-handler.js';
+import { MinioArtifactReader } from '../ingestion/artifact-reader.js';
 import {
   GARBNO_REAL_ADDRESS_COUNT,
   hydratePolanowGarbnoReferenceBackbone,
@@ -642,7 +648,19 @@ async function main(): Promise<void> {
 
     if (artifactIds.length > 0) {
       const queue = new BullMqArtifactProcessingQueue(redis);
-      const worker = createArtifactProcessingWorker(redis, registry, createArtifactRuntimeProcessor(pool));
+      const stagingPublisher = new PgCollectionPublisher(pool, { autoCreateExplicitAddresses: true });
+      const reader = new MinioArtifactReader();
+      const handlers = [
+        new PgkKoszalinCollectionArtifactHandler(pool, undefined, stagingPublisher),
+        new MunicipalCollectionArtifactHandler(pool),
+        new PgkKoszalinPszokBundleArtifactHandler(pool, reader),
+        new MunicipalPszokArtifactHandler(pool),
+      ];
+      const worker = createArtifactProcessingWorker(
+        redis,
+        registry,
+        createArtifactRuntimeProcessor(pool, handlers),
+      );
       const dispatcher = new ArtifactOutboxDispatcher(registry, queue, { batchSize: 100 });
       try {
         for (let pass = 0; pass < 4; pass += 1) {
