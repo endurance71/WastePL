@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-03, commit `840c4844f8b75a73b63c32e0a48c071558ddc744`. Bieżący baseline `main` jest po PR `#87`. Bramka operacyjna live-source staging soak `#60` została pomyślnie wykonana i zweryfikowana na GitHub Actions (Run ID: 33737378268) ze statusem PASS dla wszystkich 10 aktywnych źródeł (6 HEALTHY, 4 CHANGED_BUT_PARSEABLE, 0 failures). Blokada rozpoczęcia Consumer PWA (#51) została zdjęta.
+> Zweryfikowano: 2026-09-03, commit `b68bc28df071e369caf02e15fc9ab3da82f648d3`. Sprint 06: Thin Consumer PWA (#51) zaimplementowany w `apps/pwa` i zmergowany do `main`. Rollout `2026.7` (Issue #85) aktywuje deterministyczny safe subset dla Gminy Będzino (Dworek, SIMC `0302400`), podnosząc pokrycie gmin z jakimkolwiek aktywnym źródłem do 8/8 (100%) oraz pokrycie harmonogramów odbioru do 5/8.
 
 ## Etap
 
@@ -8,24 +8,25 @@ Sprinty 01–04 dostarczyły utwardzony **Data Platform PoC**: Source Registry, 
 
 Sprint 05 koncentrował się na zwiększaniu rzeczywistego collection coverage oraz mierzeniu kosztu onboardingu (rollout `2026.6` osiągnął 4/8 gmin, 10 aktywnych źródeł).
 
-**Sprint 06** przechodzi do realizacji pierwszego wertykału konsumenckiego (**Thin Consumer PWA `#51`**) oraz rozszerzenia pokrycia zbiórek do 5/8 gmin.
+**Sprint 06** zrealizował pierwszy wertykał konsumencki (**Thin Consumer PWA `#51`**) oraz rozszerzenie pokrycia zbiórek do 5/8 gmin (**Będzino Dworek `#85`**).
 
 WastePL nadal nie jest kompletnym produktem konsumenckim dla całego pilota. Brak danych, niejednoznaczny route/address mapping albo nieudowodniona semantyka frakcji są jawnie traktowane jako brak pokrycia — nie jako powód do zgadywania.
 
-## Stan pilota po rollout `2026.6`
+## Stan pilota po rollout `2026.7`
 
 | Miara | Stan | Interpretacja |
 | --- | ---: | --- |
 | Gminy w manifeście | 8 | Docelowy zakres obecnego pilota. |
-| Gminy z jakimkolwiek ACTIVE typem danych | **7/8** | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów. Będzino pozostaje bez ACTIVE data source. |
-| Gminy z ACTIVE collection schedule | **4/8** | Koszalin, Manowo, bezpieczny subset Tychowa i Garbno w Polanowie. |
+| Gminy z jakimkolwiek ACTIVE typem danych | **8/8** | Koszalin, Manowo, Bobolice, Świeszyno, Tychowo, Sianów, Polanów, Będzino (100% gmin w pilocie!). |
+| Gminy z ACTIVE collection schedule | **5/8** | Koszalin, Manowo, bezpieczny subset Tychowa, Garbno w Polanowie, Dworek w Będzinie. |
 | Gminy z ACTIVE PSZOK | **5/8** | Koszalin, Bobolice, Świeszyno, Sianów, Tychowo. |
-| ACTIVE source identities | **10** | `2026.6` dodało `polanow-collection-garbno-h2-2026`. |
+| ACTIVE source identities | **11** | `2026.7` dodało `bedzino-collection-trasa-1-safe-h2-2026`. |
 | Historyczny real-address collection gate | **100/100** | Koszalin 9, Manowo 46, Tychowo 45; formalny kontrakt real-100 pozostaje niezmieniony. |
 | Tychowo collection post-gate | **45/45** | Jednoznaczny service-area resolution; parser provenance `municipal-collection-pdf-text@0.1.1`. |
 | Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; nie jest dopisywany do formalnego real-100 denominatora. |
-| Polanów public API correctness | **1.0** | 39/39, zero ambiguity i zero krytycznych wrong-date mismatches. |
+| Będzino Dworek post-gate | **13/13** | Osobny oficjalny PRG pack (Dworek 1–13); zero ambiguity i zero krytycznych wrong-date mismatches. |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
+| Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK). |
 | Live-source public-upstream soak `#60` | **PASS** | Run #33737378268: 10/10 aktywnych źródeł (6 HEALTHY, 4 CHANGED_BUT_PARSEABLE, 0 failures). |
 
 ## Rollout Polanów `2026.6`
@@ -56,6 +57,30 @@ CI #161 potwierdził:
 
 Nie rozszerzamy `OTHER` na `PAPER` / `GLASS` / `METALS_PLASTICS` bez primary-source evidence.
 
+## Rollout Będzino `2026.7`
+
+Aktywowano deterministyczny safe subset **Dworek (Trasa I)** dla Gminy Będzino (TERC `3209012`). Empiryczna analiza 4 PDF-ów operatora EKOSAN wykazała, że osłony śmietnikowe obejmują wyłącznie 5 miejscowości (Będzino, Tymień, Dobrzyca, Mścice, Stoisław), a wykaz trudnodostępnych 44 numery + 2 miejscowości. Zidentyfikowano 20 w pełni bezkolizyjnych miejscowości wiejskich.
+
+Wybrano miejscowość **Dworek** (SIMC `0302400`), której 13 oficjalnych punktów adresowych PRG (Dworek 1–13) przypisano do dedykowanego obszaru `bedzino-dworek-single-family`.
+
+Źródło:
+
+- source key: `bedzino-collection-trasa-1-safe-h2-2026`;
+- manifest: `pilot-koszalin-region@2026.7`;
+- parser: `municipal-collection-pdf-text@0.2.0` z profilem `bedzino-h2-profile.ts`;
+- reference locality: Dworek, SIMC `0302400`, TERC `3209012`;
+- frozen official GUGiK PRG pack: 13 adresów;
+- canonical service area: `bedzino-dworek-single-family`;
+- H2 events: 45 (`MIXED=13`, `BIO=11`, `OTHER=21` — w tym tworzywa i papier/szkło zachowane źródłowo).
+
+Post-gate potwierdza:
+
+- 13/13 real PRG addresses rozwiązuje się do dokładnie jednego aktywnego service area;
+- public `/v1/collection` zwraca 13/13 poprawnych harmonogramów;
+- critical wrong-date mismatches = 0;
+- ambiguous responses = 0;
+- pokrycie gmin z jakimkolwiek aktywnym źródłem osiąga **8/8 (100%)**, a harmonogramów zbiórek **5/8**.
+
 ## Realne address gates
 
 ### Formalny real-100
@@ -72,6 +97,10 @@ Każdy liczony przypadek ma realny identyfikator `prg-adresy.*`. Source-only pom
 ### Polanów Garbno
 
 Polanów ma osobny frozen official PRG snapshot z 39 punktami. Jest testowany dodatkowo, ale nie zmienia historycznej definicji real-100. Łącznie repo posiada więc 100 przypadków formalnego gate'a oraz 39 dodatkowych audytowanych przypadków Polanowa, przy zachowaniu osobnych kontraktów i provenance.
+
+### Będzino Dworek
+
+Będzino posiada osobny frozen official GUGiK PRG snapshot z 13 punktami adresowymi (Dworek 1–13). Jest weryfikowany dedykowanymi bramkami `bedzino-dworek-post-gate.ts` i `bedzino-dworek-api-post-gate.ts`, bez modyfikacji denominatora historycznego real-100. Łącznie baza audytowanych oficjalnych adresów wynosi 152 (100 formalny + 39 Garbno + 13 Dworek).
 
 ## Facilities / PSZOK
 

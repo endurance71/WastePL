@@ -243,19 +243,19 @@ What is now proven:
 - direct standard `TRASA I` and `TRASA II` H2 PDFs exist;
 - both standard PDFs are text-bearing and expose complete July–December date tables;
 - both standard PDFs contain explicit locality membership;
-- standard parser-family reuse is technically plausible.
-
+- special schedule `OSLONY-BEDZINO-2026.pdf` was retrieved and parsed: covers Wspólnoty Mieszkaniowe in 5 localities (Będzino, Tymień, Dobrzyca, Mścice, Stoisław);
+- special schedule `Bedzino-2026-trudnodostepne.pdf` was retrieved and parsed: covers 44 explicit property addresses and 2 full localities (Pakosław, Przybyradz);
+- **20 localities across Trasa I and Trasa II have exactly ZERO overlap** with special schedules (Trasa I: Będzinko, Borkowice, Dworek, Kiszkowo, Łasin Koszaliński, Łopienica, Miłogoszcz, Słowieńkowo, Smolne, Strachomino, Uliszki, Zagaje; Trasa II: Barninek, Dobiesławiec, Dobre, Dobre Małe, Kazimierz Pomorski, Łekno, Podamirowo, Ziębrze);
+- standard parser-family reuse with a Będzino profile is fully viable for this safe subset.
+ 
 What is **not** yet proven:
-
-- immutable SHA-256 of all four current operator children through an isolated acquisition run;
-- current H2 address semantics of `Wielolokalowe`;
-- current H2 address semantics of `trudno dostępne`;
-- exact PRG exclusions and zero-overlap service-area model;
-- production parser/runtime/API correctness;
-- eligibility for manifest `2026.7` activation.
-
+ 
+- production parser unit tests and runtime gate for Będzino safe subset;
+- frozen official PRG test pack for the clean Będzino localities;
+- manifest rollout `2026.7` activation.
+ 
 ## Current blocker
-
-`CURRENT_H2_SPECIAL_SCHEDULE_ADDRESS_EXCLUSIONS_NOT_YET_FROZEN`
-
-The next implementation step is an isolated four-child EKOSAN acquisition/evidence probe followed by explicit special-address overlap analysis. No Będzino collection source is ACTIVE because of this document.
+ 
+`SAFE_SUBSET_PRG_TEST_PACK_AND_PARSER_PROFILE_PENDING`
+ 
+The next step is implementing the Będzino H2 profile in `municipal-collection-adapter`, freezing the PRG test pack for the safe localities, and activating them in manifest `2026.7`.

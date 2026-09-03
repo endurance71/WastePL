@@ -29,6 +29,11 @@ import {
   loadPolanowGarbnoReferenceSnapshot,
 } from './polanow-garbno-reference.js';
 import {
+  DWOREK_REAL_ADDRESS_COUNT,
+  hydrateBedzinoDworekReferenceBackbone,
+  loadBedzinoDworekReferenceSnapshot,
+} from './bedzino-dworek-reference.js';
+import {
   REAL_GOLDEN_REFERENCE_COUNTS,
   hydrateRealGoldenReferenceBackbone,
   insertKoszalinSourceOnlySupportAddress,
@@ -49,6 +54,7 @@ export const LIVE_GATE_MIN_MANIFEST_VERSION = '2026.3';
 const PILOT_MANIFEST_ID = 'pilot-koszalin-region';
 const PILOT_MANIFEST_PATTERN = /^pilot-koszalin-region-(\d{4}\.\d+)\.json$/;
 const POLANOW_GARBNO_SOURCE_KEY = 'polanow-collection-garbno-h2-2026';
+const BEDZINO_DWOREK_SOURCE_KEY = 'bedzino-collection-trasa-1-safe-h2-2026';
 
 export type LiveSourceOutcome =
   | 'HEALTHY'
@@ -179,6 +185,12 @@ interface GateReport {
       authoritativePrgAddressesInSnapshot: number;
       localityHydrated: true;
     } | null;
+    bedzinoDworek: {
+      snapshotDate: string;
+      simc: string;
+      authoritativePrgAddressesInSnapshot: number;
+      localityHydrated: true;
+    } | null;
   };
   sourceResults: LiveSourceResult[];
   bundleChecks: Array<Record<string, unknown>>;
@@ -237,6 +249,10 @@ export function activeSourceKeysFromManifest(manifest: SourceManifest): string[]
 
 export function requiresPolanowGarbnoReference(manifest: SourceManifest): boolean {
   return activeSourceKeysFromManifest(manifest).includes(POLANOW_GARBNO_SOURCE_KEY);
+}
+
+export function requiresBedzinoDworekReference(manifest: SourceManifest): boolean {
+  return activeSourceKeysFromManifest(manifest).includes(BEDZINO_DWOREK_SOURCE_KEY);
 }
 
 async function loadLatestPilotManifest(): Promise<{ manifest: SourceManifest; version: string }> {
@@ -598,6 +614,18 @@ async function main(): Promise<void> {
       };
     }
 
+    let bedzinoDworekReference: NonNullable<GateReport['reference']>['bedzinoDworek'] = null;
+    if (requiresBedzinoDworekReference(manifest)) {
+      const bedzinoSnapshot = await loadBedzinoDworekReferenceSnapshot();
+      await hydrateBedzinoDworekReferenceBackbone(pool, bedzinoSnapshot);
+      bedzinoDworekReference = {
+        snapshotDate: bedzinoSnapshot.snapshotDate,
+        simc: bedzinoSnapshot.selection.simc,
+        authoritativePrgAddressesInSnapshot: DWOREK_REAL_ADDRESS_COUNT,
+        localityHydrated: true,
+      };
+    }
+
     report.reference = {
       snapshotDate: snapshot.snapshotDate,
       realAddresses: REAL_GOLDEN_REFERENCE_COUNTS.realAddresses,
@@ -605,6 +633,7 @@ async function main(): Promise<void> {
       streetsHydrated: backbone.streets,
       sourceOnlySupportAddresses: REAL_GOLDEN_REFERENCE_COUNTS.sourceOnlySupportAddresses,
       polanowGarbno: polanowGarbnoReference,
+      bedzinoDworek: bedzinoDworekReference,
     };
 
     const manifestSync = await new PgSourceManifestSync(pool).sync(manifest, new Date());

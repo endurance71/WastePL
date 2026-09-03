@@ -12,7 +12,8 @@
     "readiness:production-api": "tsx src/readiness/production-api-gate-100.ts",
     "readiness:sianow-pszok-api": "tsx src/readiness/sianow-pszok-api-post-gate.ts",
     "readiness:tychowo-pszok-api": "tsx src/readiness/tychowo-pszok-api-post-gate.ts",
-    "readiness:polanow-garbno-api": "tsx src/readiness/polanow-garbno-api-post-gate.ts"
+    "readiness:polanow-garbno-api": "tsx src/readiness/polanow-garbno-api-post-gate.ts",
+    "readiness:bedzino-dworek-api": "tsx src/readiness/bedzino-dworek-api-post-gate.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
