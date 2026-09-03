@@ -19,6 +19,7 @@
     "readiness:polanow-runtime": "tsx src/readiness/polanow-garbno-post-gate.ts",
     "readiness:polanow-lkg": "tsx src/readiness/polanow-garbno-last-known-good-post-gate.ts",
     "readiness:bedzino-runtime": "tsx src/readiness/bedzino-dworek-post-gate.ts",
+    "readiness:sianow-runtime": "tsx src/readiness/sianow-grabowko-post-gate.ts",
     "readiness:live-source": "tsx src/readiness/live-source-staging-gate.ts",
     "readiness:polanow-acquisition": "tsx src/readiness/polanow-h2-acquisition-probe.ts",
     "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"

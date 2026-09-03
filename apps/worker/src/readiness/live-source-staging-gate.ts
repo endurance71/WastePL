@@ -34,6 +34,11 @@ import {
   loadBedzinoDworekReferenceSnapshot,
 } from './bedzino-dworek-reference.js';
 import {
+  GRABOWKO_REAL_ADDRESS_COUNT,
+  hydrateSianowGrabowkoReferenceBackbone,
+  loadSianowGrabowkoReferenceSnapshot,
+} from './sianow-grabowko-reference.js';
+import {
   REAL_GOLDEN_REFERENCE_COUNTS,
   hydrateRealGoldenReferenceBackbone,
   insertKoszalinSourceOnlySupportAddress,
@@ -191,6 +196,12 @@ interface GateReport {
       authoritativePrgAddressesInSnapshot: number;
       localityHydrated: true;
     } | null;
+    sianowGrabowko: {
+      snapshotDate: string;
+      simc: string;
+      authoritativePrgAddressesInSnapshot: number;
+      localityHydrated: true;
+    } | null;
   };
   sourceResults: LiveSourceResult[];
   bundleChecks: Array<Record<string, unknown>>;
@@ -253,6 +264,10 @@ export function requiresPolanowGarbnoReference(manifest: SourceManifest): boolea
 
 export function requiresBedzinoDworekReference(manifest: SourceManifest): boolean {
   return activeSourceKeysFromManifest(manifest).includes(BEDZINO_DWOREK_SOURCE_KEY);
+}
+
+export function requiresSianowGrabowkoReference(manifest: SourceManifest): boolean {
+  return activeSourceKeysFromManifest(manifest).includes('sianow-collection-dabrowa-grabowko-safe-h2-2026');
 }
 
 async function loadLatestPilotManifest(): Promise<{ manifest: SourceManifest; version: string }> {
@@ -626,6 +641,18 @@ async function main(): Promise<void> {
       };
     }
 
+    let sianowGrabowkoReference: NonNullable<GateReport['reference']>['sianowGrabowko'] = null;
+    if (requiresSianowGrabowkoReference(manifest)) {
+      const sianowSnapshot = await loadSianowGrabowkoReferenceSnapshot();
+      await hydrateSianowGrabowkoReferenceBackbone(pool);
+      sianowGrabowkoReference = {
+        snapshotDate: sianowSnapshot.snapshotDate,
+        simc: sianowSnapshot.selection.simc,
+        authoritativePrgAddressesInSnapshot: GRABOWKO_REAL_ADDRESS_COUNT,
+        localityHydrated: true,
+      };
+    }
+
     report.reference = {
       snapshotDate: snapshot.snapshotDate,
       realAddresses: REAL_GOLDEN_REFERENCE_COUNTS.realAddresses,
@@ -634,6 +661,7 @@ async function main(): Promise<void> {
       sourceOnlySupportAddresses: REAL_GOLDEN_REFERENCE_COUNTS.sourceOnlySupportAddresses,
       polanowGarbno: polanowGarbnoReference,
       bedzinoDworek: bedzinoDworekReference,
+      sianowGrabowko: sianowGrabowkoReference,
     };
 
     const manifestSync = await new PgSourceManifestSync(pool).sync(manifest, new Date());

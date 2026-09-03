@@ -45,6 +45,7 @@ const PUBLICATION_PROFILE_VERSIONS: Readonly<Record<string, string>> = {
   'tychowo-collection-standard-2026': '0.1.1',
   'polanow-collection-garbno-h2-2026': '0.2.0',
   'bedzino-collection-trasa-1-safe-h2-2026': '0.2.0',
+  'sianow-collection-dabrowa-grabowko-safe-h2-2026': '0.2.0',
 };
 
 function municipalityType(value: string | null): NormalizedMunicipalityType {
