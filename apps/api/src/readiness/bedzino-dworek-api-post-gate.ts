@@ -118,83 +118,146 @@ async function main(): Promise<void> {
   process.env.DATABASE_URL = gateUrl;
   const { createApp } = await import('../main.js');
   const app: NestFastifyApplication = await createApp();
+  app.useLogger(['error']);
   await app.init();
-  await app.getHttpAdapter().getInstance().ready();
 
   const report = JSON.parse(await readFile(reportPath, 'utf8')) as Record<string, unknown>;
   try {
-    const rawSnapshot = JSON.parse(await readFile(snapshotPath, 'utf8')) as Snapshot;
-    const expected = expectedEvents();
-    let validated = 0;
-
-    for (const tuple of rawSnapshot.addresses) {
-      const query = addressQuery(tuple);
-      const resolveResponse = await app.inject({
-        method: 'GET',
-        url: `/v1/addresses/resolve?query=${encodeURIComponent(query)}&terc=${BEDZINO_TERC}`,
-      });
-      if (resolveResponse.statusCode !== 200) {
-        throw new Error(`Resolve failed for ${query}: HTTP ${resolveResponse.statusCode} ${resolveResponse.body}`);
-      }
-      const resolveBody = JSON.parse(resolveResponse.body) as {
-        status: string;
-        candidateCount: number;
-        exactMatch: { prgId: string; canonicalText: string } | null;
-      };
-      if (
-        resolveBody.status !== 'RESOLVED' ||
-        resolveBody.candidateCount !== 1 ||
-        resolveBody.exactMatch?.prgId !== tuple[0]
-      ) {
-        throw new Error(`Resolve mismatch for ${query}: ${resolveResponse.body}`);
-      }
-      const expectedCanonical = canonicalText(tuple);
-      if (resolveBody.exactMatch.canonicalText !== expectedCanonical) {
-        throw new Error(`Canonical text mismatch for ${query}: expected ${expectedCanonical}, got ${resolveBody.exactMatch.canonicalText}`);
-      }
-
-      const collectionResponse = await app.inject({
-        method: 'GET',
-        url: `/v1/collection?addressId=${encodeURIComponent(tuple[0])}`,
-      });
-      if (collectionResponse.statusCode !== 200) {
-        throw new Error(`Collection failed for ${tuple[0]}: HTTP ${collectionResponse.statusCode} ${collectionResponse.body}`);
-      }
-      const collectionBody = JSON.parse(collectionResponse.body) as CollectionBody;
-      if (
-        collectionBody.municipality?.terc !== BEDZINO_TERC ||
-        collectionBody.municipality?.name !== 'Będzino' ||
-        collectionBody.serviceArea?.name !== SERVICE_AREA_NAME ||
-        collectionBody.source?.url !== SOURCE_URL ||
-        collectionBody.source?.format !== 'PDF_TEXT' ||
-        collectionBody.source?.parserKey !== 'municipal-collection-pdf-text' ||
-        collectionBody.source?.parserVersion !== '0.2.0' ||
-        collectionBody.quality?.verificationStatus !== 'OFFICIAL_SOURCE'
-      ) {
-        throw new Error(`Collection metadata mismatch for ${tuple[0]}: ${collectionResponse.body}`);
-      }
-      if (!isDeepStrictEqual(collectionBody.events, expected)) {
-        throw new Error(`Collection events mismatch for ${tuple[0]}: ${JSON.stringify(collectionBody.events)}`);
-      }
-
-      validated += 1;
+    const workerPostGate = report.bedzinoDworek2026_7PostCheck as Record<string, unknown> | undefined;
+    if (report.status !== 'PASS' || workerPostGate?.status !== 'PASS') {
+      throw new Error('Będzino Dworek worker post-gate must pass before the public API gate');
+    }
+    const fixtureSha256 = workerPostGate.deterministicFixtureSha256;
+    if (typeof fixtureSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(fixtureSha256)) {
+      throw new Error('Będzino worker post-gate did not expose deterministic artifact SHA-256');
     }
 
-    report.bedzinoDworek2026_7ApiPostCheck = {
+    const snapshot = JSON.parse(await readFile(snapshotPath, 'utf8')) as Snapshot;
+    if (
+      snapshot.schemaVersion !== '1.0.0' ||
+      snapshot.snapshotDate !== '2026-09-03' ||
+      snapshot.selection.total !== 13 ||
+      snapshot.selection.municipalityTerc !== BEDZINO_TERC ||
+      snapshot.selection.locality !== 'Dworek' ||
+      snapshot.selection.simc !== '0302400' ||
+      snapshot.addresses.length !== 13
+    ) {
+      throw new Error(`Unexpected Będzino Dworek API evidence snapshot: ${JSON.stringify(snapshot.selection)}`);
+    }
+
+    const expected = expectedEvents();
+    if (expected.length !== 45) throw new Error(`Expected 45 source-backed Dworek events, got ${expected.length}`);
+
+    const mismatches: Array<Record<string, unknown>> = [];
+    let passed = 0;
+    let ambiguousResponses = 0;
+    let criticalScheduleMismatches = 0;
+
+    for (const tuple of snapshot.addresses) {
+      const [prgId, municipalityTerc, locality, simc, , , buildingNumber, postalCode, x2180, y2180, serviceArea] = tuple;
+      const query = addressQuery(tuple);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/v1/collection?address=${encodeURIComponent(query)}&from=2026-07-01&days=184`,
+      });
+      const body = response.json() as CollectionBody;
+      const actual = response.statusCode === 200
+        ? {
+            statusCode: 200,
+            canonicalText: body.address?.canonicalText,
+            municipalityTerc: body.municipality?.terc,
+            municipalityName: body.municipality?.name,
+            serviceAreaName: body.serviceArea?.name,
+            events: body.events,
+            sourceUrl: body.source?.url,
+            sourceFormat: body.source?.format,
+            sourceSha256: body.source?.sha256,
+            parserKey: body.source?.parserKey,
+            parserVersion: body.source?.parserVersion,
+            verificationStatus: body.quality?.verificationStatus,
+          }
+        : { statusCode: response.statusCode, code: body.code ?? null };
+      const wanted = {
+        statusCode: 200,
+        canonicalText: canonicalText(tuple),
+        municipalityTerc: BEDZINO_TERC,
+        municipalityName: 'Będzino',
+        serviceAreaName: SERVICE_AREA_NAME,
+        events: expected,
+        sourceUrl: SOURCE_URL,
+        sourceFormat: 'PDF_TEXT',
+        sourceSha256: fixtureSha256,
+        parserKey: 'municipal-collection-pdf-text',
+        parserVersion: '0.2.0',
+        verificationStatus: 'OFFICIAL_SOURCE',
+      };
+
+      if (isDeepStrictEqual(actual, wanted)) {
+        passed += 1;
+        continue;
+      }
+
+      const eventsEqual = response.statusCode === 200 && isDeepStrictEqual(body.events ?? [], expected);
+      if (!eventsEqual) criticalScheduleMismatches += 1;
+      if (
+        response.statusCode === 409 &&
+        (body.code === 'AMBIGUOUS_SERVICE_AREA' || body.code === 'AMBIGUOUS_ADDRESS')
+      ) {
+        ambiguousResponses += 1;
+      }
+      mismatches.push({
+        prgId,
+        addressQuery: query,
+        municipalityTerc,
+        locality,
+        simc,
+        buildingNumber,
+        postalCode,
+        geometry2180: { x: x2180, y: y2180 },
+        serviceArea,
+        expected: wanted,
+        actual,
+        criticalScheduleMismatch: !eventsEqual,
+      });
+    }
+
+    const correctness = passed / snapshot.addresses.length;
+    if (passed !== 13 || correctness !== 1 || criticalScheduleMismatches !== 0 || ambiguousResponses !== 0) {
+      report.bedzinoDworekApi2026_7PostCheck = {
+        status: 'FAIL',
+        total: snapshot.addresses.length,
+        passed,
+        correctness,
+        criticalScheduleMismatches,
+        ambiguousResponses,
+        mismatches,
+      };
+      report.status = 'FAIL';
+      await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+      throw new Error(
+        `Będzino Dworek API gate failed: passed=${passed}/13, critical=${criticalScheduleMismatches}, ambiguous=${ambiguousResponses}`,
+      );
+    }
+
+    report.bedzinoDworekApi2026_7PostCheck = {
       status: 'PASS',
-      endpoint: '/v1/collection',
-      sourceUrl: SOURCE_URL,
-      realAddressesTested: rawSnapshot.addresses.length,
-      realAddressesPassed: validated,
-      serviceAreaName: SERVICE_AREA_NAME,
-      eventsPerAddress: expected.length,
-      criticalWrongDateMismatches: 0,
+      realPrgAddresses: snapshot.addresses.length,
+      passed,
+      correctness,
+      criticalWrongDateTolerance: 0,
+      criticalScheduleMismatches: 0,
       ambiguousResponses: 0,
+      eventCountPerAddress: expected.length,
+      serviceAreaName: SERVICE_AREA_NAME,
+      sourceUrl: SOURCE_URL,
+      sourceSha256: fixtureSha256,
+      parserKey: 'municipal-collection-pdf-text',
+      parserVersion: '0.2.0',
     };
     await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-    console.log(`Będzino Dworek 2026.7 API post-gate PASS: ${validated}/${rawSnapshot.addresses.length} PRG addresses verified against live API`);
+    console.log(`Będzino Dworek public API post-gate PASS: ${passed}/${snapshot.addresses.length} addresses, 0 critical date mismatches`);
   } catch (error) {
-    report.bedzinoDworek2026_7ApiPostCheck = {
+    report.bedzinoDworekApi2026_7PostCheck = {
       status: 'FAIL',
       error: error instanceof Error
         ? { name: error.name, message: error.message, stack: error.stack }
