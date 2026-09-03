@@ -8,6 +8,7 @@ export function getFractionLabel(fraction: string): string {
       return 'Papier';
     case 'GLASS':
       return 'Szkło';
+    case 'MIXED':
     case 'RESIDUAL':
       return 'Zmieszane (resztkowe)';
     case 'BULKY':
@@ -22,6 +23,8 @@ export function getFractionLabel(fraction: string): string {
       return 'Niebezpieczne';
     case 'CONSTRUCTION':
       return 'Budowlane / rozbiórkowe';
+    case 'OTHER':
+      return 'Pozostałe odpady';
     default:
       return fraction;
   }
@@ -37,6 +40,7 @@ export function getFractionClass(fraction: string): string {
       return 'paper';
     case 'GLASS':
       return 'glass';
+    case 'MIXED':
     case 'RESIDUAL':
       return 'residual';
     case 'BULKY':

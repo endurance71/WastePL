@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, ShieldCheck, ExternalLink, Filter } from 'lucide-react';
+import { Calendar, ShieldCheck, ExternalLink, Filter, Download } from 'lucide-react';
 import type { CollectionEvent, CollectionQuality, CollectionSourceProvenance } from '../types/api.js';
 import {
   formatDayCountdown,
@@ -7,17 +7,20 @@ import {
   getFractionClass,
   getFractionLabel,
 } from '../utils/formatters.js';
+import { downloadIcsFile, generateIcsCalendar } from '../utils/ics-generator.js';
 
 interface CollectionTimelineProps {
   events: CollectionEvent[];
   source: CollectionSourceProvenance;
   quality: CollectionQuality;
+  addressText?: string;
 }
 
 export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
   events,
   source,
   quality,
+  addressText,
 }) => {
   const [selectedFraction, setSelectedFraction] = useState<string>('ALL');
 
@@ -28,13 +31,49 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
       ? events
       : events.filter((e) => e.fraction === selectedFraction);
 
+  const handleExportCalendar = () => {
+    if (!filteredEvents.length) return;
+    const targetAddress = addressText ?? 'Mój adres';
+    const icsContent = generateIcsCalendar({
+      addressText: targetAddress,
+      events: filteredEvents,
+      alarmEveningBefore: true,
+    });
+    const safeFilename = `odpady-${targetAddress.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}.ics`;
+    downloadIcsFile(safeFilename, icsContent);
+  };
+
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Kolejne odbiory</h3>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-          {filteredEvents.length} terminów
-        </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Kolejne odbiory</h3>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            ({filteredEvents.length})
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={handleExportCalendar}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(56, 189, 248, 0.12)',
+            color: '#38bdf8',
+            border: '1px solid rgba(56, 189, 248, 0.3)',
+            borderRadius: 'var(--radius-pill)',
+            padding: '5px 12px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          title="Pobierz plik kalendarza iCal (.ics) do Apple Calendar, Google Calendar, Outlook z przypomnieniami"
+        >
+          <Download size={14} />
+          <span>Kalendarz (.ics)</span>
+        </button>
       </div>
 
       {/* Fraction Filter Chips */}
