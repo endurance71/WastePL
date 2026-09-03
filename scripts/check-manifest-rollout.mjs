@@ -11,7 +11,7 @@ async function readJson(relativePath) {
   return JSON.parse(await readFile(new URL(relativePath, import.meta.url), 'utf8'));
 }
 
-const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9, wave10, wave11, wave12] = await Promise.all([
+const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave9, wave10, wave11, wave12, wave13] = await Promise.all([
   readJson('../schemas/source-manifest-v0.1.schema.json'),
   readJson('../manifests/pilot-koszalin-region-2026.1.json'),
   readJson('../manifests/pilot-koszalin-region-2026.2.json'),
@@ -25,6 +25,7 @@ const [schema, historical, wave2, wave3, wave4, wave5, wave6, wave7, wave8, wave
   readJson('../manifests/pilot-koszalin-region-2026.10.json'),
   readJson('../manifests/pilot-koszalin-region-2026.11.json'),
   readJson('../manifests/pilot-koszalin-region-2026.12.json'),
+  readJson('../manifests/pilot-koszalin-region-2026.13.json'),
 ]);
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -52,6 +53,7 @@ for (const [label, value] of [
   ['pilot source manifest 2026.10', wave10],
   ['pilot source manifest 2026.11', wave11],
   ['pilot source manifest 2026.12', wave12],
+  ['pilot source manifest 2026.13', wave13],
 ]) assertValid(value, label);
 
 if (historical.manifestId !== 'pilot-koszalin-region' || historical.version !== '2026.1') {
@@ -69,6 +71,7 @@ for (const [manifest, version] of [
   [wave10, '2026.10'],
   [wave11, '2026.11'],
   [wave12, '2026.12'],
+  [wave13, '2026.13'],
 ]) {
   if (manifest.manifestId !== historical.manifestId || manifest.version !== version) {
     throw new Error(`Manifest must remain pilot-koszalin-region@${version}`);
@@ -97,6 +100,7 @@ const manifestMaps = [
   ['2026.10', municipalities(wave10)],
   ['2026.11', municipalities(wave11)],
   ['2026.12', municipalities(wave12)],
+  ['2026.13', municipalities(wave13)],
 ];
 for (const [label, map] of manifestMaps) {
   if (map.size !== 8) throw new Error(`${label} must contain exactly 8 municipalities`);
@@ -120,6 +124,7 @@ const s9 = sources(wave9);
 const s10 = sources(wave10);
 const s11 = sources(wave11);
 const s12 = sources(wave12);
+const s13 = sources(wave13);
 for (const key of s1.keys()) if (!s2.has(key)) throw new Error(`2026.2 lost historical source ${key}`);
 for (const key of s2.keys()) if (!s3.has(key)) throw new Error(`2026.3 lost wave-2 source ${key}`);
 for (const key of s3.keys()) if (!s4.has(key)) throw new Error(`2026.4 lost wave-3 source ${key}`);
@@ -131,6 +136,7 @@ for (const key of s8.keys()) if (!s9.has(key)) throw new Error(`2026.9 lost wave
 for (const key of s9.keys()) if (!s10.has(key)) throw new Error(`2026.10 lost wave-9 source ${key}`);
 for (const key of s10.keys()) if (!s11.has(key)) throw new Error(`2026.11 lost wave-10 source ${key}`);
 for (const key of s11.keys()) if (!s12.has(key)) throw new Error(`2026.12 lost wave-11 source ${key}`);
+for (const key of s12.keys()) if (!s13.has(key)) throw new Error(`2026.13 lost wave-12 source ${key}`);
 
 const wave3NewKeys = [...s3.keys()].filter((key) => !s2.has(key)).sort();
 if (JSON.stringify(wave3NewKeys) !== JSON.stringify([
@@ -171,7 +177,7 @@ const supportedParsers = new Map([
   ['municipal-pszok-html', 'HTML'],
 ]);
 
-for (const source of s12.values()) {
+for (const source of s13.values()) {
   if (source.status === 'PLANNED') {
     if (source.parserKey !== null) throw new Error(`PLANNED source ${source.key} must not claim a parser`);
     if (source.assessment && !source.assessment.activationBlocker) {
@@ -500,4 +506,33 @@ if (
 
 console.log(
   `WastePL manifest rollout OK: through 2026.12 with ${active12.size} ACTIVE sources; newly active=${newlyActive12.join(', ')} (7/8 PSZOK coverage)`,
+);
+
+const active13 = activeKeys(s13);
+const newlyActive13 = [...active13].filter((key) => !active12.has(key)).sort();
+if (active13.size !== 17 || newlyActive13.length !== 1 || newlyActive13[0] !== 'manowo-pszok') {
+  throw new Error(
+    `2026.13 rollout must add exactly manowo-pszok: size=${active13.size}, newlyActive=${newlyActive13.join(',')}`,
+  );
+}
+
+const manowoPszok = s13.get('manowo-pszok');
+const expectedManowoPszokUrl =
+  'https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-manowo/';
+if (
+  !manowoPszok ||
+  manowoPszok.status !== 'ACTIVE' ||
+  manowoPszok.terc !== '3209042' ||
+  manowoPszok.url !== expectedManowoPszokUrl ||
+  manowoPszok.dataType !== 'PSZOK' ||
+  manowoPszok.format !== 'HTML' ||
+  manowoPszok.parserKey !== 'municipal-pszok-html' ||
+  manowoPszok.assessment?.evidenceStatus !== 'VERIFIED' ||
+  manowoPszok.assessment?.activationBlocker !== null
+) {
+  throw new Error('Manowo PSZOK must be verified ACTIVE in 2026.13');
+}
+
+console.log(
+  `WastePL manifest rollout OK: through 2026.13 with ${active13.size} ACTIVE sources; newly active=${newlyActive13.join(', ')} (8/8 PSZOK coverage - 100% COMPLETE!)`,
 );

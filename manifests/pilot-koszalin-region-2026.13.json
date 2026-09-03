@@ -1,0 +1,649 @@
+{
+  "schemaVersion": "0.1.0",
+  "manifestId": "pilot-koszalin-region",
+  "version": "2026.13",
+  "generatedAt": "2026-09-03T20:30:00Z",
+  "municipalities": [
+    {
+      "terc": "3261011",
+      "name": "Koszalin",
+      "sources": [
+        {
+          "key": "koszalin-collection-bio-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/bio.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Unchanged proven source from manifest 2026.1.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31"
+        },
+        {
+          "key": "koszalin-pszok-main",
+          "dataType": "PSZOK",
+          "url": "https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-koszalin/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Unchanged proven main member of the PGK Koszalin PSZOK bundle.",
+          "activeFrom": null,
+          "activeTo": null,
+          "bundle": {
+            "key": "koszalin-pszok",
+            "role": "main",
+            "requiredRoles": [
+              "main",
+              "faq"
+            ],
+            "freshnessMinutes": 2880
+          }
+        },
+        {
+          "key": "koszalin-pszok-faq",
+          "dataType": "PSZOK",
+          "url": "https://www.pgkkoszalin.pl/najczesciej-zadawane-pytania-f-a-q/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Unchanged proven FAQ member of the PGK Koszalin PSZOK bundle.",
+          "activeFrom": null,
+          "activeTo": null,
+          "bundle": {
+            "key": "koszalin-pszok",
+            "role": "faq",
+            "requiredRoles": [
+              "main",
+              "faq"
+            ],
+            "freshnessMinutes": 2880
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3209033",
+      "name": "Bobolice",
+      "sources": [
+        {
+          "key": "bobolice-collection-klanino-safe-h2-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://cms-v2-files.idcom-jst.pl/sites/52/cms/szablony/5169/zdjecia/orign/2a2130e07b8640d995b493f4bca53e20ej2pjkevuej9bq1k-6.jpg",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "municipal-collection-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Bobolicach",
+          "reuseNotes": "Bobolice Sheet 6 H2 safe subset: Kłanino locality without overlaps.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T15:00:00Z",
+            "childArtifactUrls": [],
+            "notes": "Kłanino verified zero overlap with multi-family or narrow road carve-outs."
+          }
+        },
+        {
+          "key": "bobolice-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bobolice.pl/cms/5665",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Bobolicach",
+          "reuseNotes": "Official 2026 schedule entrypoint; H2 publication changed contractor and has repeatedly revised mixed image/attachment content.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "MIXED_MEDIA",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "DISCOVERY_ONLY_SAFE_CHILDREN_VERSIONED_AS_DIRECT_SOURCES",
+            "assessedAt": "2026-08-28T10:30:00Z",
+            "childArtifactUrls": [
+              "https://cms-v2-files.idcom-jst.pl/sites/52/cms/szablony/5169/zdjecia/orign/2a2130e07b8640d995b493f4bca53e20ej2pjkevuej9bq1k-6.jpg"
+            ],
+            "notes": "Parent discovery source remains planned; child source bobolice-collection-klanino-safe-h2-2026 is activated."
+          }
+        },
+        {
+          "key": "bobolice-pszok",
+          "dataType": "PSZOK",
+          "url": "https://bobolice.pl/cms/8587",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Bobolicach",
+          "reuseNotes": "Unchanged verified direct PSZOK source from manifest 2026.2.",
+          "activeFrom": null,
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-08-28T10:30:00Z",
+            "childArtifactUrls": [],
+            "notes": "Direct official HTML is sufficient for deterministic facility normalization."
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3209073",
+      "name": "Sianów",
+      "sources": [
+        {
+          "key": "sianow-collection-2026-h2",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/harmonogram-odbioru-odpadow/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy i Miasta w Sianowie",
+          "reuseNotes": "Official H2 2026 attachment index with route-specific PGK PDFs.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "MULTI_ROUTE_PDF_SET",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "GENERIC_SEGREGATED_COLUMN_NOT_CANONICALLY_MAPPED",
+            "assessedAt": "2026-08-28T10:30:00Z",
+            "childArtifactUrls": [
+              "https://sianow.pl/wp-content/uploads/2026/06/1-Skwierzynka.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/2-Wegorzewo-Koszalinskie.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/3-Sieciemin.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/4-Klos.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/5-Sucha-Koszalinska.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/6-Trawica.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/07/7-Osieki-ul.-Bursztynowa-Dluga-Klonowa-5-Koralowa-Krotka-Mila-Muszelkowa-Nadmorska-Parkowa-Piaskowa-Sloneczna.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/8-Gorzebadz-i-Kedzierzyn.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/9-Dabrowa-i-Grabowko.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/10-Skibno-oraz-Skibienko.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/11-Kleszcze-Lazy-i-Osieki.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/12-Bielkowo-Iwiecino-Rzepkowo-i-Wierciszewo.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/13-Karnieszewice-Kolzin-Plonka-oraz-Trawica-1.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/14-Borowiec.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/S1-Sianow-Armii-Polskiej-chrobrego-itd.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/S2-Sianow-Kopernika-Lubuszan-Mila-Ogrodowa-Przyjaciol-Slowackigo-Wegorzewska-oraz-Zgody.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/S3-Sianow-Brzozowa-Bukowa-Debowa-Dworcowa-Jarzebinowa-Klonowa-Kwiatowa-Lipowa-Podgorna-Rzemieslnicza-Sloneczna-Topolowa.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/15-utrudnione.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/w1-Szczeglino.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/w2-Kleszcze.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/w3-Rzepkowo.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/w4-ulice-Sianow.pdf",
+              "https://sianow.pl/wp-content/uploads/2026/06/w5-Klos-i-Skibno.pdf"
+            ],
+            "notes": "Exact H2 route PDFs remain enumerated; generic segregated semantics are still ambiguous."
+          }
+        },
+        {
+          "key": "sianow-pszok",
+          "dataType": "PSZOK",
+          "url": "https://sianow.pl/dla-mieszkanca/odpady-komunalne/nieruchomosci-zamieszkale/punkt-selektywnej-zbiorki-odpadow-komunalnych/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy i Miasta w Sianowie",
+          "reuseNotes": "Prospectively measured extension of the existing municipal PSZOK HTML adapter for direct official content.",
+          "activeFrom": null,
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-08-29T10:10:42Z",
+            "childArtifactUrls": [],
+            "notes": "Direct official HTML publishes address context, operator, weekly hours, resident access, proof-of-fee requirement and an explicit accepted-material catalogue. Current 2026 municipal schedules independently corroborate the PSZOK address and hours."
+          }
+        },
+        {
+          "key": "sianow-collection-dabrowa-grabowko-safe-h2-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://sianow.pl/wp-content/uploads/2026/06/9-Dabrowa-i-Grabowko.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "municipal-collection-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy i Miasta w Sianowie",
+          "reuseNotes": "Verified H2 PGK Koszalin Dąbrowa i Grabówko schedule; Grabówko safe subset. Live PDF SHA-256 618c62bcca3a374d78ecb8db1aa935cbae6fd08e7a280787245270327bf7b16c; segregated waste retained as OTHER; bio bi-weekly through Oct then monthly; bulky in Sept.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T12:00:00Z",
+            "childArtifactUrls": [],
+            "notes": "Safe subset only: Grabówko has zero difficult-access carve-outs in 15-utrudnione.pdf. Runtime coverage is LOCALITY SIMC 0310858 over 31 frozen official PRG addresses."
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3209042",
+      "name": "Manowo",
+      "sources": [
+        {
+          "key": "manowo-collection-2ab-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/manowo/2AB.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "pgk-koszalin-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPAL_COMPANY",
+          "ownerName": "Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie",
+          "reuseNotes": "Unchanged proven source from manifest 2026.1.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31"
+        },
+        {
+          "key": "manowo-collection-entrypoint",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.manowo.pl/artykul/gospodarka-komunalna",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Gminy Manowo",
+          "reuseNotes": "Official BIP collection-information index retained as a discovery/change source.",
+          "activeFrom": null,
+          "activeTo": null
+        },
+        {
+          "key": "manowo-pszok",
+          "dataType": "PSZOK",
+          "url": "https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-manowo/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Gmina Manowo / PGK Koszalin",
+          "reuseNotes": "Prospectively measured extension of the existing municipal PSZOK HTML adapter using official PGK Koszalin municipal portal.",
+          "activeFrom": "2026-01-01",
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T20:30:00Z",
+            "childArtifactUrls": [],
+            "notes": "Official inter-municipal portal publishes dedicated address (ul. Komunalna 5 Koszalin), weekly hours for Manowo residents, and explicit 12-material catalogue."
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3209082",
+      "name": "Świeszyno",
+      "sources": [
+        {
+          "key": "swieszyno-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://swieszyno.pl/harmonogram-wywozu-odpadow-komunalnych-na-rok-2026/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Świeszyno",
+          "reuseNotes": "Official 2026 index linking four route files on the legacy municipal BIP host.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "ATTACHMENT_INDEX",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "DISCOVERY_ONLY_SAFE_CHILDREN_VERSIONED_AS_DIRECT_SOURCES",
+            "assessedAt": "2026-09-03T14:00:00Z",
+            "childArtifactUrls": [
+              "https://ug.swieszyno.ibip.pl/public/getFile?id=472491",
+              "https://ug.swieszyno.ibip.pl/public/getFile?id=472490",
+              "https://ug.swieszyno.ibip.pl/public/getFile?id=472488",
+              "https://ug.swieszyno.ibip.pl/public/getFile?id=472489"
+            ],
+            "notes": "Official index linking four route files on municipal BIP host. Verified safe single-family subset Chałupy activated as swieszyno-collection-trasa-1-safe-h2-2026."
+          }
+        },
+        {
+          "key": "swieszyno-pszok",
+          "dataType": "PSZOK",
+          "url": "https://swieszyno.pl/punkt-selektywnej-zbiorki-odpadow-komunalnych-pszok/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Świeszyno",
+          "reuseNotes": "Unchanged verified direct PSZOK source from manifest 2026.2.",
+          "activeFrom": null,
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-08-28T10:30:00Z",
+            "childArtifactUrls": [],
+            "notes": "Direct official HTML is sufficient for deterministic core facility normalization."
+          }
+        },
+        {
+          "key": "swieszyno-collection-trasa-1-safe-h2-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://ug.swieszyno.ibip.pl/public/getFile?id=472491",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "municipal-collection-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Świeszyno",
+          "reuseNotes": "Świeszyno 2026 Trasa I schedule; Chałupy verified safe single-family subset with 167 PRG addresses and 29 collection events.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T14:00:00Z",
+            "childArtifactUrls": [],
+            "notes": "Verified safe single-family route for Chałupy with zero multi-family or difficult-access overlap."
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3209012",
+      "name": "Będzino",
+      "sources": [
+        {
+          "key": "bedzino-collection-2026-h2",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.bedzino.pl/?id=6920&type=article",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Gminy Będzino",
+          "reuseNotes": "Official H2 parent; exact current attachment inventory is frozen but route coverage remains non-deterministic.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "MULTI_ROUTE_PDF_SET",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "H2_ROUTE_I_II_OSLONY_AND_DIFFICULT_COVERAGE_NOT_YET_ADDRESS_DETERMINISTIC",
+            "assessedAt": "2026-08-28T16:30:00Z",
+            "childArtifactUrls": [
+              "https://bip.bedzino.pl/backend/uploads/files//2026-06-16_od_lipca_B%C4%99dzino%202026%20trudnodost%C4%99pnedocx.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files//2026-06-16_od_lipca_OS%C5%81ONY%20B%C4%98DZINO%202026.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files//2026-06-16_od_lipca_B%C4%99dzino%202026%20trasa%20I.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files//2026-06-16_od_lipca_B%C4%99dzino%202026%20trasa%20II.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files//2026-06-15_Kladno_zm.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Trudnodost%C4%99pne.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Dobre%20Ma%C5%82e%2C%20Dobrzyca%2C%20M%C4%85czno%2C%20Popowo%2C%20Stois%C5%82aw%2C%20Wierzchomino%2C%20Wierzchominko%2C%20Zi%C4%99brze.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_%C5%81ubniki%2C%20M%C5%9Bcice.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_%C5%81asin%2C%20%C5%81opienica%20oraz%20Ple%C5%9Bna.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_B%C4%99dzinko%2C%20Borkowice%2C%20Dworek%2C%20Kiszkowo%2C%20Komory%2C%20Skrzeszewo%2C%20S%C5%82owienkowo%2C%20%C5%9Amiech%C3%B3w.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Kazmierz%20Pomorski%2C%20Strze%C5%BCenice.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Smolne%2C%20Strachomino%2C%20Strzepowo.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Barnin%2C%20B%C4%99dzino%2C%20Mi%C5%82ogoszcz%2C%20Tymie%C5%84%2C%20Uliszki%2C%20Zagaje.pdf",
+              "https://bip.bedzino.pl/backend/uploads/files/zalatw_sprawe/gospodarka_odpadami/harmonogramy_wywozu/2026-06-12_Barninek%2C%20Dobies%C5%82awiec%20oraz%20Podamirowo.pdf"
+            ],
+            "notes": "All 14 currently listed BIP attachments are captured exactly. Four od_lipca PDFs are H2 candidates; route I/II, OSŁONY and trudnodostępne overlap/coverage must be source-mapped before activation."
+          }
+        },
+        {
+          "key": "bedzino-collection-trasa-1-safe-h2-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://ekosanodpady.pl/wp-content/uploads/2026/07/Bedzino-2026-trasa-I.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "municipal-collection-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Będzino",
+          "reuseNotes": "Verified H2 EKOSAN Trasa I schedule; Dworek safe subset. Live PDF SHA-256 91d4a4f1cf406e1116937468247062ad371198d505690f4424addd1f5de31fee; plastics retained as OTHER; paper+glass combined retained as OTHER.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T11:00:00Z",
+            "childArtifactUrls": [],
+            "notes": "Safe subset only: Dworek has zero difficult-access properties and zero multi-family shelter properties. Runtime coverage is LOCALITY SIMC 0302400 over 13 frozen official PRG addresses."
+          }
+        },
+        {
+          "key": "bedzino-pszok",
+          "dataType": "PSZOK",
+          "url": "https://archiwum.bedzino.pl/pszok-juz-dziala/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Gminy Będzino",
+          "reuseNotes": "Prospectively measured extension of the existing municipal PSZOK HTML adapter using official municipal article.",
+          "activeFrom": "2026-01-01",
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T20:15:00Z",
+            "childArtifactUrls": [],
+            "notes": "Official municipal article publishes address context (Będzino nr 17, GZK Będzino), weekly hours, resident access and an explicit 12-material catalogue."
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3209063",
+      "name": "Polanów",
+      "sources": [
+        {
+          "key": "polanow-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.polanow.pl/harmonogram-odbioru-odpadow-komunalnych---ii-polrocze-2026/d/70/2846/",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Urzędu Miejskiego w Polanowie",
+          "reuseNotes": "Canonical H2 2026 BIP discovery parent; direct child sources are versioned separately.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "ATTACHMENT_INDEX",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "DISCOVERY_ONLY_SAFE_CHILDREN_VERSIONED_AS_DIRECT_SOURCES",
+            "assessedAt": "2026-08-29T19:17:12Z",
+            "childArtifactUrls": [
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=b9dd65849fc6ebcb56cb8e3ce17710d5",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=9f0e8b36296c7a6b81235ac1e4be7f3d",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=2ab2d7615a89d857c47d062ae014d941",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=9a984d281708c4c9d9fe024fac0a9239",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=968f3890565a70325ab530f2bc0ba475",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=5918114e4f59bc84e1ee2ad0d3b70691",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=739219b35502eab379a558a2abbea937",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=4e5fd68092b90c967e3d82c68792834b",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=d5e1d06dcff13dbd33f682e757935b2f",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=fed8ae9e9000fa15c8c4cf0e685a5706",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=49d6930b8ca21e09c479347689eee6b0",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=024df25d6be612cb1573eb6f0f2e213d",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=46c336882c6fb4a6588505d7e72de3df",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=c587315871df63c17b42d0df02bdfe11",
+              "https://bip.polanow.pl/pobierz.php?d=zal&id=9420a0f8990601e55eda78db3074ac22"
+            ],
+            "notes": "All 15 H2 children were live-captured as valid PDFs. Parent remains discovery-only; only the independently non-overlapping Garbno child is activated in 2026.6."
+          }
+        },
+        {
+          "key": "polanow-collection-garbno-h2-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://bip.polanow.pl/pobierz.php?d=zal&id=b9dd65849fc6ebcb56cb8e3ce17710d5",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "municipal-collection-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Urzędu Miejskiego w Polanowie",
+          "reuseNotes": "Verified H2 Garbno single-family child. Live PDF SHA-256 d578df780951f1f391fa81007bd61e8048f001e1fca771a4561408c4c8913643; generic segregation remains OTHER rather than being expanded without source evidence.",
+          "activeFrom": "2026-07-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-08-29T19:17:12Z",
+            "childArtifactUrls": [],
+            "notes": "Safe subset only: Garbno is absent from both difficult-access overlays and multi-family schedules. Runtime coverage is LOCALITY SIMC 0308749 over 39 frozen official PRG addresses."
+          }
+        },
+        {
+          "key": "polanow-pszok",
+          "dataType": "PSZOK",
+          "url": "https://bip.polanow.pl/punkt-selektywnego-zbierania-odpadow-komunalnych-(pszok)/d/70/79/",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Urzędu Miejskiego w Polanowie",
+          "reuseNotes": "Prospectively measured extension of the existing municipal PSZOK HTML adapter using direct official BIP article 79.",
+          "activeFrom": "2026-01-01",
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-09-03T20:00:00Z",
+            "childArtifactUrls": [],
+            "notes": "Direct official BIP HTML article publishes address context (ul. Stawna 2), operator (ZUK Polanów), weekly hours, resident access, proof requirement and an explicit accepted-material catalogue."
+          }
+        }
+      ]
+    },
+    {
+      "terc": "3201043",
+      "name": "Tychowo",
+      "sources": [
+        {
+          "key": "tychowo-collection-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://tychowo.pl/cms/2151/harmonogram-odbioru-odpadow-komunalnych-",
+          "format": "HTML",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Tychowie",
+          "reuseNotes": "Discovery/index identity for the current municipal schedule page; direct child PDFs are separate registry identities.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "ATTACHMENT_INDEX",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "DISCOVERY_ONLY_CHILDREN_VERSIONED_AS_DIRECT_SOURCES",
+            "assessedAt": "2026-08-28T16:30:00Z",
+            "childArtifactUrls": [
+              "https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmiana2harmonogram_tychowo_2026.pdf",
+              "https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianakopia_harmonogram_tychowo_2026_%E2%80%94_kolonijne.pdf"
+            ],
+            "notes": "The current CMS parent exposes exactly two revised 2026 PDFs and remains discovery-only."
+          }
+        },
+        {
+          "key": "tychowo-collection-standard-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmiana2harmonogram_tychowo_2026.pdf",
+          "format": "PDF_TEXT",
+          "status": "ACTIVE",
+          "parserKey": "municipal-collection-pdf-text",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Tychowie",
+          "reuseNotes": "New municipal PDF adapter with deliberately partial, non-overlapping locality coverage.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-08-28T16:30:00Z",
+            "childArtifactUrls": [],
+            "notes": "Publishes only locality groups without hard-to-reach exceptions or ambiguous Tychowo city coverage. 'Tworzywa sztuczne' is retained as OTHER rather than silently expanded to METALS_PLASTICS."
+          }
+        },
+        {
+          "key": "tychowo-collection-difficult-2026",
+          "dataType": "COLLECTION_SCHEDULE",
+          "url": "https://cms-v2-files.idcom-jst.pl/sites/64/cms/szablony/2151/pliki/zmianakopia_harmonogram_tychowo_2026_%E2%80%94_kolonijne.pdf",
+          "format": "PDF_TEXT",
+          "status": "PLANNED",
+          "parserKey": null,
+          "pollIntervalMinutes": 1440,
+          "ownerType": "MUNICIPALITY",
+          "ownerName": "Urząd Miejski w Tychowie",
+          "reuseNotes": "Exact revised hard-to-reach child retained for a later explicit-address gate.",
+          "activeFrom": "2026-01-01",
+          "activeTo": "2026-12-31",
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": "EXPLICIT_ADDRESS_REFERENCE_GATE_NOT_YET_COMPLETE",
+            "assessedAt": "2026-08-28T16:30:00Z",
+            "childArtifactUrls": [],
+            "notes": "The source lists explicit property numbers plus an unnumbered Zastawa entry and Tychowo ul. Sosnowa 12; it remains non-schedulable until supported properties resolve uniquely to PRG."
+          }
+        },
+        {
+          "key": "tychowo-pszok",
+          "dataType": "PSZOK",
+          "url": "https://bip.tychowo.pl/artykul/646/9305/oplata-za-gospodarowanie-odpadami-komunalnymi",
+          "format": "HTML",
+          "status": "ACTIVE",
+          "parserKey": "municipal-pszok-html",
+          "pollIntervalMinutes": 1440,
+          "ownerType": "BIP",
+          "ownerName": "Biuletyn Informacji Publicznej Urzędu Miejskiego w Tychowie",
+          "reuseNotes": "Prospectively measured extension of the existing municipal PSZOK HTML adapter using one direct official BIP artifact.",
+          "activeFrom": null,
+          "activeTo": null,
+          "assessment": {
+            "shape": "DIRECT_CONTENT",
+            "evidenceStatus": "VERIFIED",
+            "activationBlocker": null,
+            "assessedAt": "2026-08-29T11:47:09Z",
+            "childArtifactUrls": [],
+            "notes": "BIP HTML last updated 2026-05-21 publishes Dolna 8, Tuesday/Thursday/Saturday hours and an explicit waste catalogue. Runtime deliberately omits PDF-only operator/access/proof claims and does not map plastics-only wording to METALS_PLASTICS."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -28,6 +28,10 @@ const bedzinoHtml = readFileSync(
   new URL('../../../test/fixtures/bedzino-pszok.html', import.meta.url),
   'utf8',
 );
+const manowoHtml = readFileSync(
+  new URL('../../../test/fixtures/manowo-pszok.html', import.meta.url),
+  'utf8',
+);
 
 function artifact(html: string, sourceKey: string, url: string) {
   return {
@@ -410,6 +414,80 @@ describe('MunicipalPszokHtmlAdapter', () => {
       broken,
       'bedzino-pszok',
       'https://archiwum.bedzino.pl/pszok-juz-dziala/',
+    ))).toThrow('Tuesday opening hours missing');
+  });
+
+  it('normalizes Manowo PSZOK without inventing geometry', async () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const facility = adapter.parse(artifact(
+      manowoHtml,
+      'manowo-pszok',
+      'https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-manowo/',
+    ));
+
+    await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    expect(facility).toMatchObject({
+      key: 'pl-3209042-pszok-manowo-komunalna-5',
+      kind: 'PSZOK',
+      name: 'PSZOK Manowo (PGK Koszalin), ul. Komunalna 5',
+      address: 'ul. Komunalna 5, 75-724 Koszalin',
+      operatorName: 'Przedsiębiorstwo Gospodarki Komunalnej Sp. z o.o. w Koszalinie',
+      location: null,
+      locationSourceKey: null,
+      access: {
+        scope: 'MUNICIPALITY_RESIDENTS',
+        sourceKey: 'manowo-pszok',
+      },
+      quality: {
+        verificationStatus: 'OFFICIAL_SOURCE',
+        confidence: 0.98,
+        warnings: [
+          'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+          'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+        ],
+      },
+    });
+
+    expect(facility.acceptedMaterials).toEqual([
+      'BULKY',
+      'CONSTRUCTION',
+      'GREEN',
+      'HAZARDOUS',
+      'MEDICINES',
+      'BATTERIES',
+      'ELECTRONICS',
+      'TYRES',
+      'TEXTILES',
+      'PAPER',
+      'METALS_PLASTICS',
+      'GLASS',
+    ]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'MONDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'TUESDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '16:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'WEDNESDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'THURSDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '16:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'FRIDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SATURDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SUNDAY')?.intervals)
+      .toEqual([]);
+  });
+
+  it('fails visibly when Manowo PSZOK hours drift', () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const broken = manowoHtml.replace(
+      'wtorek w godzinach 08.00 – 16.00',
+      'wtorek w godzinach 10.00 – 18.00',
+    );
+    expect(() => adapter.parse(artifact(
+      broken,
+      'manowo-pszok',
+      'https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-manowo/',
     ))).toThrow('Tuesday opening hours missing');
   });
 });

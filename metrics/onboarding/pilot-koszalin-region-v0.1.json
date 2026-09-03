@@ -1289,6 +1289,93 @@
         "CI queue/runtime is excluded from effort minutes.",
         "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
       ]
+    },
+    {
+      "id": "manowo-pszok-wave13",
+      "terc": "3209042",
+      "municipalityName": "Manowo",
+      "dataType": "PSZOK",
+      "sourceWave": "pilot-source-wave-13",
+      "activatedInManifestVersion": "2026.13",
+      "sourceKeys": [
+        "manowo-pszok"
+      ],
+      "parserKeys": [
+        "municipal-pszok-html"
+      ],
+      "measurementMode": "PROSPECTIVE",
+      "adapterReuseClass": "EXTENDED_EXISTING",
+      "complexity": {
+        "parentArtifactCount": 1,
+        "childArtifactCount": 0,
+        "activeArtifactCount": 1,
+        "coordination": "SINGLE_ARTIFACT",
+        "serviceAreaComplexity": "NONE",
+        "manualReviewSurfaces": 0,
+        "drivers": [
+          "Official PGK Koszalin inter-municipal portal for Gmina Manowo residents",
+          "Single HTML artifact publishes address, operator (PGK Koszalin), weekly hours and 12 accepted materials",
+          "Existing municipal PSZOK HTML adapter extended (100% reuse)"
+        ]
+      },
+      "effort": {
+        "discovery": {
+          "minutes": 1,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md"
+        },
+        "sourceAssessment": {
+          "minutes": 1,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md"
+        },
+        "parserImplementation": {
+          "minutes": 1,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md"
+        },
+        "regressionFixture": {
+          "minutes": 0,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md"
+        },
+        "addressServiceAreaMapping": {
+          "minutes": 0,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md"
+        },
+        "review": {
+          "minutes": 10,
+          "basis": "PROSPECTIVE_TIMER",
+          "evidenceRef": "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md"
+        }
+      },
+      "firstImport": {
+        "status": "PASS",
+        "automatic": true,
+        "manualInterventions": 0,
+        "evidenceRef": "apps/worker/src/readiness/manowo-pszok-post-gate.ts"
+      },
+      "repeatUpdate": {
+        "status": "NOT_MEASURED",
+        "automatic": null,
+        "manualInterventions": null,
+        "evidenceRef": null
+      },
+      "evidenceRefs": [
+        "metrics/onboarding/evidence/manowo-pszok-2026.13-worklog.md",
+        "manifests/pilot-koszalin-region-2026.13.json",
+        "apps/worker/test/fixtures/manowo-pszok.html",
+        "apps/worker/src/adapters/html/municipal-pszok-adapter.ts",
+        "apps/worker/src/readiness/manowo-pszok-post-gate.ts",
+        "apps/api/src/readiness/manowo-pszok-api-post-gate.ts"
+      ],
+      "notes": [
+        "All six prospective timer intervals are explicitly closed and total 13 human-active minutes.",
+        "Manowo completes pilot PSZOK coverage to 8/8 municipalities (100% PSZOK COVERAGE).",
+        "CI queue/runtime is excluded from effort minutes.",
+        "Repeat-update automation remains NOT_MEASURED until a real subsequent source change is observed."
+      ]
     }
   ]
 }

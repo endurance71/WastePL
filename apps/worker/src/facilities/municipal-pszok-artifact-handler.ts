@@ -28,6 +28,7 @@ const EXPECTED_TERC = new Map<string, string>([
   ['tychowo-pszok', '3201043'],
   ['polanow-pszok', '3209063'],
   ['bedzino-pszok', '3209012'],
+  ['manowo-pszok', '3209042'],
 ]);
 
 export class MunicipalPszokArtifactHandler implements ArtifactHandler {

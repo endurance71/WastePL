@@ -18,7 +18,8 @@
     "readiness:swieszyno-chalupy-api": "tsx src/readiness/swieszyno-chalupy-api-post-gate.ts",
     "readiness:bobolice-klanino-api": "tsx src/readiness/bobolice-klanino-api-post-gate.ts",
     "readiness:polanow-pszok-api": "tsx src/readiness/polanow-pszok-api-post-gate.ts",
-    "readiness:bedzino-pszok-api": "tsx src/readiness/bedzino-pszok-api-post-gate.ts"
+    "readiness:bedzino-pszok-api": "tsx src/readiness/bedzino-pszok-api-post-gate.ts",
+    "readiness:manowo-pszok-api": "tsx src/readiness/manowo-pszok-api-post-gate.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
