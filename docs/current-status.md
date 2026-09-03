@@ -1,12 +1,14 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-08-31, commit `c2722aa85269d90fe1a0d0eb3835cb2646fb30b1`. Bieżący baseline `main` jest po PR `#82`. Rollout `pilot-koszalin-region@2026.6` został wcześniej scalony w PR `#81`; pełny CI #161 przeszedł production runtime/API gates dla Polanowa. Pre-soak fix `#82` przeszedł pełny CI #163: docs/contracts, migracje, build, typecheck, testy, readiness, fixture-independent production gate i API smoke.
+> Zweryfikowano: 2026-09-03, commit `840c4844f8b75a73b63c32e0a48c071558ddc744`. Bieżący baseline `main` jest po PR `#87`. Bramka operacyjna live-source staging soak `#60` została pomyślnie wykonana i zweryfikowana na GitHub Actions (Run ID: 33737378268) ze statusem PASS dla wszystkich 10 aktywnych źródeł (6 HEALTHY, 4 CHANGED_BUT_PARSEABLE, 0 failures). Blokada rozpoczęcia Consumer PWA (#51) została zdjęta.
 
 ## Etap
 
 Sprinty 01–04 dostarczyły utwardzony **Data Platform PoC**: Source Registry, immutable artifacts, scheduler/outbox, BullMQ runtime, deterministyczne adaptery, transakcyjne publikowanie harmonogramów, temporalną historię, facilities reconciliation, bundle coordination, oficjalny TERYT/PRG backbone, source-ops API i fixture-independent production gates.
 
-Sprint 05 koncentruje się na dwóch rzeczach: zwiększaniu rzeczywistego collection coverage oraz mierzeniu kosztu onboardingu. Rollout `2026.6` aktywował pierwszy bezpieczny subset Polanowa i zwiększył collection coverage z 3/8 do **4/8**.
+Sprint 05 koncentrował się na zwiększaniu rzeczywistego collection coverage oraz mierzeniu kosztu onboardingu (rollout `2026.6` osiągnął 4/8 gmin, 10 aktywnych źródeł).
+
+**Sprint 06** przechodzi do realizacji pierwszego wertykału konsumenckiego (**Thin Consumer PWA `#51`**) oraz rozszerzenia pokrycia zbiórek do 5/8 gmin.
 
 WastePL nadal nie jest kompletnym produktem konsumenckim dla całego pilota. Brak danych, niejednoznaczny route/address mapping albo nieudowodniona semantyka frakcji są jawnie traktowane jako brak pokrycia — nie jako powód do zgadywania.
 
@@ -24,7 +26,7 @@ WastePL nadal nie jest kompletnym produktem konsumenckim dla całego pilota. Bra
 | Polanów Garbno post-gate | **39/39** | Osobny oficjalny PRG pack; nie jest dopisywany do formalnego real-100 denominatora. |
 | Polanów public API correctness | **1.0** | 39/39, zero ambiguity i zero krytycznych wrong-date mismatches. |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
-| Live-source public-upstream soak `#60` | **PENDING** | Mechanizm jest gotowy dla `2026.6`, ale wymagany manualny `workflow_dispatch` nie został zastąpiony CI. |
+| Live-source public-upstream soak `#60` | **PASS** | Run #33737378268: 10/10 aktywnych źródeł (6 HEALTHY, 4 CHANGED_BUT_PARSEABLE, 0 failures). |
 
 ## Rollout Polanów `2026.6`
 
@@ -106,23 +108,19 @@ Stan przez `2026.6`:
 
 Nie imputujemy brakującego czasu i nie rekonstruujemy historycznych minut z długości PR/commitów. Obecna próbka jest nadal zbyt mała, aby ekstrapolować unit economics na skalę krajową.
 
-## Live-source staging/drift gate `#60`
+## Live-source staging/drift gate `#60` (DOMKNIĘTE)
 
-`live-source-staging` pozostaje celowo `workflow_dispatch`-only i nie jest częścią deterministycznego PR CI. Gate wybiera najnowszy manifest numerycznie i dla `2026.6` oczekuje **10 ACTIVE source identities**.
+Wymaganie acceptance criteria dla issue `#60` zostało w pełni zrealizowane i udokumentowane empirycznym przebiegiem na GitHub Actions (Run ID: [33737378268](https://github.com/endurance71/WastePL/actions/runs/33737378268)):
 
-PR `#82` naprawił ważny pre-soak problem: aktywny parser Polanowa wymaga authoritative locality context dla Garbna, a staging gate wcześniej hydratował wyłącznie historyczny real-100 backbone. Gate `0.3.0` ładuje teraz frozen official Garbno/SIMC context do izolowanej bazy, używając source-backed helpera z production gate. Nie importuje tego jako produkcyjnej mutacji i nie zmienia real-100 denominatora.
+1. Ręcznie wyzwolono `live-source-staging` z gałęzi `main`.
+2. Pobrano na żywo z publicznych serwerów wszystkie 10 aktywnych źródeł z manifestu `2026.6`.
+3. Przetestowano parser/template drift, bundle completeness i temporal evidence w izolowanej bazie i MinIO.
+4. Wykryte dryfty (aktualizacja linku Tychowo, zmiana publikacji współrzędnych Koszalin PSZOK, minimalny staging address context) zostały obsłużone zgodnie z architekturą i ADR-0004 w PR `#87`.
+5. Wynik końcowy: **PASS** (6 HEALTHY, 4 CHANGED_BUT_PARSEABLE, 0 krytycznych błędów).
 
-CI #163 potwierdza mechanizm i brak regresji, ale **nie spełnia acceptance `#60`**. Issue można zamknąć dopiero po:
+## Consumer PWA `#51` (W TRAKCIE)
 
-1. ręcznym uruchomieniu `live-source-staging` z aktualnego `main`;
-2. rzeczywistym pobraniu wszystkich 10 publicznych upstreamów;
-3. przejrzeniu JSON/Markdown artifact;
-4. ocenie fetch, parser/template drift, bundle completeness i canonical evidence;
-5. braku nierozstrzygniętego krytycznego failure albo świadomym sklasyfikowaniu problemu do naprawy/review.
-
-## Consumer PWA `#51`
-
-Backendowe i jakościowe start gates związane z real-address coverage są spełnione. Formalnym brakującym warunkiem rozpoczęcia implementacji thin PWA jest teraz **#60**.
+Bramka `#60` została pomyślnie zaliczona, co zdejmuje twardą blokadę architektoniczną. Rozpoczęto implementację thin PWA (`apps/pwa`).
 
 Po zamknięciu #60 rekomendowany pierwszy pion PWA:
 
