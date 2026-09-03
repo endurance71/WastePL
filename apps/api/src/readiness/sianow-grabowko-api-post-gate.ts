@@ -127,11 +127,11 @@ async function main(): Promise<void> {
 
   const report = JSON.parse(await readFile(reportPath, 'utf8')) as Record<string, unknown>;
   try {
-    const workerPostGate = report.sianowGrabowkoSafeSubset as Record<string, unknown> | undefined;
+    const workerPostGate = report.sianowGrabowko2026_8PostCheck as Record<string, unknown> | undefined;
     if (report.status !== 'PASS' || workerPostGate?.status !== 'PASS') {
       throw new Error('Sianów Grabówko worker post-gate must pass before the public API gate');
     }
-    const fixtureSha256 = workerPostGate.livePdfSha256;
+    const fixtureSha256 = workerPostGate.deterministicFixtureSha256;
     if (typeof fixtureSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(fixtureSha256)) {
       throw new Error('Sianów worker post-gate did not expose deterministic artifact SHA-256');
     }
