@@ -17,7 +17,7 @@ const SWIESZYNO_TERC = '3209082';
 interface ExpectedEvent {
   date: string;
   fraction: string;
-  status: string;
+  status: 'SCHEDULED';
 }
 
 interface AddressEntry {
@@ -51,7 +51,6 @@ type SnapshotTuple = [
 interface Snapshot {
   schemaVersion: string;
   snapshotDate: string;
-  source: { provider: string };
   selection: { total: number; municipalityTerc: string; locality: string; simc: string; serviceArea: string };
   addresses: Array<AddressEntry | SnapshotTuple>;
 }
@@ -72,53 +71,10 @@ interface CollectionBody {
   quality?: {
     verificationStatus?: string;
     confidence?: number;
+    warnings?: string[];
   };
+  code?: string;
 }
-
-interface SearchItem {
-  id: string;
-  displayName: string;
-  municipalityName: string;
-  locality: string;
-  buildingNumber: string;
-}
-
-const EXPECTED_EVENTS: ExpectedEvent[] = [
-  // MIXED (14 events)
-  { date: '2026-07-03', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-07-17', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-07-31', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-08-14', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-08-28', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-09-11', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-09-25', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-10-09', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-10-23', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-11-06', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-11-20', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-12-04', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-12-18', fraction: 'MIXED', status: 'SCHEDULED' },
-  { date: '2026-12-31', fraction: 'MIXED', status: 'SCHEDULED' },
-
-  // OTHER (14 events)
-  { date: '2026-07-01', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-07-15', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-07-29', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-08-12', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-08-26', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-09-09', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-09-23', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-10-07', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-10-21', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-11-04', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-11-18', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-12-02', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-12-16', fraction: 'OTHER', status: 'SCHEDULED' },
-  { date: '2026-12-30', fraction: 'OTHER', status: 'SCHEDULED' },
-
-  // BULKY (1 event)
-  { date: '2026-10-01', fraction: 'BULKY', status: 'SCHEDULED' },
-].sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
 
 function gateDatabaseUrl(): string {
   if (process.env.PRODUCTION_GATE_DATABASE_URL) return process.env.PRODUCTION_GATE_DATABASE_URL;
@@ -127,6 +83,61 @@ function gateDatabaseUrl(): string {
   );
   base.pathname = '/wastepl_production_gate';
   return base.toString();
+}
+
+function expectedEvents(): ExpectedEvent[] {
+  const rows: Array<[string, string[]]> = [
+    ['MIXED', [
+      '2026-07-03', '2026-07-17', '2026-07-31',
+      '2026-08-14', '2026-08-28',
+      '2026-09-11', '2026-09-25',
+      '2026-10-09', '2026-10-23',
+      '2026-11-06', '2026-11-20',
+      '2026-12-04', '2026-12-18', '2026-12-31',
+    ]],
+    ['OTHER', [
+      '2026-07-01', '2026-07-15', '2026-07-29',
+      '2026-08-12', '2026-08-26',
+      '2026-09-09', '2026-09-23',
+      '2026-10-07', '2026-10-21',
+      '2026-11-04', '2026-11-18',
+      '2026-12-02', '2026-12-16', '2026-12-30',
+    ]],
+    ['BULKY', [
+      '2026-10-01',
+    ]],
+  ];
+
+  return rows
+    .flatMap(([fraction, dates]) => dates.map((date) => ({ date, fraction, status: 'SCHEDULED' as const })))
+    .sort((left, right) => left.date.localeCompare(right.date) || left.fraction.localeCompare(right.fraction));
+}
+
+function normalizeTuple(entry: AddressEntry | SnapshotTuple): SnapshotTuple {
+  if (Array.isArray(entry)) return entry;
+  return [
+    entry.prgId,
+    entry.municipalityTerc,
+    entry.locality,
+    entry.simc,
+    null,
+    null,
+    entry.buildingNumber,
+    entry.postalCode,
+    entry.x2180,
+    entry.y2180,
+    entry.serviceArea,
+  ];
+}
+
+function addressQuery(tuple: SnapshotTuple): string {
+  return `${tuple[2]} ${tuple[6]}`;
+}
+
+function canonicalText(tuple: SnapshotTuple): string {
+  const [, , locality, , , , buildingNumber, postalCode] = tuple;
+  const postal = postalCode ?? '76-024';
+  return `${locality} ${buildingNumber}, ${postal} ${locality}`;
 }
 
 async function main(): Promise<void> {
@@ -156,86 +167,121 @@ async function main(): Promise<void> {
       snapshot.selection.municipalityTerc !== SWIESZYNO_TERC ||
       snapshot.selection.locality !== 'Chałupy' ||
       snapshot.selection.simc !== '0313377' ||
-      snapshot.selection.serviceArea !== 'swieszyno-safe-h2-chalupy'
+      snapshot.addresses.length !== 167
     ) {
-      throw new Error(`Invalid Świeszyno Chałupy snapshot metadata: ${JSON.stringify(snapshot.selection)}`);
+      throw new Error(`Unexpected Świeszyno Chałupy API evidence snapshot: ${JSON.stringify(snapshot.selection)}`);
     }
 
-    let checkedAddresses = 0;
+    const expected = expectedEvents();
+    if (expected.length !== 29) throw new Error(`Expected 29 source-backed Chałupy events, got ${expected.length}`);
+
+    const mismatches: Array<Record<string, unknown>> = [];
+    let passed = 0;
+    let ambiguousResponses = 0;
+    let criticalScheduleMismatches = 0;
+
     for (const rawEntry of snapshot.addresses) {
-      const prgId = Array.isArray(rawEntry) ? rawEntry[0] : rawEntry.prgId;
-      const buildingNumber = Array.isArray(rawEntry) ? rawEntry[6] : rawEntry.buildingNumber;
-
-      const searchRes = await app.inject({
+      const tuple = normalizeTuple(rawEntry);
+      const [prgId, municipalityTerc, locality, simc, , , buildingNumber, postalCode, x2180, y2180, serviceArea] = tuple;
+      const query = addressQuery(tuple);
+      const response = await app.inject({
         method: 'GET',
-        url: `/v1/addresses/search?q=${encodeURIComponent(`Chałupy ${buildingNumber}`)}&limit=10`,
+        url: `/v1/collection?address=${encodeURIComponent(query)}&from=2026-07-01&days=184`,
       });
-      if (searchRes.statusCode !== 200) {
-        throw new Error(`Search failed for Chałupy ${buildingNumber}: status=${searchRes.statusCode}`);
-      }
-      const searchItems = searchRes.json() as SearchItem[];
-      const match = searchItems.find((item) => item.id === prgId);
-      if (!match) {
-        throw new Error(`Address search for Chałupy ${buildingNumber} did not return expected PRG id ${prgId}`);
+      const body = response.json() as CollectionBody;
+      const actual = response.statusCode === 200
+        ? {
+            statusCode: 200,
+            canonicalText: body.address?.canonicalText,
+            municipalityTerc: body.municipality?.terc,
+            municipalityName: body.municipality?.name,
+            serviceAreaName: body.serviceArea?.name,
+            events: body.events,
+            sourceUrl: body.source?.url,
+            sourceFormat: body.source?.format,
+            sourceSha256: body.source?.sha256,
+            parserKey: body.source?.parserKey,
+            parserVersion: body.source?.parserVersion,
+            verificationStatus: body.quality?.verificationStatus,
+          }
+        : { statusCode: response.statusCode, code: body.code ?? null };
+      const wanted = {
+        statusCode: 200,
+        canonicalText: canonicalText(tuple),
+        municipalityTerc: SWIESZYNO_TERC,
+        municipalityName: 'Świeszyno',
+        serviceAreaName: SERVICE_AREA_NAME,
+        events: expected,
+        sourceUrl: SOURCE_URL,
+        sourceFormat: 'PDF_TEXT',
+        sourceSha256: fixtureSha256,
+        parserKey: 'municipal-collection-pdf-text',
+        parserVersion: '0.2.0',
+        verificationStatus: 'OFFICIAL_SOURCE',
+      };
+
+      if (isDeepStrictEqual(actual, wanted)) {
+        passed += 1;
+        continue;
       }
 
-      const collectionRes = await app.inject({
-        method: 'GET',
-        url: `/v1/collection?addressId=${encodeURIComponent(prgId)}`,
+      const eventsEqual = response.statusCode === 200 && isDeepStrictEqual(body.events ?? [], expected);
+      if (!eventsEqual) criticalScheduleMismatches += 1;
+      if (
+        response.statusCode === 409 &&
+        (body.code === 'AMBIGUOUS_SERVICE_AREA' || body.code === 'AMBIGUOUS_ADDRESS')
+      ) {
+        ambiguousResponses += 1;
+      }
+      mismatches.push({
+        prgId,
+        addressQuery: query,
+        municipalityTerc,
+        locality,
+        simc,
+        buildingNumber,
+        postalCode,
+        geometry2180: { x: x2180, y: y2180 },
+        serviceArea,
+        actual,
+        wanted,
       });
-      if (collectionRes.statusCode !== 200) {
-        throw new Error(`Collection query failed for ${prgId}: status=${collectionRes.statusCode}`);
-      }
-      const body = collectionRes.json() as CollectionBody;
-
-      if (body.municipality?.terc !== SWIESZYNO_TERC || body.municipality?.name !== 'Świeszyno') {
-        throw new Error(`Incompatible municipality in response for ${prgId}: ${JSON.stringify(body.municipality)}`);
-      }
-      if (body.serviceArea?.name !== SERVICE_AREA_NAME) {
-        throw new Error(`Incompatible service area for ${prgId}: expected ${SERVICE_AREA_NAME}, got ${body.serviceArea?.name}`);
-      }
-      if (body.source?.url !== SOURCE_URL || body.source?.format !== 'PDF_TEXT') {
-        throw new Error(`Incompatible source metadata for ${prgId}: ${JSON.stringify(body.source)}`);
-      }
-      if (body.source?.sha256 !== fixtureSha256) {
-        throw new Error(`Source SHA mismatch for ${prgId}: expected ${fixtureSha256}, got ${body.source?.sha256}`);
-      }
-      if (body.source?.parserKey !== 'municipal-collection-pdf-text' || body.source?.parserVersion !== '0.2.0') {
-        throw new Error(`Unexpected parser identity for ${prgId}: ${body.source?.parserKey}@${body.source?.parserVersion}`);
-      }
-
-      const receivedEvents = (body.events ?? [])
-        .map((ev) => ({ date: ev.date, fraction: ev.fraction, status: ev.status }))
-        .sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
-
-      if (!isDeepStrictEqual(receivedEvents, EXPECTED_EVENTS)) {
-        throw new Error(`Event schedule mismatch for Chałupy address ${prgId}`);
-      }
-
-      checkedAddresses++;
     }
 
     report.swieszynoChalupy2026_9ApiPostCheck = {
-      status: 'PASS',
+      status: passed === snapshot.addresses.length ? 'PASS' : 'FAIL',
       verifiedAt: new Date().toISOString(),
-      testedAddresses: checkedAddresses,
-      targetAddresses: snapshot.addresses.length,
-      expectedEventCount: EXPECTED_EVENTS.length,
+      manifestVersion: '2026.9',
+      sourceKey: 'swieszyno-collection-trasa-1-safe-h2-2026',
+      serviceAreaKey: 'swieszyno-safe-h2-chalupy',
       serviceAreaName: SERVICE_AREA_NAME,
-      deterministicFixtureSha256: fixtureSha256,
-      publicApiSearchVerified: true,
-      publicApiCollectionVerified: true,
-      pilotCollectionCoverage: '7/8',
+      testedAddresses: snapshot.addresses.length,
+      passedAddresses: passed,
+      mismatchCount: mismatches.length,
+      ambiguousResponses,
+      criticalScheduleMismatches,
+      expectedEventsCount: expected.length,
+      pilotCollectionMunicipalityProgress: '7/8',
+      sampleMismatches: mismatches.slice(0, 5),
     };
 
     await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
-    console.log(`[PASS] Świeszyno Chałupy public API post-gate passed: ${checkedAddresses}/${snapshot.addresses.length} addresses verified with 29 events.`);
+
+    if (passed !== snapshot.addresses.length || criticalScheduleMismatches > 0) {
+      throw new Error(
+        `Świeszyno Chałupy public API verification failed: ${passed}/${snapshot.addresses.length} passed; criticalScheduleMismatches=${criticalScheduleMismatches}`,
+      );
+    }
+
+    console.log(
+      `Świeszyno Chałupy public API post-gate PASS: ${passed}/${snapshot.addresses.length} addresses, 0 critical date mismatches`,
+    );
   } finally {
     await app.close();
   }
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error('[FAIL] Świeszyno Chałupy public API post-gate failed:', err);
   process.exit(1);
 });
