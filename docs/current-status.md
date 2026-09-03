@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-03, commit `28192b30e6fd08f19355e10fe4c028fec915feba`. Rollout `2026.12` aktywuje oficjalny stacjonarny PSZOK Gminy Będzino (Będzino 17, GZK Będzino), osiągając **87.5% (7/8) pokrycia gmin w pilocie aktywnymi punktami PSZOK** przy zachowaniu **100% (8/8) pokrycia harmonogramami wywozu**.
+> Zweryfikowano: 2026-09-03, commit `cc29b5b57ae9cdae3fcf62b15c8e478df478768c`. Rollout `2026.12` aktywuje oficjalny stacjonarny PSZOK Gminy Będzino (Będzino 17, GZK Będzino), osiągając **87.5% (7/8) pokrycia gmin w pilocie aktywnymi punktami PSZOK** przy zachowaniu **100% (8/8) pokrycia harmonogramami wywozu**.
 
 ## Etap
 
