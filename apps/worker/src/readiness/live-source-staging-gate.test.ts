@@ -11,6 +11,7 @@ import {
   hasRequiredCanonicalEvidence,
   latestPilotManifestFilename,
   requiresPolanowGarbnoReference,
+  requiresBedzinoDworekReference,
 } from './live-source-staging-gate.js';
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -55,15 +56,17 @@ describe('live-source staging gate policy', () => {
 
     const manifestRoot = resolve(repoRoot, 'manifests');
     const latest = latestPilotManifestFilename(await readdir(manifestRoot));
-    expect(latest).toBe('pilot-koszalin-region-2026.6.json');
+    expect(latest).toBe('pilot-koszalin-region-2026.7.json');
     const manifest = JSON.parse(await readFile(resolve(manifestRoot, latest), 'utf8')) as SourceManifest;
     const keys = activeSourceKeysFromManifest(manifest);
-    expect(keys).toHaveLength(10);
+    expect(keys).toHaveLength(11);
     expect(keys).toContain('tychowo-collection-standard-2026');
     expect(keys).toContain('sianow-pszok');
     expect(keys).toContain('tychowo-pszok');
     expect(keys).toContain('polanow-collection-garbno-h2-2026');
+    expect(keys).toContain('bedzino-collection-trasa-1-safe-h2-2026');
     expect(requiresPolanowGarbnoReference(manifest)).toBe(true);
+    expect(requiresBedzinoDworekReference(manifest)).toBe(true);
   });
 
   it('recognizes a bundle member that was completed by its companion', () => {
