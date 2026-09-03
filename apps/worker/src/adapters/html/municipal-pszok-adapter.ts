@@ -6,6 +6,7 @@ const SWIESZYNO_SOURCE_KEY = 'swieszyno-pszok';
 const SIANOW_SOURCE_KEY = 'sianow-pszok';
 const TYCHOWO_SOURCE_KEY = 'tychowo-pszok';
 const POLANOW_SOURCE_KEY = 'polanow-pszok';
+const BEDZINO_SOURCE_KEY = 'bedzino-pszok';
 
 type Weekly = NonNullable<NormalizedFacilityV02['openingHours']>['weekly'];
 
@@ -118,6 +119,28 @@ function polanowMaterials(text: string): FacilityMaterial[] {
 
   for (const [, pattern] of required) {
     requireText(text, pattern, POLANOW_SOURCE_KEY, 'published accepted-material catalogue changed');
+  }
+  return required.map(([material]) => material);
+}
+
+function bedzinoMaterials(text: string): FacilityMaterial[] {
+  const required: Array<[FacilityMaterial, RegExp]> = [
+    ['BULKY', /wielkogabarytow/i],
+    ['CONSTRUCTION', /budowlan|poremontow|gruz/i],
+    ['GREEN', /zielone/i],
+    ['HAZARDOUS', /substancji niebezpieczn|rozpuszczalniki/i],
+    ['MEDICINES', /przeterminowane leki|\bleki\b/i],
+    ['BATTERIES', /baterie|akumulatory/i],
+    ['ELECTRONICS', /elektro|elektryczn/i],
+    ['TYRES', /opony/i],
+    ['TEXTILES', /tekstyl|odzie/i],
+    ['PAPER', /papier|tektur/i],
+    ['METALS_PLASTICS', /metali|tworzyw/i],
+    ['GLASS', /szkło/i],
+  ];
+
+  for (const [, pattern] of required) {
+    requireText(text, pattern, BEDZINO_SOURCE_KEY, 'published accepted-material catalogue changed');
   }
   return required.map(([material]) => material);
 }
@@ -375,6 +398,57 @@ function parsePolanow(input: HtmlArtifactInput, text: string): NormalizedFacilit
   };
 }
 
+function parseBedzino(input: HtmlArtifactInput, text: string): NormalizedFacilityV02 {
+  requireText(text, /Gminnego Zakładu Komunalnego w Będzinie/i, input.sourceKey, 'GZK Będzino operator statement missing');
+  requireText(text, /Będzino\s*(?:nr\s*)?17/i, input.sourceKey, 'Będzino 17 location missing');
+  requireText(text, /wtorki.*10[.:]00.*16[.:]00/i, input.sourceKey, 'Tuesday opening hours missing');
+  requireText(text, /czwartki.*12[.:]00.*18[.:]00/i, input.sourceKey, 'Thursday opening hours missing');
+  requireText(text, /soboty.*8[.:]00.*14[.:]00/i, input.sourceKey, 'Saturday opening hours missing');
+  requireText(text, /mieszkańcy.*ponoszący opłatę.*Będzin/i, input.sourceKey, 'resident eligibility statement missing');
+
+  return {
+    schemaVersion: '0.2.0',
+    key: 'pl-3209012-pszok-bedzino-17',
+    kind: 'PSZOK',
+    name: 'PSZOK Będzino, Będzino 17',
+    address: 'Będzino 17, 76-037 Będzino',
+    location: null,
+    locationSourceKey: null,
+    externalIds: [],
+    acceptedMaterials: bedzinoMaterials(text),
+    acceptedContainers: [],
+    openingHours: openingHours(input.sourceKey, [
+      { day: 'MONDAY', intervals: [] },
+      { day: 'TUESDAY', intervals: [{ opens: '10:00', closes: '16:00' }] },
+      { day: 'WEDNESDAY', intervals: [] },
+      { day: 'THURSDAY', intervals: [{ opens: '12:00', closes: '18:00' }] },
+      { day: 'FRIDAY', intervals: [] },
+      { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '14:00' }] },
+      { day: 'SUNDAY', intervals: [] },
+    ]),
+    access: {
+      scope: 'MUNICIPALITY_RESIDENTS',
+      requiresProof: null,
+      quantityLimits: [],
+      notes: ['Z usługi PSZOK mogą korzystać wszyscy mieszkańcy, ponoszący opłatę za gospodarowanie odpadami komunalnymi na rzecz Gminy Będzino.'],
+      sourceKey: input.sourceKey,
+    },
+    operationalStatus: unknownOperationalStatus(),
+    operatorName: 'Gminny Zakład Komunalny w Będzinie',
+    rulesUrl: input.url,
+    sourceKey: input.sourceKey,
+    quality: {
+      verificationStatus: 'OFFICIAL_SOURCE',
+      confidence: 0.98,
+      retrievedAt: input.retrievedAt,
+      warnings: [
+        'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+        'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+      ],
+    },
+  };
+}
+
 export class MunicipalPszokHtmlAdapter {
   readonly parserKey = 'municipal-pszok-html';
   readonly parserVersion = '0.3.0';
@@ -384,7 +458,8 @@ export class MunicipalPszokHtmlAdapter {
       || sourceKey === SWIESZYNO_SOURCE_KEY
       || sourceKey === SIANOW_SOURCE_KEY
       || sourceKey === TYCHOWO_SOURCE_KEY
-      || sourceKey === POLANOW_SOURCE_KEY;
+      || sourceKey === POLANOW_SOURCE_KEY
+      || sourceKey === BEDZINO_SOURCE_KEY;
   }
 
   parse(input: HtmlArtifactInput): NormalizedFacilityV02 {
@@ -394,6 +469,7 @@ export class MunicipalPszokHtmlAdapter {
     if (input.sourceKey === SIANOW_SOURCE_KEY) return parseSianow(input, text);
     if (input.sourceKey === TYCHOWO_SOURCE_KEY) return parseTychowo(input, text);
     if (input.sourceKey === POLANOW_SOURCE_KEY) return parsePolanow(input, text);
+    if (input.sourceKey === BEDZINO_SOURCE_KEY) return parseBedzino(input, text);
     throw new Error(`Municipal PSZOK adapter: unsupported source key ${input.sourceKey}`);
   }
 }

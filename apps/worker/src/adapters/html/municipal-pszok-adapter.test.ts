@@ -24,6 +24,10 @@ const polanowHtml = readFileSync(
   new URL('../../../test/fixtures/polanow-pszok.html', import.meta.url),
   'utf8',
 );
+const bedzinoHtml = readFileSync(
+  new URL('../../../test/fixtures/bedzino-pszok.html', import.meta.url),
+  'utf8',
+);
 
 function artifact(html: string, sourceKey: string, url: string) {
   return {
@@ -333,5 +337,79 @@ describe('MunicipalPszokHtmlAdapter', () => {
       'polanow-pszok',
       'https://bip.polanow.pl/punkt-selektywnego-zbierania-odpadow-komunalnych-(pszok)/d/70/79/',
     ))).toThrow('Monday and Wednesday opening hours missing');
+  });
+
+  it('normalizes Będzino PSZOK without inventing geometry', async () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const facility = adapter.parse(artifact(
+      bedzinoHtml,
+      'bedzino-pszok',
+      'https://archiwum.bedzino.pl/pszok-juz-dziala/',
+    ));
+
+    await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
+    expect(facility).toMatchObject({
+      key: 'pl-3209012-pszok-bedzino-17',
+      kind: 'PSZOK',
+      name: 'PSZOK Będzino, Będzino 17',
+      address: 'Będzino 17, 76-037 Będzino',
+      operatorName: 'Gminny Zakład Komunalny w Będzinie',
+      location: null,
+      locationSourceKey: null,
+      access: {
+        scope: 'MUNICIPALITY_RESIDENTS',
+        sourceKey: 'bedzino-pszok',
+      },
+      quality: {
+        verificationStatus: 'OFFICIAL_SOURCE',
+        confidence: 0.98,
+        warnings: [
+          'TRUSTED_COORDINATES_NOT_PUBLISHED_IN_SOURCE',
+          'ACCEPTED_MATERIALS_CANONICAL_SUBSET_OF_SOURCE_CATALOGUE',
+        ],
+      },
+    });
+
+    expect(facility.acceptedMaterials).toEqual([
+      'BULKY',
+      'CONSTRUCTION',
+      'GREEN',
+      'HAZARDOUS',
+      'MEDICINES',
+      'BATTERIES',
+      'ELECTRONICS',
+      'TYRES',
+      'TEXTILES',
+      'PAPER',
+      'METALS_PLASTICS',
+      'GLASS',
+    ]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'MONDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'TUESDAY')?.intervals)
+      .toEqual([{ opens: '10:00', closes: '16:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'WEDNESDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'THURSDAY')?.intervals)
+      .toEqual([{ opens: '12:00', closes: '18:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'FRIDAY')?.intervals)
+      .toEqual([]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SATURDAY')?.intervals)
+      .toEqual([{ opens: '08:00', closes: '14:00' }]);
+    expect(facility.openingHours.weekly.find((day) => day.day === 'SUNDAY')?.intervals)
+      .toEqual([]);
+  });
+
+  it('fails visibly when Będzino PSZOK hours drift', () => {
+    const adapter = new MunicipalPszokHtmlAdapter();
+    const broken = bedzinoHtml.replace(
+      'we wtorki (godz. 10.00-16.00)',
+      'we wtorki (godz. 11.00-17.00)',
+    );
+    expect(() => adapter.parse(artifact(
+      broken,
+      'bedzino-pszok',
+      'https://archiwum.bedzino.pl/pszok-juz-dziala/',
+    ))).toThrow('Tuesday opening hours missing');
   });
 });
