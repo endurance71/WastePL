@@ -20,6 +20,7 @@
     "readiness:polanow-lkg": "tsx src/readiness/polanow-garbno-last-known-good-post-gate.ts",
     "readiness:live-source": "tsx src/readiness/live-source-staging-gate.ts",
     "readiness:polanow-acquisition": "tsx src/readiness/polanow-h2-acquisition-probe.ts",
+    "readiness:bedzino-acquisition": "tsx src/readiness/bedzino-h2-acquisition-probe.ts",
     "readiness": "pnpm readiness:2026.1 && pnpm readiness:2026.2"
   },
   "dependencies": {
