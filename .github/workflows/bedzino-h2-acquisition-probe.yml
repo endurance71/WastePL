@@ -1,0 +1,39 @@
+name: bedzino-h2-acquisition-probe
+
+on:
+  push:
+    branches:
+      - probe/bedzino-h2-acquisition
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bedzino-h2-acquisition-probe
+  cancel-in-progress: false
+
+jobs:
+  acquisition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --no-frozen-lockfile
+      - name: Build and typecheck worker
+        run: |
+          pnpm --filter @wastepl/domain build
+          pnpm --filter @wastepl/worker build
+          pnpm --filter @wastepl/worker typecheck
+      - name: Capture current Będzino H2 operator artifacts
+        run: pnpm --filter @wastepl/worker readiness:bedzino-acquisition
+      - name: Upload acquisition evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bedzino-h2-acquisition-report-${{ github.run_id }}
+          path: apps/worker/test-results/bedzino-h2-acquisition/
+          if-no-files-found: error
