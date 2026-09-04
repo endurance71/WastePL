@@ -81,18 +81,28 @@ export type LiveSourceOutcome =
   | 'PARSE_FAILED'
   | 'WAITING_FOR_COMPANION';
 
-const baselineFixturePath: Readonly<Record<string, string>> = {
+export const baselineFixturePath: Readonly<Record<string, string>> = {
   'koszalin-pszok-main': 'pgk-koszalin-pszok-main.html',
   'koszalin-pszok-faq': 'pgk-koszalin-pszok-faq.html',
   'bobolice-pszok': 'bobolice-pszok.html',
   'swieszyno-pszok': 'swieszyno-pszok.html',
+  'sianow-pszok': 'sianow-pszok.html',
+  'tychowo-pszok': 'tychowo-pszok.html',
+  'polanow-pszok': 'polanow-pszok.html',
+  'bedzino-pszok': 'bedzino-pszok.html',
+  'manowo-pszok': 'manowo-pszok.html',
 };
 
-const expectedCanonicalKeys: Readonly<Record<string, string>> = {
+export const expectedCanonicalKeys: Readonly<Record<string, string>> = {
   'koszalin-pszok-main': 'pl-3261011-pszok-komunalna-5',
   'koszalin-pszok-faq': 'pl-3261011-pszok-komunalna-5',
   'bobolice-pszok': 'pl-3209033-pszok-boboliczki',
   'swieszyno-pszok': 'pl-3209082-pszok-chalupy-13b',
+  'sianow-pszok': 'pl-3209073-pszok-sianow-lubuszan-80',
+  'tychowo-pszok': 'pl-3201043-pszok-tychowo-dolna-8',
+  'polanow-pszok': 'pl-3209063-pszok-polanow-stawna-2',
+  'bedzino-pszok': 'pl-3209012-pszok-bedzino-17',
+  'manowo-pszok': 'pl-3209042-pszok-manowo-komunalna-5',
 };
 
 interface ActiveSourceRow extends QueryResultRow {

@@ -67,11 +67,49 @@ export const AddressSearch: React.FC<AddressSearchProps> = ({ onSelectAddress })
         <input
           type="text"
           className="search-input"
-          placeholder="Wpisz np. Głowackiego, Garbno, Tychowo..."
+          placeholder="Wpisz np. Tychowo 1, Garbno, Bonin, 1 Maja..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Wyszukaj adres"
         />
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Przykłady:</span>
+        {[
+          'Tychowo 1',
+          'Garbno 1',
+          'Bonin 2',
+          '1 Maja 3, Koszalin',
+          'Dobrowo 1',
+          'Chałupy 101A',
+        ].map((example) => (
+          <button
+            key={example}
+            type="button"
+            onClick={() => setQuery(example)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-pill)',
+              padding: '4px 10px',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(56, 189, 248, 0.15)';
+              e.currentTarget.style.color = '#38bdf8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              e.currentTarget.style.color = 'var(--text-muted)';
+            }}
+          >
+            {example}
+          </button>
+        ))}
       </div>
 
       {error && (

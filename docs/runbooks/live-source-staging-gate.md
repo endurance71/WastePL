@@ -4,7 +4,7 @@
 
 Workflow `live-source-staging` sprawdza wszystkie źródła `ACTIVE` z **najnowszego** manifestu `pilot-koszalin-region` przeciwko rzeczywistym stronom JST/operatorów. Jest to bramka operacyjna do wykrywania awarii źródeł i driftu szablonów. Nie jest częścią deterministycznego CI pull requestów.
 
-Aktualnie gate wybiera `pilot-koszalin-region@2026.6`, czyli **10 ACTIVE source identities**, w tym `polanow-collection-garbno-h2-2026`.
+Aktualnie gate wybiera `pilot-koszalin-region@2026.13`, czyli **17 ACTIVE source identities** (9 harmonogramów wywozu oraz 8 stacjonarnych punktów PSZOK we wszystkich 8 gminach regionu koszalińskiego).
 
 ## Izolacja
 
@@ -25,9 +25,8 @@ Live gate nie używa canonical seedów produkcyjnych. Przed pobraniem źródeł 
 
 - historyczny real-100 PRG pack dla Koszalina, Manowa i Tychowa;
 - source-only support address Koszalina, jawnie wyłączony z real-100;
-- dla aktywnego Polanów/Garbno H2: oficjalny snapshot GUGiK PRG z 29 sierpnia 2026 r. jest walidowany, a lokalność `Garbno` / SIMC `0308749` jest hydratowana do izolowanej bazy przez ten sam source-backed helper co production gate.
-
-Snapshot Garbna zawiera 39 oficjalnych punktów adresowych, ale live-source gate nie potrzebuje importować tych adresów do sprawdzania survivability parsera. Publiczny address/API gate 39/39 pozostaje osobną bramką produkcyjną. Live gate potrzebuje wyłącznie jednoznacznego authoritative locality context, którego parser używa do utworzenia service area.
+- oficjalne snapshoty GUGiK PRG i hydratowane lokalności dla bezpiecznych podzbiorów H2: Polanów (Garbno), Będzino (Dworek), Sianów (Grabówko), Świeszyno (Chałupy) oraz Bobolice (Kłanino);
+- rejestr certyfikowanych punktów adresowych i współrzędnych PRG dla wszystkich 8 punktów PSZOK w regionie.
 
 ## Uruchamianie
 

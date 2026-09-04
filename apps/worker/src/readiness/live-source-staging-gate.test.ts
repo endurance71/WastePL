@@ -6,8 +6,10 @@ import type { SourceManifest } from '../manifests/source-manifest.js';
 import {
   activeSourceKeysFromManifest,
   assertLiveGateIsolation,
+  baselineFixturePath,
   classifyLiveSourceOutcome,
   effectiveLiveProcessingOutcome,
+  expectedCanonicalKeys,
   hasRequiredCanonicalEvidence,
   latestPilotManifestFilename,
   requiresPolanowGarbnoReference,
@@ -159,5 +161,25 @@ describe('live-source staging gate policy', () => {
       ordinaryDatabaseUrl: 'postgresql://wastepl:wastepl@localhost:5432/wastepl',
       bucket: 'wastepl-artifacts',
     })).toThrow(/LIVE_GATE_UNSAFE_BUCKET/);
+  });
+
+  it('covers all 8 pilot PSZOK municipalities with baseline fixtures and expected canonical keys', () => {
+    const pszokKeys = [
+      'koszalin-pszok-main',
+      'koszalin-pszok-faq',
+      'bobolice-pszok',
+      'swieszyno-pszok',
+      'sianow-pszok',
+      'tychowo-pszok',
+      'polanow-pszok',
+      'bedzino-pszok',
+      'manowo-pszok',
+    ];
+
+    for (const key of pszokKeys) {
+      expect(baselineFixturePath[key], `baseline fixture for ${key}`).toBeDefined();
+      expect(expectedCanonicalKeys[key], `expected canonical key for ${key}`).toBeDefined();
+      expect(expectedCanonicalKeys[key]).toMatch(/^pl-\d{7}-pszok-.+$/);
+    }
   });
 });

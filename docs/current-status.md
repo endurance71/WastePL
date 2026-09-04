@@ -32,6 +32,7 @@ W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu,
 | Łącznie audytowanych real PRG addresses | **415/415** | Wszystkie 415 adresów testowane na publicznym API `/v1/collection`. |
 | Trusted PSZOK Geocoding (PRG GUGiK) | **8/8 (100%)** | Wszystkie 8 punktów PSZOK posiada zweryfikowane urzędowe współrzędne PRG (GUGiK). |
 | PWA Notifications & Calendar (.ics) | **Aktywne** | Web Notifications API, obsługa uprawnień, test powiadomień, alarmy (18:00/20:00 dzień wcześniej, 06:00 rano, oba). |
+| Live-Source Staging Soak | **17/17 (100%)** | Cała aktywna flota 17 źródeł (9 wywozów + 8 PSZOK) objęta bramką staging soak w `pilot-koszalin-region@2026.13`. |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
 | Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK, mapa Leaflet + OpenStreetMap, nawigacja GPS, Web Notifications API, alarmy .ics). |
 
