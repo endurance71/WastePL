@@ -40,9 +40,9 @@ Raportujemy osobno:
 
 `415/415` jest wynikiem audited correctness dla zdefiniowanych zestawów, a nie dowodem 100% pokrycia całego regionu.
 
-# P0 — repo governance
+## P0 — repo governance
 
-## Branch protection `#84`
+### Branch protection `#84`
 
 `main` ma wymagać:
 
@@ -54,9 +54,9 @@ Raportujemy osobno:
 
 **Definition of Done:** nie da się zmergować PR do `main`, jeżeli wymagany CI nie jest zielony.
 
-# P0 — potwierdzić bieżące źródła live
+## P0 — potwierdzić bieżące źródła live
 
-## Full live-source soak 17/17
+### Full live-source soak 17/17
 
 Uruchomić `live-source-staging` ręcznie z aktualnego `main` po wszystkich zmianach `2026.13`.
 
@@ -71,7 +71,7 @@ Definition of Done:
 
 Po pierwszym pełnym przebiegu uruchomić cykliczny source-health check poza deterministycznym PR CI.
 
-# P0 — PRG Address Coverage Census
+## P0 — PRG Address Coverage Census
 
 To jest następny najważniejszy milestone produktowy.
 
@@ -100,7 +100,7 @@ Raport powinien identyfikować przyczynę każdego `unsupported`/`ambiguous`, np
 
 **Definition of Done:** pełny denominator PRG istnieje, wynik jest machine-readable i generuje mierzalny backlog coverage.
 
-# P1 — domknąć coverage obecnych 8 gmin
+## P1 — domknąć coverage obecnych 8 gmin
 
 Nie dodawać kolejnych gmin dla samego wzrostu licznika.
 
@@ -121,9 +121,9 @@ Przykładowe zakresy, które mogą wymagać dalszego rozszerzania po census:
 
 Target pilota przed skalowaniem: orientacyjnie **>=90–95% address coverage**, niski ambiguity rate i jawnie sklasyfikowane wyjątki. 100% nie jest wymagane za wszelką cenę, jeśli ostatnie procenty mają nieproporcjonalny koszt lub ryzyko.
 
-# P1 — PWA do poziomu realnego pilota
+## P1 — PWA do poziomu realnego pilota
 
-## Installability
+### Installability
 
 Domknąć:
 
@@ -134,7 +134,7 @@ Domknąć:
 - poprawny manifest;
 - walidację instalacji na iOS Safari i Android Chrome.
 
-## Browser E2E
+### Browser E2E
 
 Playwright jest już dodany. Rozszerzać testy przede wszystkim o krytyczne ścieżki użytkownika:
 
@@ -150,7 +150,7 @@ Playwright jest już dodany. Rozszerzać testy przede wszystkim o krytyczne ści
 
 Utrzymywać osobne mobile viewports przynajmniej dla reprezentatywnego iPhone i Androida.
 
-## Accessibility i Lighthouse
+### Accessibility i Lighthouse
 
 Dodać:
 
@@ -169,15 +169,15 @@ Praktyczne progi początkowe:
 
 Nie traktować 100/100 jako celu samego w sobie.
 
-# P1/P2 — reminders
+## P1/P2 — reminders
 
-## MVP `.ics`
+### MVP `.ics`
 
 `.ics` jest obecnie najprostszą niezawodną ścieżką przyszłych przypomnień, ponieważ alarm wykonuje kalendarz systemowy użytkownika.
 
 Może pozostać oficjalnym reminder MVP, dopóki Web Push nie ma pełnej ścieżki produkcyjnej.
 
-## Scheduled Web Push
+### Scheduled Web Push
 
 Jeżeli aplikacja ma samodzielnie przypominać o jutrzejszym odbiorze, potrzebna jest kompletna architektura:
 
@@ -197,7 +197,7 @@ Zakres:
 
 Nie wprowadzać kont użytkowników tylko po to, aby dostarczyć reminder.
 
-# P1 — staging i production foundation
+## P1 — staging i production foundation
 
 Przed publicznym pilotem przygotować osobne środowisko stagingowe i produkcyjne.
 
@@ -216,25 +216,25 @@ Minimum:
 
 Repozytorium nie powinno traktować lokalnego `docker-compose.yml` jako substytutu infrastruktury produkcyjnej.
 
-# P1 — observability i source operations
+## P1 — observability i source operations
 
 Minimum operacyjne:
 
-## API
+### API
 
 - request count;
 - 4xx/5xx;
 - p95 latency;
 - request/correlation ID.
 
-## Worker
+### Worker
 
 - queue depth;
 - failed/retried jobs;
 - processing duration;
 - stalled jobs.
 
-## Sources
+### Sources
 
 - last successful fetch;
 - last successful parse/publication;
@@ -245,7 +245,7 @@ Minimum operacyjne:
 
 Alertować na warunki wymagające reakcji, nie na każdy pojedynczy transient failure.
 
-# P1 — security/reproducibility hardening
+## P1 — security/reproducibility hardening
 
 Backlog przed produkcją:
 
@@ -260,7 +260,7 @@ Backlog przed produkcją:
 - CodeQL/dependency audit/secret scanning;
 - pinning GitHub Actions.
 
-# P2 — real-user pilot
+## P2 — real-user pilot
 
 Po domknięciu PWA i produkcji uruchomić małą grupę realnych testerów z różnych gmin i typów zabudowy.
 
@@ -280,7 +280,7 @@ KPI:
 
 Dodać prosty feedback `Czy harmonogram dla tego adresu jest poprawny? Tak/Nie` z możliwością przekazania bezpiecznych szczegółów błędu.
 
-# P2 — unit economics
+## P2 — unit economics
 
 Kontynuować machine-readable onboarding metrics, ale rozszerzyć je o realny czas operacyjny:
 
@@ -304,7 +304,7 @@ Kluczowe wskaźniki:
 
 Obecna próbka jest zbyt mała do wiarygodnego forecastu dla 2477 gmin.
 
-# P3 — fala ~20 gmin
+## P3 — fala ~20 gmin
 
 Rozszerzenie regionalne dopiero po osiągnięciu bramki pilota.
 
@@ -312,7 +312,7 @@ Preferować klaster geograficzny/operatorowy, aby maksymalizować reuse formató
 
 Nie skalować tylko dlatego, że nowe źródła przechodzą CI.
 
-## Bramka przed falą ~20 gmin
+### Bramka przed falą ~20 gmin
 
 Wymagane:
 
@@ -327,7 +327,7 @@ Wymagane:
 - więcej niż symboliczna próbka repeat-update automation;
 - brak krytycznych nierozstrzygniętych wrong-date mismatches.
 
-# Metryki sterujące decyzjami
+## Metryki sterujące decyzjami
 
 - **Municipality source presence** — gminy z >=1 aktywnym zakresem.
 - **Address coverage** — udział wszystkich oficjalnych adresów PRG z jednoznacznym harmonogramem.
@@ -342,7 +342,7 @@ Wymagane:
 - **Repeat-update automation** — udział kolejnych aktualizacji bez interwencji człowieka.
 - **User value** — successful address lookup, reminder/calendar activation i repeat usage.
 
-# Czego teraz nie robić
+## Czego teraz nie robić
 
 - nie dodawać kolejnych gmin przed policzeniem coverage obecnych 8;
 - nie traktować `8/8` jako 100% address coverage;
