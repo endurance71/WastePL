@@ -15,6 +15,7 @@ interface CollectionTimelineProps {
   source: CollectionSourceProvenance;
   quality: CollectionQuality;
   addressText?: string;
+  onOpenFeedback?: () => void;
 }
 
 export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
@@ -22,6 +23,7 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
   source,
   quality,
   addressText,
+  onOpenFeedback,
 }) => {
   const [selectedFraction, setSelectedFraction] = useState<string>('ALL');
 
@@ -203,7 +205,7 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
             SHA-256: {source.sha256.substring(0, 10)}...
           </span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <a
             href={source.url}
             target="_blank"
@@ -219,7 +221,27 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
             <span>Otwórz źródłowy dokument ({source.format})</span>
             <ExternalLink size={12} />
           </a>
-          <span>Pobrano: {new Date(quality.retrievedAt).toLocaleDateString('pl-PL')}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span>Pobrano: {new Date(quality.retrievedAt).toLocaleDateString('pl-PL')}</span>
+            {onOpenFeedback && (
+              <button
+                type="button"
+                onClick={onOpenFeedback}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '2px 8px',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.74rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Zgłoś uwagę do harmonogramu
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

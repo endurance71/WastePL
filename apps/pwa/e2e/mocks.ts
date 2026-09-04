@@ -165,4 +165,13 @@ export async function setupStandardApiMocks(page: Page) {
       body: JSON.stringify(mockFacilitiesResponse),
     });
   });
+
+  // Mock feedback
+  await page.route(/\/v1\/feedback\/schedule-discrepancy/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'OK', feedbackId: 'feedback-mock-123' }),
+    });
+  });
 }

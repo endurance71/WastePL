@@ -99,3 +99,54 @@ export function clearAddress(): void {
     console.warn('Nie udało się wyczyścić adresu z localStorage', err);
   }
 }
+
+export interface DiscrepancyFeedbackInput {
+  addressId?: string | null;
+  reportedIssueType: 'WRONG_DATE' | 'MISSING_FRACTION' | 'UNSUPPORTED_ADDRESS' | 'EXTRA_COLLECTION' | 'OTHER';
+  details?: string | null;
+}
+
+const STORAGE_KEY_INSTALLATION_ID = 'wastepl_installation_id';
+
+function getOrCreateInstallationId(): string {
+  try {
+    let id = localStorage.getItem(STORAGE_KEY_INSTALLATION_ID);
+    if (!id) {
+      id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `inst_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem(STORAGE_KEY_INSTALLATION_ID, id);
+    }
+    return id;
+  } catch {
+    return `inst_${Date.now()}`;
+  }
+}
+
+export async function submitDiscrepancyFeedback(
+  input: DiscrepancyFeedbackInput,
+): Promise<{ status: 'OK'; feedbackId: string }> {
+  const installationId = getOrCreateInstallationId();
+  const response = await fetch('/v1/feedback/schedule-discrepancy', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      installationId,
+      addressId: input.addressId ?? null,
+      reportedIssueType: input.reportedIssueType,
+      details: input.details ?? null,
+      clientTimestamp: new Date().toISOString(),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new ApiError(
+      errorBody.message || 'Nie udało się przesłać zgłoszenia',
+      errorBody.code || 'FEEDBACK_SUBMISSION_FAILED',
+      response.status,
+    );
+  }
+
+  return response.json();
+}

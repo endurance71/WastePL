@@ -177,7 +177,12 @@ KPI:
 - repeat usage;
 - zgłoszone wrong-date/fraction cases.
 
-Dodać prosty feedback `Czy harmonogram dla tego adresu jest poprawny? Tak/Nie` z możliwością przekazania bezpiecznych szczegółów błędu.
+### Feedback mieszkańców (Czy harmonogram jest poprawny?) — **ZROBIONE**
+Wdrożono komponent `ScheduleFeedbackModal` w PWA powiązany z footerem osi czasu odbiorów:
+- Pytanie: `Czy harmonogram dla tego adresu jest poprawny? Tak/Nie`;
+- Opcja potwierdzenia poprawności lub zgłoszenia błędu (`WRONG_DATE`, `MISSING_FRACTION`, `OTHER`);
+- Przesyłanie zgłoszeń do produkcyjnego endpointu API `/v1/feedback/schedule-discrepancy`;
+- Zautomatyzowany test Playwright E2E (`TC-2.5`) na 3 silnikach (Chrome, Pixel 5, Safari).
 
 ## P2 — unit economics
 

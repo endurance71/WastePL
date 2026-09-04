@@ -19,6 +19,7 @@ import type {
 } from './types/api.js';
 import { Calendar, MapPin, Loader2, AlertTriangle, Info } from 'lucide-react';
 import { NotificationModal } from './components/NotificationModal.js';
+import { ScheduleFeedbackModal } from './components/ScheduleFeedbackModal.js';
 import {
   getNotificationPermission,
   getSavedNotificationPreferences,
@@ -30,6 +31,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'SCHEDULE' | 'PSZOK'>('SCHEDULE');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
 
   const [schedule, setSchedule] = useState<CollectionScheduleResponse | null>(null);
@@ -279,6 +281,7 @@ export const App: React.FC = () => {
                         source={schedule.source}
                         quality={schedule.quality}
                         addressText={schedule.address.canonicalText}
+                        onOpenFeedback={() => setIsFeedbackModalOpen(true)}
                       />
                     </>
                   ) : (
@@ -311,6 +314,13 @@ export const App: React.FC = () => {
         addressId={selectedAddress?.id}
         addressText={selectedAddress?.canonicalText}
         events={schedule?.events}
+      />
+
+      <ScheduleFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        addressId={selectedAddress?.id}
+        addressText={selectedAddress?.canonicalText}
       />
     </div>
   );

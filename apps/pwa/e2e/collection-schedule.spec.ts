@@ -57,4 +57,22 @@ test.describe('Moduł 2: Harmonogram i Odliczanie do Wywozu', () => {
 
     expect(download.suggestedFilename()).toMatch(/^odpady-.*\.ics$/);
   });
+
+  test('TC-2.5: Otwieranie formularza opinii o harmonogramie i wysłanie zgłoszenia', async ({ page }) => {
+    await page.goto('/');
+
+    const feedbackButton = page.getByRole('button', { name: 'Zgłoś uwagę do harmonogramu' });
+    await expect(feedbackButton).toBeVisible();
+    await feedbackButton.click();
+
+    // Modal should be open
+    await expect(page.getByRole('heading', { name: 'Opinia o harmonogramie' })).toBeVisible();
+    await expect(page.getByText('Czy harmonogram dla tego adresu jest poprawny?')).toBeVisible();
+
+    // Submit positive confirmation
+    await page.getByRole('button', { name: 'Prześlij opinię' }).click();
+
+    // Verify thank you message
+    await expect(page.getByText('Dziękujemy za opinię!')).toBeVisible();
+  });
 });
