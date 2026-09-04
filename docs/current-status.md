@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-04, commit `fe91f4d99a4c0ebc22d7159fbe29df71d4715f5c`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-04, commit `d3224559018e04d80ac518a942c4dc55cc2a13c3`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
@@ -42,7 +42,7 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
 | Aktualny live-source soak 17/17 | **17/17 PASS (8 HEALTHY, 9 CHANGED/OK, 0 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33882827565`). Wszystkie 17 aktywnych źródeł pobiera się i parsuje poprawnie w izolowanym środowisku. |
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
-| Playwright E2E | **78/78 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA. |
+| Playwright E2E | **81/81 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA oraz feedback flow. |
 | PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
 | Powiadomienia | **KOMPLETNE** | VAPID/Web Push: backend subscription storage, scheduled push worker, service worker delivery. Alarmy `.ics` zachowane jako alternatywa. |
 | Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile`. |
