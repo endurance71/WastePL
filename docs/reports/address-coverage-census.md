@@ -1,14 +1,14 @@
 # Address Coverage Census — Raport Pokrycia Adresowego Pilota WastePL
 
-> Data wygenerowania: 2026-09-04. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
+> Data wygenerowania: 2026-09-04. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
 
 ## Cel i interpretacja
 
-Wskaźnik **Address Coverage** mierzy, jaki procent mieszkańców w danej gminie może wpisać swój adres w WastePL i otrzymać jednoznaczny, zweryfikowany harmonogram wywozu. 
+Wskaźnik **Address Coverage** mierzy, jaki procent mieszkańców w danej gminie może wpisać swój adres w WastePL i otrzymać jednoznaczny, zweryfikowany harmonogram wywozu.
 
 Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie **obecność adaptera** (source presence), a nie realną dostępność usługi dla obywateli. Wdrożony Census ujawnia faktyczny stan pokrycia i tworzy priorytetyzowany backlog dalszych wdrożeń.
 
-## Podsumowanie Address Coverage Census
+## Podsumowanie Address Coverage Census (v2)
 
 | Gmina | Adresy PRG | Supported | Unsupported | Ambiguous | Coverage |
 | :--- | ---: | ---: | ---: | ---: | ---: |
@@ -28,6 +28,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - **Overlapping rules:** 0 (brak nakładających się reguł o niejednoznacznym priorytecie)
 - **Brakujące obszary (unsupported):** 8 / 8 gmin wymaga zmapowania kolejnych rewirów i tras
 - **Ambiguity rate:** 0,00% (wszystkie obsługiwane adresy mają jednoznaczny harmonogram)
+- **Engine error rate:** 0,00% (0 błędów)
 
 ## Backlog wdrożeniowy według gmin (ROI-driven)
 

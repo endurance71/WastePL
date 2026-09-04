@@ -25,6 +25,7 @@ import {
   ArtifactOutboxDispatcher,
   SourceScheduler,
 } from './ingestion/source-scheduler.js';
+import { PushNotificationService } from './notifications/push-notification-service.js';
 
 const { Pool } = pg;
 
@@ -90,6 +91,7 @@ export function startMaintenanceLoop(
   sourceScheduler: SourceScheduler,
   artifactOutbox: ArtifactOutboxDispatcher,
   intervalMs = Number.parseInt(process.env.SCHEDULER_INTERVAL_MS ?? '30000', 10),
+  pushService?: PushNotificationService,
 ): MaintenanceLoopHandle {
   if (!Number.isFinite(intervalMs) || intervalMs < 1000) {
     throw new Error('SCHEDULER_INTERVAL_MS must be at least 1000');
@@ -97,6 +99,7 @@ export function startMaintenanceLoop(
 
   let stopped = false;
   let inFlight: Promise<void> | null = null;
+  let lastDispatchedHour = -1;
 
   const run = (): void => {
     if (stopped || inFlight) return;
@@ -104,12 +107,36 @@ export function startMaintenanceLoop(
       try {
         const sourceResult = await sourceScheduler.runOnce();
         const outboxResult = await artifactOutbox.runOnce();
+
+        // Scheduled Web Push trigger
+        let pushResult = null;
+        if (pushService) {
+          const now = new Date();
+          const currentHour = now.getHours();
+          const forceTick = process.env.PUSH_DISPATCH_ON_TICK === 'true';
+
+          if (forceTick || currentHour !== lastDispatchedHour) {
+            const todayStr = now.toISOString().slice(0, 10);
+            const tomorrow = new Date(now.getTime() + 86_400_000);
+            const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+            if (forceTick || currentHour === 18 || currentHour === 20) {
+              pushResult = await pushService.dispatchForDate(tomorrowStr, 'EVENING_BEFORE');
+              lastDispatchedHour = currentHour;
+            } else if (currentHour === 6) {
+              pushResult = await pushService.dispatchForDate(todayStr, 'MORNING_OF');
+              lastDispatchedHour = currentHour;
+            }
+          }
+        }
+
         console.log(
           JSON.stringify({
             level: 'info',
             event: 'scheduler.tick_completed',
             source: sourceResult,
             outbox: outboxResult,
+            ...(pushResult ? { push: pushResult } : {}),
           }),
         );
       } catch (error) {
@@ -153,7 +180,16 @@ export async function bootstrapWorker(): Promise<void> {
   const artifactQueue = new BullMqArtifactProcessingQueue(redisConnection);
   const sourceScheduler = new SourceScheduler(registry, sourceQueue);
   const artifactOutbox = new ArtifactOutboxDispatcher(registry, artifactQueue);
-  const maintenanceLoop = startMaintenanceLoop(sourceScheduler, artifactOutbox);
+  const pushService =
+    process.env.PUSH_NOTIFICATIONS_ENABLED !== 'false'
+      ? new PushNotificationService(pool)
+      : undefined;
+  const maintenanceLoop = startMaintenanceLoop(
+    sourceScheduler,
+    artifactOutbox,
+    undefined,
+    pushService,
+  );
 
   // Collection publication (PGK + explicitly profiled municipal PDF sources), the
   // PGK Koszalin multi-artifact PSZOK coordinator and profiled municipal PSZOK

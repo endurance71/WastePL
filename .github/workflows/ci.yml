@@ -78,6 +78,17 @@ jobs:
         run: pnpm pilot:readiness
       - name: Run fixture-independent production pilot gate
         run: pnpm pilot:production-gate
+      - name: Install Playwright browsers
+        run: pnpm --filter @wastepl/pwa exec playwright install --with-deps chromium webkit
+      - name: Run Playwright E2E & WCAG 2.2 AA a11y tests
+        run: pnpm --filter @wastepl/pwa test:e2e
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/pwa/test-results/playwright-report.json
+          if-no-files-found: warn
       - name: Upload pilot readiness reports
         if: always()
         uses: actions/upload-artifact@v4

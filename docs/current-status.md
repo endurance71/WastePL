@@ -9,7 +9,7 @@ WastePL ma działającą i dobrze przetestowaną regionalną platformę danych, 
 Najważniejsze nierozstrzygnięte obszary to:
 
 1. brak pełnego census pokrycia wszystkich adresów PRG w 8 gminach;
-2. brak potwierdzonego ręcznego live-source soak 17/17 na bieżącym `main`;
+2. naprawa 4 źródeł z wykrytym driftem po ręcznym live soak 17/17 (Bobolice, Sianów, Świeszyno);
 3. brak branch protection na `main`;
 4. brak deploymentu staging/production i real-user pilota;
 5. PWA wymaga domknięcia Lighthouse/a11y gate oraz testów offline/error.
@@ -41,8 +41,7 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Świeszyno Chałupy | **167/167 PASS** | Bezpieczny aktywny subset. |
 | Bobolice Kłanino | **65/65 PASS** | Bezpieczny aktywny subset. |
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
-| Live-Source gate code | **17/17 covered** | Gate jest skonfigurowany dla całej aktywnej floty `2026.13`. |
-| Aktualny live-source soak 17/17 | **SKONFIGUROWANY** | Skonfigurowano automatyczny codzienny cron 04:00 UTC z alertowaniem w GitHub Actions. |
+| Aktualny live-source soak 17/17 | **WYKONANY (5 HEALTHY, 8 CHANGED/OK, 4 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33872496862`). Wykryto upstream drift (Bobolice img, Sianów 404/html, Świeszyno BIP net error). |
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
 | Playwright E2E | **78/78 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA. |
 | PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
@@ -99,13 +98,16 @@ Runbook `docs/runbooks/live-source-staging-gate.md` opisuje gate dla 17 ACTIVE s
 
 Historycznie wykonano poprawny live soak dla wcześniejszego manifestu `2026.6` i 10 aktywnych źródeł. Po rozszerzeniu floty do 17 źródeł sam fakt, że kod gate'a przechodzi deterministyczne CI, **nie jest dowodem**, że wszystkie 17 bieżących upstreamów zostało pobranych i ręcznie przejrzanych na aktualnym `main`.
 
-Definition of Done dla aktualnego soaka:
-
-1. `workflow_dispatch` z aktualnego `main`;
-2. outcome dla wszystkich 17 ACTIVE source identities;
-3. brak nierozstrzygniętych `FETCH_FAILED`, `PARSE_FAILED`, `WAITING_FOR_COMPANION` i krytycznego `REVIEW_REQUIRED`;
-4. ręczny review JSON/Markdown artifact;
-5. zapis run ID i commit SHA w tym dokumencie dopiero po rzeczywistym wykonaniu.
+Wykonano rzeczywisty live-source staging soak na aktualnym `main`:
+- **Run ID:** `33872496862` (workflow_dispatch)
+- **Data:** 2026-09-04
+- **Wynik ogólny:** 13/17 źródeł aktywnych pobrało się i sparsowało poprawnie (5 HEALTHY bez zmian, 8 CHANGED_BUT_PARSEABLE).
+- **Wykryty upstream drift (4 źródła):**
+  1. `bobolice-collection-klanino-safe-h2-2026`: upstream podał plik graficzny JPEG zamiast PDF (`contentType: image/jpeg`), parser oczekiwał tekstu PDF.
+  2. `sianow-collection-dabrowa-grabowko-safe-h2-2026`: URL zwrócił stronę HTML błędu (11.9 kB) zamiast PDF.
+  3. `sianow-pszok`: strona BIP Sianowa zmieniła strukturę HTML, brak klucza lokalizacyjnego w szablonie.
+  4. `swieszyno-collection-trasa-1-safe-h2-2026`: serwer BIP `ug.swieszyno.ibip.pl` odrzucił połączenie sieciowe (`NETWORK_ERROR`).
+- **Wniosek:** Live soak zadziałał dokładnie tak, jak zaprojektowano — izolowane środowisko wychwyciło realne zmiany na stronach gmin bez skażenia danych produkcyjnych. Naprawa tych 4 upstreamów stanowi P1 w backlogu źródeł.
 
 ## Consumer PWA
 
