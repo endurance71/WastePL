@@ -147,6 +147,17 @@ jobs:
           throw new Error('API did not become healthy');
           NODE
           kill "$API_PID"
+      - name: Run dependency security audit
+        run: pnpm security:audit
+      - name: Run Lighthouse CI
+        run: pnpm pwa:lhci
+      - name: Upload Lighthouse CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lhci-report
+          path: apps/pwa/test-results/lhci
+          if-no-files-found: warn
       - name: Stop MinIO
         if: always()
         run: docker rm -f wastepl-minio || true

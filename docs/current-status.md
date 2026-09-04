@@ -50,6 +50,8 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
 | Automated DB restore | **GOTOWY** | `pnpm db:restore` — weryfikacja SHA-256, dry-run i atomic psql restore. |
 | Source Prioritization | **GOTOWE** | `pnpm census:prioritize` — model ROI (odblokowane adresy / (czas + ryzyko)). |
+| Lighthouse CI | **100/100/100/100 PASS** | `pnpm pwa:lhci` — Performance 100, Accessibility 100, Best Practices 100, SEO 100 w GitHub Actions CI. |
+| Security Audit & SAST | **GOTOWE** | `pnpm security:audit` w CI (`--audit-level=high`), zero high/critical vulnerabilities. |
 | Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
 | Observability | **GOTOWE** | Structured JSON logs, `x-request-id`, health check z DB ping (`SELECT 1`). |
 | Security hardening | **GOTOWE** | Rate limiter (120 req/min/IP), HSTS, `nosniff`, `X-Frame-Options: DENY`, CORS. |
