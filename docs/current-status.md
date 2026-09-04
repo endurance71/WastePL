@@ -1,18 +1,17 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-04, commit `394ccd71405b4bbdbf0f6e0fdb879e6bab20c231`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-04, commit `fe91f4d99a4c0ebc22d7159fbe29df71d4715f5c`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
-WastePL ma działającą i dobrze przetestowaną regionalną platformę danych, 17 aktywnych źródeł w 8 gminach pilota, pierwszą konsumencką PWA oraz audytowaną próbkę 415 realnych adresów PRG. Projekt **nie jest jeszcze gotowym produkcyjnie systemem ogólnopolskim**.
+WastePL ma działającą i dobrze przetestowaną regionalną platformę danych, 17 aktywnych źródeł w 8 gminach pilota (17/17 live soak PASS), pierwszą konsumencką PWA oraz audytowaną próbkę 415 realnych adresów PRG (w 100% bezpiecznych rewirach). Projekt **nie jest jeszcze gotowym produkcyjnie systemem ogólnopolskim**.
 
 Najważniejsze nierozstrzygnięte obszary to:
 
-1. brak pełnego census pokrycia wszystkich adresów PRG w 8 gminach;
-2. naprawa 4 źródeł z wykrytym driftem po ręcznym live soak 17/17 (Bobolice, Sianów, Świeszyno);
-3. brak branch protection na `main`;
-4. brak deploymentu staging/production i real-user pilota;
-5. PWA wymaga domknięcia Lighthouse/a11y gate oraz testów offline/error.
+1. rozszerzenie address coverage w 8 gminach pilota (obecnie 1.66% na podstawie bezpiecznych rewirów, cel >=90-95%);
+2. wdrożenie produkcyjne i uruchomienie pilota z realnymi użytkownikami (P2);
+3. włączenie branch protection na `main` (wymaga zmiany repozytorium na publiczne lub planu GitHub Pro w GitHub Free);
+4. zebranie pełnych danych unit economics z realnego utrzymania.
 
 ## Jak czytać coverage
 
@@ -193,15 +192,15 @@ Dodatkowe hardening backlog:
 ## Najbliższa kolejność prac
 
 1. **P0:** włączyć branch protection na `main` i required CI (wymaga zmiany widoczności repo na publiczne w GitHub Free lub Pro);
-2. ~~**P0:** wykonać ręczny aktualny live-source soak 17/17 i przejrzeć raport~~ — **✅ ZROBIONE** (Run ID `33872496862`, 13/17 OK, 4 upstream drift do naprawy);
+2. ~~**P0:** wykonać ręczny aktualny live-source soak 17/17 i przejrzeć raport~~ — **✅ ZROBIONE** (Run ID `33882827565`, 17/17 PASS, 0 FAIL, 0 REVIEW_REQUIRED);
 3. ~~**P0:** zbudować pełny **PRG Address Coverage Census** dla wszystkich 8 gmin~~ — **✅ ZROBIONE** (Census v2 pipeline, 415 supported / 25 030 adresów PRG);
-4. domykać coverage według liczby odblokowanych adresów i kosztu utrzymania;
+4. **P1:** domykać coverage 8 gmin według liczby odblokowanych adresów i kosztu utrzymania (cel: >=90-95%);
 5. ~~domknąć installability PWA~~ — **✅ ZROBIONE**;
 6. ~~rozszerzyć Playwright o krytyczne mobile/offline/error flows oraz dodać do CI~~ — **✅ ZROBIONE** (78 testów E2E + axe WCAG 2.2 AA w GitHub Actions CI);
 7. ~~zdecydować: `.ics` jako reminder MVP albo pełny scheduled Web Push~~ — **✅ ZROBIONE** (oba zaimplementowane, wpięty scheduler do workera);
 8. ~~przygotować staging/production deployment, backup/restore, monitoring i alerting~~ — **✅ ZROBIONE** (docker-compose.prod, db-backup, runbook, observability, security);
-9. uruchomić deployment staging/prod i real-user pilot; mierzyć address search success / unsupported / ambiguous / retention;
-10. dopiero po domknięciu jakości i ekonomii zwiększać zakres do kolejnych ~20 gmin.
+9. **P2:** uruchomić deployment staging/prod i real-user pilot; mierzyć address search success / unsupported / ambiguous / retention;
+10. **P3:** dopiero po domknięciu jakości i ekonomii zwiększać zakres do kolejnych ~20 gmin.
 
 ## Bramka wyjścia z obecnego pilota
 
