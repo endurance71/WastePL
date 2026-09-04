@@ -223,6 +223,15 @@ export function parseSianowH2(
 
   collectionEvents.sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
 
+  const dabrowaMatches = context.localities.filter(
+    (locality) => locality.name.toLocaleLowerCase('pl-PL') === 'dąbrowa',
+  );
+
+  const coverage = [{ type: 'LOCALITY' as const, priority: 50, simc: grabowkoMatches[0].simc }];
+  if (dabrowaMatches.length === 1 && dabrowaMatches[0]) {
+    coverage.push({ type: 'LOCALITY' as const, priority: 50, simc: dabrowaMatches[0].simc });
+  }
+
   return {
     schemaVersion: '0.1.0',
     municipality: context.municipality,
@@ -231,7 +240,7 @@ export function parseSianowH2(
         key: 'sianow-safe-h2-grabowko',
         name: 'Gmina Sianów — Grabówko (Trasa Dąbrowa/Grabówko)',
         buildingType: 'SINGLE_FAMILY',
-        coverage: [{ type: 'LOCALITY', priority: 50, simc: grabowkoMatches[0].simc }],
+        coverage,
       },
     ],
     collectionEvents,

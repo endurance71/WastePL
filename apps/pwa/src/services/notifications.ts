@@ -11,6 +11,7 @@ export interface NotificationPreferences {
 }
 
 const STORAGE_KEY = 'wastepl_notification_preferences';
+const INSTALLATION_KEY = 'wastepl_installation_id';
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   enabled: false,
@@ -26,6 +27,112 @@ function getStorage(): Storage | null {
     return window.localStorage;
   }
   return null;
+}
+
+export function getOrCreateInstallationId(): string {
+  const storage = getStorage();
+  if (!storage) return 'anonymous-pwa-client';
+  let id = storage.getItem(INSTALLATION_KEY);
+  if (!id) {
+    id = 'pwa_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    try {
+      storage.setItem(INSTALLATION_KEY, id);
+    } catch {
+      // ignore
+    }
+  }
+  return id;
+}
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+export async function registerWebPushSubscription(
+  addressId: string,
+  timing: ReminderTiming = 'EVENING_BEFORE_20',
+): Promise<boolean> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return false;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg) return false;
+
+    // Fetch VAPID public key
+    const keyRes = await fetch('/v1/notifications/vapid-public-key');
+    if (!keyRes.ok) return false;
+    const { publicKey } = await keyRes.json();
+    if (!publicKey) return false;
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const applicationServerKey = urlBase64ToUint8Array(publicKey);
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey as unknown as BufferSource,
+      });
+    }
+
+    const subJson = sub.toJSON();
+    if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
+      return false;
+    }
+
+    const installationId = getOrCreateInstallationId();
+    const res = await fetch('/v1/notifications/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        installationId,
+        addressId,
+        endpoint: subJson.endpoint,
+        keys: {
+          p256dh: subJson.keys.p256dh,
+          auth: subJson.keys.auth,
+        },
+        reminderTiming: timing,
+      }),
+    });
+
+    return res.ok;
+  } catch (err) {
+    console.warn('Web Push subscription registration failed:', err);
+    return false;
+  }
+}
+
+export async function unregisterWebPushSubscription(): Promise<boolean> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return false;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg) return false;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return true;
+
+    await fetch('/v1/notifications/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: sub.endpoint }),
+    }).catch(() => null);
+
+    await sub.unsubscribe().catch(() => null);
+    return true;
+  } catch (err) {
+    console.warn('Web Push unsubscription failed:', err);
+    return false;
+  }
 }
 
 export function formatReminderTimingLabel(timing: ReminderTiming): string {

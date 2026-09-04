@@ -73,6 +73,16 @@ describe('parseSwieszynoH2', () => {
         priority: 50,
         simc: '0313377',
       },
+      {
+        type: 'LOCALITY',
+        priority: 50,
+        simc: '0313414',
+      },
+      {
+        type: 'LOCALITY',
+        priority: 50,
+        simc: '0313443',
+      },
     ]);
 
     // 14 MIXED + 14 OTHER + 1 BULKY = 29 total events

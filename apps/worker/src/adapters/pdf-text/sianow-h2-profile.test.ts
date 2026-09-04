@@ -69,6 +69,11 @@ describe('parseSianowH2', () => {
         priority: 50,
         simc: '0310858',
       },
+      {
+        type: 'LOCALITY',
+        priority: 50,
+        simc: '0310835',
+      },
     ]);
 
     // 13 MIXED + 13 OTHER + 11 BIO + 1 BULKY = 38 total events

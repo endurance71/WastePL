@@ -17,6 +17,8 @@ import {
   requestNotificationPermission,
   saveNotificationPreferences,
   sendTestNotification,
+  registerWebPushSubscription,
+  unregisterWebPushSubscription,
   type NotificationPreferences,
   type ReminderTiming,
 } from '../services/notifications.js';
@@ -26,6 +28,7 @@ import { downloadIcsFile, generateIcsCalendar } from '../utils/ics-generator.js'
 interface NotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  addressId?: string;
   addressText?: string;
   events?: CollectionEvent[];
 }
@@ -33,6 +36,7 @@ interface NotificationModalProps {
 export const NotificationModal: React.FC<NotificationModalProps> = ({
   isOpen,
   onClose,
+  addressId,
   addressText,
   events = [],
 }) => {
@@ -112,6 +116,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       const updated: NotificationPreferences = { ...prefs, enabled: true };
       setPrefs(updated);
       saveNotificationPreferences(updated);
+      if (addressId) {
+        registerWebPushSubscription(addressId, updated.reminderTiming).catch(() => null);
+      }
     }
   };
 
@@ -119,12 +126,20 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     const updated: NotificationPreferences = { ...prefs, reminderTiming: timing };
     setPrefs(updated);
     saveNotificationPreferences(updated);
+    if (prefs.enabled && addressId) {
+      registerWebPushSubscription(addressId, timing).catch(() => null);
+    }
   };
 
   const handleToggleEnabled = (enabled: boolean) => {
     const updated: NotificationPreferences = { ...prefs, enabled };
     setPrefs(updated);
     saveNotificationPreferences(updated);
+    if (enabled && addressId) {
+      registerWebPushSubscription(addressId, prefs.reminderTiming).catch(() => null);
+    } else if (!enabled) {
+      unregisterWebPushSubscription().catch(() => null);
+    }
   };
 
   const handleSendTest = async () => {

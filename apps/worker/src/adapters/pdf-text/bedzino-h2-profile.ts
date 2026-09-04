@@ -228,6 +228,35 @@ export function parseBedzinoH2(
 
   collectionEvents.sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
 
+  const TRASA_1_SAFE_LOCALITY_NAMES = [
+    'dworek',
+    'będzinko',
+    'borkowice',
+    'kiszkowo',
+    'łasin koszaliński',
+    'łopienica',
+    'miłogoszcz',
+    'słowieńkowo',
+    'smolne',
+    'strachomino',
+    'uliszki',
+    'zagaje',
+  ];
+
+  const matchedSafeLocalities = context.localities.filter((locality) =>
+    TRASA_1_SAFE_LOCALITY_NAMES.includes(locality.name.toLocaleLowerCase('pl-PL')),
+  );
+
+  const coverage = [
+    { type: 'LOCALITY' as const, priority: 50, simc: dworekMatches[0].simc },
+  ];
+
+  for (const loc of matchedSafeLocalities) {
+    if (loc.simc !== dworekMatches[0].simc && !coverage.some((c) => c.simc === loc.simc)) {
+      coverage.push({ type: 'LOCALITY' as const, priority: 50, simc: loc.simc });
+    }
+  }
+
   return {
     schemaVersion: '0.1.0',
     municipality: context.municipality,
@@ -236,7 +265,7 @@ export function parseBedzinoH2(
         key: 'bedzino-trasa-1-safe-dworek',
         name: 'Gmina Będzino — Dworek (Trasa I)',
         buildingType: 'SINGLE_FAMILY',
-        coverage: [{ type: 'LOCALITY', priority: 50, simc: dworekMatches[0].simc }],
+        coverage,
       },
     ],
     collectionEvents,

@@ -11,6 +11,8 @@ import { InternalReviewController } from './internal-review/internal-review.cont
 import { InternalReviewService } from './internal-review/internal-review.service.js';
 import { InternalSourceOpsController } from './internal-source-ops/internal-source-ops.controller.js';
 import { InternalSourceOpsService } from './internal-source-ops/internal-source-ops.service.js';
+import { NotificationsController } from './notifications/notifications.controller.js';
+import { NotificationsService } from './notifications/notifications.service.js';
 
 @Module({
   controllers: [
@@ -20,6 +22,7 @@ import { InternalSourceOpsService } from './internal-source-ops/internal-source-
     FacilitiesController,
     InternalReviewController,
     InternalSourceOpsController,
+    NotificationsController,
   ],
   providers: [
     DatabaseService,
@@ -28,6 +31,7 @@ import { InternalSourceOpsService } from './internal-source-ops/internal-source-
     FacilitiesService,
     InternalReviewService,
     InternalSourceOpsService,
+    NotificationsService,
   ],
 })
 export class AppModule {}

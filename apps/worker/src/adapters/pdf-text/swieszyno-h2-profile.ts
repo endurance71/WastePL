@@ -281,6 +281,16 @@ export function parseSwieszynoH2(
 
   collectionEvents.sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
 
+  const coverage = [{ type: 'LOCALITY' as const, priority: 50, simc: chalupyMatches[0].simc }];
+
+  const otherLocalities = ['konikowo', 'niekłonice'];
+  for (const name of otherLocalities) {
+    const match = context.localities.find((l) => l.name.toLocaleLowerCase('pl-PL') === name);
+    if (match && !coverage.some((c) => c.simc === match.simc)) {
+      coverage.push({ type: 'LOCALITY' as const, priority: 50, simc: match.simc });
+    }
+  }
+
   return {
     schemaVersion: '0.1.0',
     municipality: context.municipality,
@@ -289,7 +299,7 @@ export function parseSwieszynoH2(
         key: 'swieszyno-safe-h2-chalupy',
         name: 'Gmina Świeszyno — Chałupy (Trasa I)',
         buildingType: 'SINGLE_FAMILY',
-        coverage: [{ type: 'LOCALITY', priority: 50, simc: chalupyMatches[0].simc }],
+        coverage,
       },
     ],
     collectionEvents,

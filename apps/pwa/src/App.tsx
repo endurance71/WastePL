@@ -308,6 +308,7 @@ export const App: React.FC = () => {
           setIsNotificationModalOpen(false);
           syncNotificationStatus();
         }}
+        addressId={selectedAddress?.id}
         addressText={selectedAddress?.canonicalText}
         events={schedule?.events}
       />
