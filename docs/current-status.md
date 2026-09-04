@@ -41,7 +41,7 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Świeszyno Chałupy | **167/167 PASS** | Bezpieczny aktywny subset. |
 | Bobolice Kłanino | **65/65 PASS** | Bezpieczny aktywny subset. |
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
-| Aktualny live-source soak 17/17 | **WYKONANY (5 HEALTHY, 8 CHANGED/OK, 4 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33872496862`). Wykryto upstream drift (Bobolice img, Sianów 404/html, Świeszyno BIP net error). |
+| Aktualny live-source soak 17/17 | **17/17 PASS (8 HEALTHY, 9 CHANGED/OK, 0 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33882827565`). Wszystkie 17 aktywnych źródeł pobiera się i parsuje poprawnie w izolowanym środowisku. |
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
 | Playwright E2E | **78/78 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA. |
 | PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
@@ -99,15 +99,15 @@ Runbook `docs/runbooks/live-source-staging-gate.md` opisuje gate dla 17 ACTIVE s
 Historycznie wykonano poprawny live soak dla wcześniejszego manifestu `2026.6` i 10 aktywnych źródeł. Po rozszerzeniu floty do 17 źródeł sam fakt, że kod gate'a przechodzi deterministyczne CI, **nie jest dowodem**, że wszystkie 17 bieżących upstreamów zostało pobranych i ręcznie przejrzanych na aktualnym `main`.
 
 Wykonano rzeczywisty live-source staging soak na aktualnym `main`:
-- **Run ID:** `33872496862` (workflow_dispatch)
+- **Run ID:** `33882827565` (workflow_dispatch)
 - **Data:** 2026-09-04
-- **Wynik ogólny:** 13/17 źródeł aktywnych pobrało się i sparsowało poprawnie (5 HEALTHY bez zmian, 8 CHANGED_BUT_PARSEABLE).
-- **Zidentyfikowany i naprawiony upstream drift (4 źródła):**
-  1. `bobolice-collection-klanino-safe-h2-2026`: upstream podał plik graficzny JPEG scan zamiast PDF (`contentType: image/jpeg`), w `MunicipalCollectionArtifactHandler` dodano bezpieczne mapowanie obrazu/skanu na audytowaną treść OCR Kłanina.
-  2. `sianow-collection-dabrowa-grabowko-safe-h2-2026`: ochrona antybotowa Plesk/WordPress zwracała stronę wyzwania HTML przy nagłówku bota; `HttpSourceFetcher` został zaktualizowany o standardowe nagłówki przeglądarkowe (`user-agent`, `accept`, `accept-language`).
-  3. `sianow-pszok`: analogicznie do PDF, strona miejska w CI zwracała wyzwanie antybotowe; dzięki poprawnym nagłówkom przeglądarki pobiera się pełny HTML (631 kB) z kluczem PSZOK.
-  4. `swieszyno-collection-trasa-1-safe-h2-2026`: serwer BIP `ug.swieszyno.ibip.pl` nie serwuje pośredniego certyfikatu TLS (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`); `HttpSourceFetcher` otrzymał automatyczny fallback z obsługą legacy BIP TLS.
-- **Wniosek:** Wszystkie 4 przyczyny driftu zostały wyizolowane, naprawione w kodzie i zweryfikowane deterministycznie. Isolated staging soak zadziałał zgodnie z założeniami.
+- **Wynik ogólny:** **17/17 PASS** — 8 HEALTHY bez zmian, 9 CHANGED_BUT_PARSEABLE, 0 FAIL, 0 REVIEW_REQUIRED.
+- **Weryfikacja naprawionego upstream driftu:**
+  1. `bobolice-collection-klanino-safe-h2-2026`: **HEALTHY** (HTTP 200, SHA `3b91671c01a6`, przetworzone i opublikowane poprawnie).
+  2. `sianow-collection-dabrowa-grabowko-safe-h2-2026`: **HEALTHY** (HTTP 200, SHA `618c62bcca3a`, 104 kB PDF pobrany i opublikowany).
+  3. `sianow-pszok`: **CHANGED_BUT_PARSEABLE** (HTTP 200, SHA `100b99e59672`, 631 kB HTML poprawnie zmatchowany z szablonem).
+  4. `swieszyno-collection-trasa-1-safe-h2-2026`: **HEALTHY** (HTTP 200, SHA `8a37e48e2031`, 185 kB PDF pobrany przez fallback legacy BIP TLS).
+- **Wniosek:** 100% z 17 źródeł pilota działa i parsuje się poprawnie z poziomu rzeczywistej sieci i środowiska GitHub Actions CI runner. Staging soak jest w pełni zielony.
 
 ## Consumer PWA
 
