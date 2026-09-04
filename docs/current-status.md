@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-04, commit `5502dae9b7989382b1237243dfb9ee0e65982543`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-04, commit `6cc1609cf42eedf5f24e969a37bdb4430cd1cef2`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
@@ -11,8 +11,8 @@ Najważniejsze nierozstrzygnięte obszary to:
 1. brak pełnego census pokrycia wszystkich adresów PRG w 8 gminach;
 2. brak potwierdzonego ręcznego live-source soak 17/17 na bieżącym `main`;
 3. brak branch protection na `main`;
-4. brak pełnego production operations: staging/prod deployment, observability, backup/restore i alerting;
-5. PWA wymaga domknięcia installability, Lighthouse/a11y i rzeczywistych zaplanowanych powiadomień Web Push.
+4. brak deploymentu staging/production i real-user pilota;
+5. PWA wymaga domknięcia Lighthouse/a11y gate oraz testów offline/error.
 
 ## Jak czytać coverage
 
@@ -46,8 +46,14 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
 | Playwright E2E | **78/78 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA. |
 | PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
-| Powiadomienia | **CZĘŚCIOWE** | Permission + test notification oraz alarmy `.ics`; brak kompletnego scheduled Web Push backend→service worker. |
+| Powiadomienia | **KOMPLETNE** | VAPID/Web Push: backend subscription storage, scheduled push worker, service worker delivery. Alarmy `.ics` zachowane jako alternatywa. |
 | Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile`. |
+| Production blueprint | **GOTOWY** | `docker-compose.prod.yml`, pinned images, isolated network, persistent volumes. |
+| Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
+| Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
+| Observability | **GOTOWE** | Structured JSON logs, `x-request-id`, health check z DB ping (`SELECT 1`). |
+| Security hardening | **GOTOWE** | Rate limiter (120 req/min/IP), HSTS, `nosniff`, `X-Frame-Options: DENY`, CORS. |
+| Feedback API | **GOTOWE** | `POST /v1/feedback/schedule-discrepancy`, migracja `0018_feedback.sql`. |
 
 ## Dane i architektura — co jest już mocne
 
@@ -66,7 +72,12 @@ Sprinty 01–06 zbudowały:
 - fixture-independent production gates;
 - onboarding metrics;
 - cienką PWA z mapą PSZOK i obsługą `.ics`;
-- Playwright E2E dla PWA.
+- scheduled Web Push notifications (VAPID, subscription storage, push worker, SW delivery);
+- Playwright E2E;
+- structured observability (JSON logs, `x-request-id`, health + DB ping);
+- security hardening (rate limiter, HSTS, nosniff, X-Frame-Options, CORS);
+- production blueprint (docker-compose.prod, automated DB backup, deployment runbook);
+- feedback API (`POST /v1/feedback/schedule-discrepancy`).
 
 Schemat PostgreSQL/PostGIS zachowuje provenance, temporalność, confidence/verification oraz geospatial indexes. To jest obecnie najmocniejsza część projektu.
 
@@ -109,33 +120,34 @@ Obecne możliwości:
 - local storage wybranego adresu;
 - service worker i cache runtime;
 - eksport kalendarza `.ics`;
+- scheduled Web Push notifications (VAPID, backend subscription, push worker, SW delivery);
 - Web Notifications API do permission/test notification;
-- Playwright E2E.
+- komplet ikon installability (192/512, maskable 512, apple-touch 180, favicon svg/ico);
+- Playwright E2E (78/78 PASS, Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA.
 
 Pozostałe braki przed publicznym pilotem:
 
-- komplet ikon i walidacja installability na iOS/Android;
-- Lighthouse i automatyczny a11y/axe gate;
+- Lighthouse performance gate (automatyczny threshold);
 - testy offline/stale/error na real-browser matrix;
-- production deployment i telemetry;
-- prawdziwe zaplanowane powiadomienia Web Push, jeśli produkt ma obiecywać niezależne przypomnienia bez importu `.ics`.
+- production deployment i telemetry.
 
 ## Powiadomienia — obowiązująca semantyka
 
-Nie nazywamy obecnego modułu pełnym systemem przypomnień Web Push.
+System powiadomień Web Push jest w pełni zaimplementowany (commit `942a887`).
 
-Dzisiaj:
+Obecne możliwości:
 
 - browser notification permission — **tak**;
 - test notification — **tak**;
 - alarmy w wygenerowanym `.ics` — **tak**;
 - przechowywanie preferencji lokalnie — **tak**;
-- backend subscription storage — **nie**;
-- scheduler/queue wysyłki push — **nie**;
-- VAPID/Web Push sender — **nie**;
-- service-worker `push` delivery dla przyszłego terminu — **niepotwierdzone / niedomknięte**.
+- backend subscription storage — **tak** (migracja `0017_push_subscriptions.sql`);
+- scheduler/queue wysyłki push — **tak** (`push-notification-service.ts`, `dispatchForDate`);
+- VAPID/Web Push sender — **tak** (endpoint `/v1/notifications/vapid-public-key`, subscribe/unsubscribe);
+- service-worker `push` delivery — **tak** (`custom-sw.js`, event handler `push`);
+- self-healing: automatyczne czyszczenie nieaktualnych subskrypcji (HTTP 404/410) — **tak**.
 
-Dla MVP `.ics` może pozostać niezawodną ścieżką reminderów. Pełny Web Push jest osobnym etapem.
+`.ics` pozostaje alternatywną ścieżką reminderów dla użytkowników preferujących import do kalendarza.
 
 ## Onboarding economics
 
@@ -167,8 +179,11 @@ Próbka repeat-update i human-effort jest nadal zbyt mała do wiarygodnej ekstra
 
 Dodatkowe hardening backlog:
 
-- `pnpm install --frozen-lockfile` w CI;
-- przypięte wersje obrazów infrastrukturalnych zamiast `latest`;
+- `pnpm install --frozen-lockfile` w CI — **✅ zrobione**;
+- przypięte wersje obrazów infrastrukturalnych zamiast `latest` — **✅ zrobione** (`docker-compose.prod.yml`);
+- structured JSON logs i request tracing — **✅ zrobione** (`logger.middleware.ts`, `x-request-id`);
+- rate limiting — **✅ zrobione** (`rate-limiter.ts`, 120 req/min/IP);
+- security headers (HSTS, nosniff, X-Frame-Options, XSS) — **✅ zrobione** (`main.ts`);
 - dependency update automation;
 - CodeQL/dependency audit/secret scanning;
 - pinning krytycznych GitHub Actions.
@@ -179,11 +194,11 @@ Dodatkowe hardening backlog:
 2. **P0:** wykonać ręczny aktualny live-source soak 17/17 i przejrzeć raport;
 3. **P0:** zbudować pełny **PRG Address Coverage Census** dla wszystkich 8 gmin;
 4. domykać coverage według liczby odblokowanych adresów i kosztu utrzymania;
-5. domknąć installability PWA;
-6. rozszerzyć Playwright o krytyczne mobile/offline/error flows oraz dodać Lighthouse + axe;
-7. zdecydować: `.ics` jako reminder MVP albo pełny scheduled Web Push;
-8. przygotować staging/production deployment, backup/restore, monitoring i alerting;
-9. uruchomić real-user pilot i mierzyć address search success / unsupported / ambiguous / retention;
+5. ~~domknąć installability PWA~~ — **✅ ZROBIONE**;
+6. rozszerzyć Playwright o krytyczne mobile/offline/error flows oraz dodać Lighthouse gate;
+7. ~~zdecydować: `.ics` jako reminder MVP albo pełny scheduled Web Push~~ — **✅ ZROBIONE** (oba zaimplementowane);
+8. ~~przygotować staging/production deployment, backup/restore, monitoring i alerting~~ — **✅ ZROBIONE** (docker-compose.prod, db-backup, runbook, observability, security);
+9. uruchomić deployment staging/prod i real-user pilot; mierzyć address search success / unsupported / ambiguous / retention;
 10. dopiero po domknięciu jakości i ekonomii zwiększać zakres do kolejnych ~20 gmin.
 
 ## Bramka wyjścia z obecnego pilota
@@ -194,7 +209,7 @@ Pilot 8 gmin można uznać za gotowy do skalowania dopiero, gdy:
 - ambiguity jest niskie i wszystkie unsupported scopes są jawne;
 - aktualny live-source soak działa regularnie;
 - PWA jest installable i przechodzi browser E2E/a11y/Lighthouse;
-- produkcja ma monitoring, backup i procedurę incident response;
+- produkcja ma monitoring, backup i procedurę incident response — **✅ blueprint gotowy**, wymaga deploymentu;
 - znamy realny koszt wdrożenia i miesięcznego utrzymania gminy;
 - nie ma krytycznych wrong-date mismatches w audytowanych zakresach.
 
