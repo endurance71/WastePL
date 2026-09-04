@@ -76,9 +76,11 @@ test.describe('Moduł 3: Punkty PSZOK i Interaktywna Mapa', () => {
     await expect(popup.getByRole('link', { name: 'OSM' })).toBeVisible();
   });
 
-  test('TC-3.5: Kopiowanie adresu PSZOK do schowka', async ({ page, context }) => {
-    // Grant clipboard permissions
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  test('TC-3.5: Kopiowanie adresu PSZOK do schowka', async ({ page, context, browserName }) => {
+    // Grant clipboard permissions if supported by browser engine
+    if (browserName === 'chromium') {
+      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    }
 
     await page.goto('/');
     await page.getByRole('button', { name: /Punkty PSZOK/ }).click();

@@ -45,14 +45,63 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const [testStatus, setTestStatus] = useState<
     'IDLE' | 'SENDING' | 'SUCCESS' | 'FAILED' | 'DENIED'
   >('IDLE');
+  const modalRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setPermission(getNotificationPermission());
       setPrefs(getSavedNotificationPreferences());
       setTestStatus('IDLE');
+
+      // Focus first interactive element in modal
+      const timer = setTimeout(() => {
+        const focusable = modalRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable && focusable.length > 0) {
+          focusable[0]?.focus();
+        }
+      }, 50);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onClose();
+          return;
+        }
+
+        if (e.key === 'Tab' && modalRef.current) {
+          const focusables = Array.from(
+            modalRef.current.querySelectorAll<HTMLElement>(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+            ),
+          );
+          if (focusables.length === 0) return;
+
+          const firstEl = focusables[0];
+          const lastEl = focusables[focusables.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstEl && lastEl) {
+              e.preventDefault();
+              lastEl.focus();
+            }
+          } else {
+            if (document.activeElement === lastEl && firstEl) {
+              e.preventDefault();
+              firstEl.focus();
+            }
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleKeyDown);
+      };
     }
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -111,6 +160,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notification-modal-title"
         className="modal-content card"
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -128,7 +181,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Bell size={20} color="#38bdf8" />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
+            <h3 id="notification-modal-title" style={{ fontSize: '1.15rem', fontWeight: 700 }}>
               Powiadomienia o wywozie
             </h3>
           </div>

@@ -25,6 +25,10 @@ export default defineConfig({
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'], viewport: { width: 393, height: 851 } },
     },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 14'] },
+    },
   ],
   webServer: {
     command: 'npx vite --port 5173 --host 127.0.0.1',

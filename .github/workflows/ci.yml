@@ -67,7 +67,7 @@ jobs:
           done
           docker logs wastepl-minio
           exit 1
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm docs:check
       - run: pnpm contracts:check
       - run: pnpm db:migrate

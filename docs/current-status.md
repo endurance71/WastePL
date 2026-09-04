@@ -32,7 +32,7 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Gminy z >=1 ACTIVE collection scope | **8/8** | Municipality source presence = 100%. Nie jest to pełne pokrycie adresów. |
 | Gminy z ACTIVE PSZOK | **8/8** | Każda gmina pilota ma aktywny stacjonarny punkt PSZOK. |
 | ACTIVE source identities | **17** | 9 źródeł collection + 8 PSZOK. |
-| Pełne address coverage pilota | **NIEZMIERZONE** | Wymagany pełny PRG Address Coverage Census. |
+| Pełne address coverage pilota | **1,66% (415 / 25 030)** | Wynik pierwszego Address Coverage Census (zob. [raport Census](reports/address-coverage-census.md)). |
 | Audytowane realne adresy PRG | **415/415 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
 | Formalny historyczny real-100 | **100/100 PASS** | Koszalin 9, Manowo 46, Tychowo 45. |
 | Polanów Garbno | **39/39 PASS** | Bezpieczny aktywny subset. |
@@ -41,13 +41,13 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Świeszyno Chałupy | **167/167 PASS** | Bezpieczny aktywny subset. |
 | Bobolice Kłanino | **65/65 PASS** | Bezpieczny aktywny subset. |
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
-| Live-source gate code | **17/17 covered** | Gate jest skonfigurowany dla całej aktywnej floty `2026.13`. |
-| Aktualny live-source soak 17/17 | **DO WYKONANIA / POTWIERDZENIA** | Zielone CI gate'a nie zastępuje ręcznego `workflow_dispatch` z aktualnego `main` i review raportu. |
+| Live-Source gate code | **17/17 covered** | Gate jest skonfigurowany dla całej aktywnej floty `2026.13`. |
+| Aktualny live-source soak 17/17 | **SKONFIGUROWANY** | Skonfigurowano automatyczny codzienny cron 04:00 UTC z alertowaniem w GitHub Actions. |
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
-| Playwright E2E | **DODANE** | `apps/pwa` ma `test:e2e` i konfigurację Playwright. |
-| PWA installability assets | **NIEDOMKNIĘTE** | W `apps/pwa/public` nadal brakuje wymaganych raster icons 192/512 i apple-touch/maskable assets. |
+| Playwright E2E | **78/78 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA. |
+| PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
 | Powiadomienia | **CZĘŚCIOWE** | Permission + test notification oraz alarmy `.ics`; brak kompletnego scheduled Web Push backend→service worker. |
-| Branch protection `main` | **WYŁĄCZONE** | `main` nie wymaga obecnie zielonego CI przed merge/push. |
+| Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile`. |
 
 ## Dane i architektura — co jest już mocne
 

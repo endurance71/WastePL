@@ -87,6 +87,7 @@ export const AddressSearch: React.FC<AddressSearchProps> = ({ onSelectAddress })
           <button
             key={example}
             type="button"
+            className="suggested-btn"
             onClick={() => setQuery(example)}
             style={{
               background: 'rgba(255, 255, 255, 0.05)',

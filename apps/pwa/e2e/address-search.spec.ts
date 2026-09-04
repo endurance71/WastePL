@@ -99,4 +99,27 @@ test.describe('Moduł 1: Wyszukiwanie i Wybór Adresu', () => {
 
     await expect(page.getByText('Wykryto nakładające się rejony odbioru dla tego adresu')).toBeVisible();
   });
+
+  test('TC-1.6: Obsługa błędu serwera API (500 Internal Server Error)', async ({ page }) => {
+    // Override collection endpoint with 500
+    await page.route(/\/v1\/collection/, async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          code: 'INTERNAL_ERROR',
+          message: 'Błąd wewnętrzny serwera podczas przetwarzania harmonogramu.',
+        }),
+      });
+    });
+
+    await page.addInitScript((addr) => {
+      localStorage.setItem('wastepl_selected_address', JSON.stringify(addr));
+    }, mockAddressDworek);
+
+    await page.goto('/');
+
+    await expect(page.getByText('Brak harmonogramu dla tej lokalizacji')).toBeVisible();
+    await expect(page.getByText('Błąd wewnętrzny serwera')).toBeVisible();
+  });
 });
