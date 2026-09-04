@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-04, commit `9cce8798a0c2bdc74860e2a000911da8490da6d5`. Rollout `2026.13` aktywuje stacjonarny PSZOK Gminy Manowo (ul. Komunalna 5, PGK Koszalin), osiągając historyczne **100% (8/8) pokrycia gmin aktywnymi punktami PSZOK** oraz **100% (8/8) pokrycia harmonogramami wywozu** w całym regionie pilotażowym WastePL.
+> Zweryfikowano: 2026-09-04, commit `4a2351b7c376d6cb071172d776d554c62a21d63f`. Rollout `2026.13` aktywuje stacjonarny PSZOK Gminy Manowo (ul. Komunalna 5, PGK Koszalin), osiągając historyczne **100% (8/8) pokrycia gmin aktywnymi punktami PSZOK** oraz **100% (8/8) pokrycia harmonogramami wywozu** w całym regionie pilotażowym WastePL.
 
 ## Etap
 
