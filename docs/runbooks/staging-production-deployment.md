@@ -84,18 +84,50 @@ Zmienne środowiskowe wymagane do uruchomienia produkcyjnego:
 ### Wykonanie kopii zapasowej
 Skrypt tworzy czysty zrzut danych, oblicza sumę SHA-256 i zapisuje metadane w katalogu `backups/`:
 ```bash
+# Lokalny zrzut bazy z metadanymi i sumą kontrolną SHA-256:
 node scripts/db-backup.mjs
+
+# Symulacja dry-run (weryfikacja bez zapisu na dysku):
+pnpm db:backup:dry-run
 ```
 
-### Odtwarzanie bazy danych z kopii zapasowej
+W konfiguracji produkcyjnej ze zmienną `OFFSITE_BACKUP_S3_BUCKET`, zrzut jest automatycznie wysyłany do zewnętrznego zasobnika S3 / Cloudflare R2 z szyfrowaniem SSE-S3.
+
+### Odtwarzanie bazy danych z kopii zapasowej (Automated Restore)
 W przypadku awarii lub konieczności wycofania stanu bazy:
 ```bash
 # 1. Zatrzymanie ruchu aplikacyjnego
 docker compose -f docker-compose.prod.yml stop api worker
 
-# 2. Odtworzenie zrzutu do bazy danych
-cat backups/wastepl-db-backup-<TIMESTAMP>.sql | docker compose -f docker-compose.prod.yml exec -T postgres psql -U wastepl -d wastepl
+# 2. Weryfikacja integralności i odtworzenie zrzutu
+node scripts/db-restore.mjs --dry-run
+node scripts/db-restore.mjs backups/wastepl-db-backup-<TIMESTAMP>.sql
 
 # 3. Ponowne uruchomienie aplikacji
 docker compose -f docker-compose.prod.yml start api worker
 ```
+Skrypt `db-restore.mjs` weryfikuje sumę SHA-256 pliku względem metadanych `.json` przed rozpoczęciem zapisu do bazy PostgreSQL.
+
+---
+
+## 5. Monitoring, Obserwowalność i Alerting (Bramka P1-B.7)
+
+System wdraża trójstopniowy monitoring operacyjny:
+1. **Liveness & Readiness**:
+   - `GET /v1/health` odpytywany co 15 sekund przez zewnętrzny probe (np. Uptime Kuma / Better Stack).
+   - Weryfikacja łączności z bazą PostgreSQL (`SELECT 1`).
+2. **Staging Alerting Runbook**:
+   - Wykrycie statusu `degraded` lub kodu odpowiedzi 5xx przez > 60 sekund generuje alert o priorytecie P1.
+   - Błędy dyspozycji powiadomień Web Push (`push dispatch failures`) logowane w formacie structured JSON z kontekstem `jobId`.
+3. **Log Aggregation**:
+   - Wszystkie serwisy API i Worker emitują ustrukturyzowane logi JSON ze stałym `x-request-id` do standardowego wyjścia (stdout).
+
+---
+
+## 6. Uruchomienie Kontrolowanego Pilota Kohorty Mieszkańców (Bramka P2.1)
+
+Kontrolowany pilot z realnymi użytkownikami uruchamiany jest po spełnieniu kryteriów bramki P2:
+- Użytkownicy rekrutowani wyłącznie z rewirów o wskaźniku Address Coverage $\ge 95\%$ (np. sołectwo Kłanino, Trasa 2AB Manowo, Dworek Będzino).
+- Aktywny telemetry funnel w PWA: wyszukiwanie -> wybór adresu -> odczyt harmonogramu -> powiadomienie -> feedback.
+- Dostępność formularza zgłaszania nieprawidłowości (`ScheduleFeedbackModal`) oraz monitorowanie `POST /v1/feedback/schedule-discrepancy`.
+

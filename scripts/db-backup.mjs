@@ -32,6 +32,10 @@ if (isDryRun) {
     sha256: 'simulated-checksum-dry-run-00000000000000000000000000000000',
     mode: 'dry-run',
     status: 'SUCCESS',
+    offsite: process.env.OFFSITE_BACKUP_S3_BUCKET ? {
+      target: `s3://${process.env.OFFSITE_BACKUP_S3_BUCKET}/backups/${dumpFilename}`,
+      status: 'SIMULATED_OFFSITE_UPLOAD_SUCCESS',
+    } : null,
   };
   console.log('[Backup Manager] Simulated backup metadata:\n', JSON.stringify(simulatedMetadata, null, 2));
   process.exit(0);
@@ -59,7 +63,6 @@ try {
       stdio: 'inherit',
     });
   }
-
 
   // Calculate SHA-256
   const fileBytes = readFileSync(dumpPath);

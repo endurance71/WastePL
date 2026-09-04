@@ -48,6 +48,8 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile`. |
 | Production blueprint | **GOTOWY** | `docker-compose.prod.yml`, Caddy reverse proxy z TLS, PWA Nginx SPA container, pętla zwrotna dla DB/Redis/MinIO. |
 | Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
+| Automated DB restore | **GOTOWY** | `pnpm db:restore` — weryfikacja SHA-256, dry-run i atomic psql restore. |
+| Source Prioritization | **GOTOWE** | `pnpm census:prioritize` — model ROI (odblokowane adresy / (czas + ryzyko)). |
 | Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
 | Observability | **GOTOWE** | Structured JSON logs, `x-request-id`, health check z DB ping (`SELECT 1`). |
 | Security hardening | **GOTOWE** | Rate limiter (120 req/min/IP), HSTS, `nosniff`, `X-Frame-Options: DENY`, CORS. |
@@ -124,13 +126,12 @@ Obecne możliwości:
 - scheduled Web Push notifications (VAPID, backend subscription, push worker, SW delivery);
 - Web Notifications API do permission/test notification;
 - komplet ikon installability (192/512, maskable 512, apple-touch 180, favicon svg/ico);
-- Playwright E2E (78/78 PASS, Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA.
+- Playwright E2E (93/93 PASS, Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA, resident feedback flow oraz testy offline/stale/error.
 
-Pozostałe braki przed publicznym pilotem:
+Pozostałe zadania przed publicznym pilotem:
 
-- Lighthouse performance gate (automatyczny threshold);
-- testy offline/stale/error na real-browser matrix;
-- production deployment i telemetry.
+- Lighthouse performance gate (automatyczny threshold w CI);
+- produkcyjny staging pod dedykowaną domeną i zbieranie telemetrii.
 
 ## Powiadomienia — obowiązująca semantyka
 
