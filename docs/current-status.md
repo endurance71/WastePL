@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-04, commit `6cc1609cf42eedf5f24e969a37bdb4430cd1cef2`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-04, commit `394ccd71405b4bbdbf0f6e0fdb879e6bab20c231`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
@@ -192,13 +192,13 @@ Dodatkowe hardening backlog:
 
 ## Najbliższa kolejność prac
 
-1. **P0:** włączyć branch protection na `main` i required CI;
-2. **P0:** wykonać ręczny aktualny live-source soak 17/17 i przejrzeć raport;
-3. **P0:** zbudować pełny **PRG Address Coverage Census** dla wszystkich 8 gmin;
+1. **P0:** włączyć branch protection na `main` i required CI (wymaga zmiany widoczności repo na publiczne w GitHub Free lub Pro);
+2. ~~**P0:** wykonać ręczny aktualny live-source soak 17/17 i przejrzeć raport~~ — **✅ ZROBIONE** (Run ID `33872496862`, 13/17 OK, 4 upstream drift do naprawy);
+3. ~~**P0:** zbudować pełny **PRG Address Coverage Census** dla wszystkich 8 gmin~~ — **✅ ZROBIONE** (Census v2 pipeline, 415 supported / 25 030 adresów PRG);
 4. domykać coverage według liczby odblokowanych adresów i kosztu utrzymania;
 5. ~~domknąć installability PWA~~ — **✅ ZROBIONE**;
-6. rozszerzyć Playwright o krytyczne mobile/offline/error flows oraz dodać Lighthouse gate;
-7. ~~zdecydować: `.ics` jako reminder MVP albo pełny scheduled Web Push~~ — **✅ ZROBIONE** (oba zaimplementowane);
+6. ~~rozszerzyć Playwright o krytyczne mobile/offline/error flows oraz dodać do CI~~ — **✅ ZROBIONE** (78 testów E2E + axe WCAG 2.2 AA w GitHub Actions CI);
+7. ~~zdecydować: `.ics` jako reminder MVP albo pełny scheduled Web Push~~ — **✅ ZROBIONE** (oba zaimplementowane, wpięty scheduler do workera);
 8. ~~przygotować staging/production deployment, backup/restore, monitoring i alerting~~ — **✅ ZROBIONE** (docker-compose.prod, db-backup, runbook, observability, security);
 9. uruchomić deployment staging/prod i real-user pilot; mierzyć address search success / unsupported / ambiguous / retention;
 10. dopiero po domknięciu jakości i ekonomii zwiększać zakres do kolejnych ~20 gmin.
