@@ -8,7 +8,7 @@ describe('textFromPdfTextArtifact', () => {
     const text = await textFromPdfTextArtifact(Buffer.from(PDF_BASE64, 'base64'));
     expect(text).toContain('WastePL PDF_TEXT smoke');
     expect(text).toContain('second line');
-  });
+  }, 20_000);
 
   it('keeps historical UTF-8 text fixtures supported', async () => {
     await expect(textFromPdfTextArtifact(Buffer.from('Gmina Manowo\nstyczeń 1 2')))

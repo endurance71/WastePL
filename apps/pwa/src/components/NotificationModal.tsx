@@ -24,6 +24,7 @@ import {
 } from '../services/notifications.js';
 import type { CollectionEvent } from '../types/api.js';
 import { downloadIcsFile, generateIcsCalendar } from '../utils/ics-generator.js';
+import { trackEvent } from '../services/telemetry.js';
 
 interface NotificationModalProps {
   isOpen: boolean;
@@ -119,6 +120,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       if (addressId) {
         registerWebPushSubscription(addressId, updated.reminderTiming).catch(() => null);
       }
+      trackEvent('REMINDER_PUSH_OPT_IN', {
+        addressId: addressId ?? 'none',
+        timing: updated.reminderTiming,
+      });
     }
   };
 
@@ -137,6 +142,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     saveNotificationPreferences(updated);
     if (enabled && addressId) {
       registerWebPushSubscription(addressId, prefs.reminderTiming).catch(() => null);
+      trackEvent('REMINDER_PUSH_OPT_IN', {
+        addressId,
+        timing: prefs.reminderTiming,
+      });
     } else if (!enabled) {
       unregisterWebPushSubscription().catch(() => null);
     }
