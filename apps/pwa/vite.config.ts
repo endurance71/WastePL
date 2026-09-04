@@ -65,4 +65,8 @@ export default defineConfig({
       },
     },
   },
+  // @ts-ignore
+  test: {
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
+  },
 });

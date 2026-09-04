@@ -9,6 +9,8 @@ coverage/
 .tmp/
 apps/api/test-results/
 apps/worker/test-results/
+apps/pwa/test-results/
+test-results/
 *.tsbuildinfo
 *.pdf
 

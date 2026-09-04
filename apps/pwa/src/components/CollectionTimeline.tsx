@@ -133,6 +133,7 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
           return (
             <div
               key={`${event.date}-${event.fraction}-${idx}`}
+              className="timeline-item"
               style={{
                 background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-subtle)',
