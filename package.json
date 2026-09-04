@@ -20,6 +20,8 @@
     "pilot:live-source": "pnpm --filter @wastepl/worker readiness:live-source",
     "census": "node scripts/run-address-census.mjs",
     "census:prioritize": "node scripts/prioritize-coverage-sources.mjs",
+    "pwa:lhci": "pnpm --filter @wastepl/pwa build && pnpm dlx @lhci/cli@0.14.0 autorun",
+    "security:audit": "pnpm audit --audit-level=high",
     "db:backup": "node scripts/db-backup.mjs",
     "db:backup:dry-run": "node scripts/db-backup.mjs --dry-run",
     "db:restore": "node scripts/db-restore.mjs",
