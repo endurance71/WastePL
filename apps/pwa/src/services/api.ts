@@ -74,6 +74,35 @@ export async function getFacilities(terc?: string): Promise<FacilityItem[]> {
   return data.items || [];
 }
 
+const STORAGE_KEY_SCHEDULE_PREFIX = 'wastepl_cached_schedule_';
+
+export interface CachedScheduleEntry {
+  cachedAt: string; // ISO string
+  data: CollectionScheduleResponse;
+}
+
+export function getCachedSchedule(addressId: string): CachedScheduleEntry | null {
+  try {
+    const raw = localStorage.getItem(`${STORAGE_KEY_SCHEDULE_PREFIX}${addressId}`);
+    if (!raw) return null;
+    return JSON.parse(raw) as CachedScheduleEntry;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCachedSchedule(addressId: string, data: CollectionScheduleResponse): void {
+  try {
+    const entry: CachedScheduleEntry = {
+      cachedAt: new Date().toISOString(),
+      data,
+    };
+    localStorage.setItem(`${STORAGE_KEY_SCHEDULE_PREFIX}${addressId}`, JSON.stringify(entry));
+  } catch (err) {
+    console.warn('Nie udało się zapisać harmonogramu w pamięci podręcznej', err);
+  }
+}
+
 export function getSavedAddress(): ApiAddress | null {
   try {
     const serialized = localStorage.getItem(STORAGE_KEY_SELECTED_ADDRESS);
