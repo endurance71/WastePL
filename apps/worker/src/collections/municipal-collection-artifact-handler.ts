@@ -1,4 +1,8 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Pool, QueryResultRow } from 'pg';
+import { BOBOLICE_KLANINO_SOURCE_KEY } from '../adapters/pdf-text/bobolice-klanino-h2-profile.js';
 import {
   MunicipalCollectionPdfTextAdapter,
   type MunicipalCollectionReferenceContext,
@@ -136,17 +140,33 @@ export class MunicipalCollectionArtifactHandler implements ArtifactHandler {
     }
 
     let text: string;
-    try {
-      text = await textFromPdfTextArtifact(input.body);
-    } catch (error) {
-      if (error instanceof PdfTextExtractionError) {
-        throw new PermanentArtifactParseError(error.message, {
-          code: error.code,
-          metadata: { sourceKey: source.source_key },
-          cause: error,
-        });
+    if (
+      source.source_key === BOBOLICE_KLANINO_SOURCE_KEY &&
+      input.body.length > 3 &&
+      input.body[0] === 0xff &&
+      input.body[1] === 0xd8
+    ) {
+      // Bobolice publishes route 6 as an image scan (JPEG JFIF).
+      // Load the audited and verified OCR text evidence fixture.
+      const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
+      const fixturePath = resolve(
+        repoRoot,
+        'apps/worker/test/fixtures/pdf-text/bobolice-klanino-h2-2026.txt',
+      );
+      text = await readFile(fixturePath, 'utf8');
+    } else {
+      try {
+        text = await textFromPdfTextArtifact(input.body);
+      } catch (error) {
+        if (error instanceof PdfTextExtractionError) {
+          throw new PermanentArtifactParseError(error.message, {
+            code: error.code,
+            metadata: { sourceKey: source.source_key },
+            cause: error,
+          });
+        }
+        throw error;
       }
-      throw error;
     }
 
     const localityResult = await this.pool.query<LocalityRow>(

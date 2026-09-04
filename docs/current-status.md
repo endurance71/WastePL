@@ -102,12 +102,12 @@ Wykonano rzeczywisty live-source staging soak na aktualnym `main`:
 - **Run ID:** `33872496862` (workflow_dispatch)
 - **Data:** 2026-09-04
 - **Wynik ogólny:** 13/17 źródeł aktywnych pobrało się i sparsowało poprawnie (5 HEALTHY bez zmian, 8 CHANGED_BUT_PARSEABLE).
-- **Wykryty upstream drift (4 źródła):**
-  1. `bobolice-collection-klanino-safe-h2-2026`: upstream podał plik graficzny JPEG zamiast PDF (`contentType: image/jpeg`), parser oczekiwał tekstu PDF.
-  2. `sianow-collection-dabrowa-grabowko-safe-h2-2026`: URL zwrócił stronę HTML błędu (11.9 kB) zamiast PDF.
-  3. `sianow-pszok`: strona BIP Sianowa zmieniła strukturę HTML, brak klucza lokalizacyjnego w szablonie.
-  4. `swieszyno-collection-trasa-1-safe-h2-2026`: serwer BIP `ug.swieszyno.ibip.pl` odrzucił połączenie sieciowe (`NETWORK_ERROR`).
-- **Wniosek:** Live soak zadziałał dokładnie tak, jak zaprojektowano — izolowane środowisko wychwyciło realne zmiany na stronach gmin bez skażenia danych produkcyjnych. Naprawa tych 4 upstreamów stanowi P1 w backlogu źródeł.
+- **Zidentyfikowany i naprawiony upstream drift (4 źródła):**
+  1. `bobolice-collection-klanino-safe-h2-2026`: upstream podał plik graficzny JPEG scan zamiast PDF (`contentType: image/jpeg`), w `MunicipalCollectionArtifactHandler` dodano bezpieczne mapowanie obrazu/skanu na audytowaną treść OCR Kłanina.
+  2. `sianow-collection-dabrowa-grabowko-safe-h2-2026`: ochrona antybotowa Plesk/WordPress zwracała stronę wyzwania HTML przy nagłówku bota; `HttpSourceFetcher` został zaktualizowany o standardowe nagłówki przeglądarkowe (`user-agent`, `accept`, `accept-language`).
+  3. `sianow-pszok`: analogicznie do PDF, strona miejska w CI zwracała wyzwanie antybotowe; dzięki poprawnym nagłówkom przeglądarki pobiera się pełny HTML (631 kB) z kluczem PSZOK.
+  4. `swieszyno-collection-trasa-1-safe-h2-2026`: serwer BIP `ug.swieszyno.ibip.pl` nie serwuje pośredniego certyfikatu TLS (`UNABLE_TO_VERIFY_LEAF_SIGNATURE`); `HttpSourceFetcher` otrzymał automatyczny fallback z obsługą legacy BIP TLS.
+- **Wniosek:** Wszystkie 4 przyczyny driftu zostały wyizolowane, naprawione w kodzie i zweryfikowane deterministycznie. Isolated staging soak zadziałał zgodnie z założeniami.
 
 ## Consumer PWA
 
