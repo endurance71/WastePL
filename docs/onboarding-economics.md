@@ -1,68 +1,142 @@
 # Onboarding economics i reuse adapterów
 
-Ten dokument opisuje mierzalny model kosztu onboardingu źródeł WastePL. Celem nie jest tworzenie pozornie dokładnej wyceny na podstawie historii Git, tylko zebranie danych, które z czasem pozwolą odpowiedzieć, ile rzeczywistej pracy wymaga aktywacja i utrzymanie kolejnej gminy.
+> Stan dokumentu zaktualizowany 2026-09-04 dla danych przez manifest `pilot-koszalin-region@2026.13`.
 
-Źródłem prawdy jest `metrics/onboarding/pilot-koszalin-region-v0.1.json`, walidowany przez `schemas/onboarding-metrics-v0.1.schema.json` i `scripts/check-onboarding-metrics.mjs`. Agregat jest wersjonowany w `metrics/onboarding/pilot-koszalin-region-summary-v0.1.json` i CI odrzuca jego ręczne rozjechanie z rekordami źródłowymi.
+Ten dokument opisuje mierzalny model kosztu onboardingu źródeł WastePL. Celem nie jest tworzenie pozornie dokładnej wyceny na podstawie historii Git, tylko zebranie danych, które z czasem pozwolą odpowiedzieć, ile rzeczywistej pracy wymaga aktywacja i utrzymanie kolejnej gminy/źródła.
+
+## Źródło prawdy
+
+Machine-readable źródłem prawdy jest:
+
+- `metrics/onboarding/pilot-koszalin-region-v0.1.json`;
+- `schemas/onboarding-metrics-v0.1.schema.json`;
+- `scripts/check-onboarding-metrics.mjs`;
+- agregat `metrics/onboarding/pilot-koszalin-region-summary-v0.1.json`.
+
+CI odrzuca rozjazd agregatu z rekordami źródłowymi. Ten dokument jest warstwą interpretacyjną i nie powinien ręcznie nadpisywać machine-readable liczb.
 
 ## Jednostka pomiaru
 
-Rekord odpowiada aktywacji `municipality × data type × source wave`, a nie całej gminie jako jednemu kosztowi. Koszalin ma więc osobny rekord dla harmonogramu i osobny dla PSZOK. Pozwala to odróżnić prosty pojedynczy PDF od wieloartefaktowego bundle i nie ukrywać review surface jednego typu danych w średniej dla całej gminy.
+Rekord odpowiada aktywacji `municipality × data type × source wave`, a nie całej gminie jako jednemu kosztowi. Jedna gmina może mieć osobne rekordy dla collection, PSZOK lub kolejnych rozszerzeń zakresu.
 
-Każdy rekord przechowuje:
+Pozwala to odróżnić prosty pojedynczy PDF od wieloartefaktowego bundle i nie ukrywać review surface jednego typu danych w średniej dla całej gminy.
+
+Każdy rekord przechowuje m.in.:
 
 - TERC, typ danych, source wave, manifest pierwszej aktywacji i dokładne source keys;
 - parser keys i klasę reuse: `REUSED_UNCHANGED`, `REUSED_WITH_CONFIGURATION`, `EXTENDED_EXISTING` albo `NEW_ADAPTER`;
-- liczbę parent/child/active artifacts, sposób koordynacji, service-area complexity i manual review surfaces;
+- source/artifact complexity, sposób koordynacji i manual review surfaces;
 - sześć faz pracy: discovery, source assessment, parser implementation, regression fixture, address/service-area mapping i review;
-- wynik first import oraz repeat update wraz z liczbą manual interventions i repo evidence.
+- wynik first import;
+- repeat-update evidence;
+- liczbę manual interventions.
 
 ## Zasada braku sztucznej precyzji
 
-Historyczne aktywacje nie miały mierzonego human-active time. Wszystkie takie minuty pozostają `UNKNOWN`. Nie wolno rekonstruować ich z czasu między commitami, dat PR ani długości sesji. Pole czasu może stać się liczbą tylko jako `PROSPECTIVE_TIMER` albo jako jawne `HISTORICAL_EVIDENCE` z konkretnym evidence reference.
+Historyczne aktywacje bez mierzonego human-active time pozostają `UNKNOWN`. Nie wolno rekonstruować minut z czasu między commitami, dat PR ani długości sesji.
 
-Baseline `2026.3` jest ostatnią wersją, dla której dopuszczamy historyczny backfill. Każdy source pierwszy raz aktywowany w późniejszym manifeście musi mieć `measurementMode=PROSPECTIVE`, a wszystkie sześć faz musi być zmierzone timerem. Brak rekordu dla nowego ACTIVE source zatrzymuje `contracts:check`.
+Pole czasu może być liczbą tylko wtedy, gdy ma jawne evidence, np. prospektywny timer lub inne zatwierdzone źródło pomiaru.
 
-## Stan pomiaru przez manifest 2026.3
+Nie imputujemy brakujących faz tylko po to, aby wyliczyć efektowną średnią.
+
+## Stan pomiaru przez `2026.13`
 
 | Miara | Wynik | Interpretacja |
 | --- | ---: | --- |
-| Rekordy aktywacji | 6 | Koszalin collection + PSZOK, Manowo collection, Bobolice PSZOK, Świeszyno PSZOK, Tychowo collection. |
-| Zmierzone fazy human-time | 0 / 36 | Koszt czasowy historycznego onboardingu pozostaje nieznany. |
-| Adapter reuse inny niż `NEW_ADAPTER` | 1 / 6 = 16,67% | Mała próba; nie wolno ekstrapolować na Polskę. |
-| First import bez manual intervention | 5 / 6 = 83,33% | Jeden review surface dotyczy bundle PSZOK Koszalin. |
-| First-import manual intervention rate | 1 / 6 = 16,67% | Poniżej pierwotnego celu `<25%`, ale tylko w obecnej małej próbie. |
-| Repeat-update automation | 3 / 3 = 100% | Liczymy wyłącznie rekordy z jawnym repeat-update evidence. |
+| Activation records | **16** | Łączna liczba rekordów aktywacji w obecnym pilocie. |
+| Prospective records | **10** | Aktywacje mierzone prospektywnie po historycznym baseline. |
+| Historical backfill records | **6** | Historyczne rekordy z ograniczoną wiedzą o czasie pracy. |
+| First-import automation | **15/16 = 93,75%** | Większość pierwszych importów bez manual intervention. |
+| First-import manual intervention | **1/16 = 6,25%** | Wynik dobry dla obecnej próbki, ale nie krajowy forecast. |
+| Repeat-update automation | **3/3 = 100%** | Tylko rekordy z jawnym repeat-update evidence. Próbka jest mała. |
+| Adapter reuse inne niż `NEW_ADAPTER` | **11/16 = 68,75%** | Obiecujący sygnał reuse; nie ekstrapolować na cały kraj. |
+| Human-effort phase observations | **60/96 = 62,50%** | 6 faz × 16 rekordów = 96 możliwych obserwacji. |
+| Fully measured records | **10** | Rekordy z kompletnym pomiarem wszystkich wymaganych faz. |
 
-Wynik first-import i repeat-update mierzy zachowanie pipeline, nie czas człowieka. Dlatego można już oceniać stopień automatyzacji, ale nie można jeszcze uczciwie podać kosztu w roboczogodzinach na gminę.
+Wynik first-import i repeat-update mierzy zachowanie pipeline, nie pełny koszt człowieka. Dlatego można już oceniać stopień automatyzacji, ale nadal nie można uczciwie podać jednej wiarygodnej średniej roboczogodzin na gminę dla całej Polski.
 
-## Backfill evidence
+## Co można już powiedzieć
 
-### Koszalin collection
+Na obecnej próbce:
 
-`pgk-koszalin-pdf-text` był nowym parserem dla źródłowego układu. Clean production gate potwierdza automatyczny first import bez manual intervention. Historyczny czas implementacji pozostaje `UNKNOWN`.
+- first-import automation jest wysoka: 93,75%;
+- observed adapter reuse jest wyraźnie wyższy niż w początkowym baseline;
+- trzy jawnie zmierzone repeat updates były automatyczne;
+- większość nowych aktywacji ma już prospektywny model pomiaru;
+- pipeline wykazuje techniczny reuse między source shapes i kolejnymi falami.
 
-### Koszalin PSZOK
+Te wyniki są pozytywne, ale mają ograniczenia:
 
-Dwa źródła HTML tworzą obowiązkowy bundle `main + faq`. Pierwszy import kończy się częściowo `REVIEW_REQUIRED`, ponieważ Na Skwierzynkę 2 nie ma trusted geometry; to jest jedna policzalna manual-review surface. Zmiana FAQ jest przetwarzana automatycznie bez częściowego publish i bez utraty provenance głównej strony.
+- repeat-update sample = tylko 3;
+- nie wszystkie fazy historyczne są znane;
+- obecny region może mieć większy reuse niż losowa próbka krajowa;
+- brakuje regularnego pomiaru miesięcznego maintenance/source-ops cost;
+- aktywacja source nie jest tym samym co pełne address coverage gminy.
 
-### Manowo collection
+## Najważniejszy brak: koszt utrzymania
 
-Istniejący parser PGK został rozszerzony o wariant Manowo i oficjalne SIMC. Production gate mierzy replay, upstream failure z last-known-good oraz changed-artifact replacement, dlatego repeat update ma jawne evidence.
+Onboarding cost sam nie odpowiada na pytanie, czy WastePL skaluje się ekonomicznie.
 
-### Bobolice i Świeszyno PSZOK
+Dla każdego aktywnego source/gminy trzeba zacząć mierzyć także:
 
-Oba źródła zostały aktywowane w tej samej fali przez nową klasę `municipal-pszok-html`. Nie zakładamy sztucznie, że jedna gmina była „pierwsza”, żeby drugiej przypisać reuse. Oba rekordy są więc historycznie `NEW_ADAPTER`, a czas pozostaje `UNKNOWN`.
+- czas reakcji na drift;
+- review time;
+- incident handling;
+- parser fixes;
+- upstream URL/attachment changes;
+- manual verification;
+- deployment/recovery effort;
+- liczbę miesięcy bez interwencji.
 
-### Tychowo collection
+Docelowe KPI:
 
-Wave 3 wymagał nowego parsera `municipal-collection-pdf-text`, ale wykorzystał istniejący artifact store, PDF extraction, BullMQ/outbox, schema validation i temporal publisher. Parent wskazuje dwa child PDF, natomiast ACTIVE jest wyłącznie bezpieczny standard subset. Wcześniejszy clean-runtime evidence potwierdza repeat update, a obecna 100-real-address bramka potwierdza first import i deterministic address coverage. Human-active minutes nie były mierzone i pozostają `UNKNOWN`.
+- human-active onboarding time per activation;
+- human-active maintenance time per active source/month;
+- maintenance cost per municipality/month;
+- incidents per active source;
+- MTTR;
+- adapter reuse rate;
+- repeat-update automation rate.
 
-## Jak mierzyć następną aktywację
+## Jak mierzyć kolejne aktywacje
 
-Przed rozpoczęciem discovery należy utworzyć rekord `PROSPECTIVE`. Timer mierzy wyłącznie aktywną pracę człowieka w odpowiedniej fazie; oczekiwanie na CI, pobieranie, zewnętrzną odpowiedź lub bezczynność nie wchodzi do minut. Manual intervention jest osobnym zdarzeniem i nie jest zastępowany czasem pracy.
+Przed rozpoczęciem discovery należy utworzyć rekord `PROSPECTIVE`. Timer mierzy wyłącznie aktywną pracę człowieka w odpowiedniej fazie; oczekiwanie na CI, pobieranie, zewnętrzną odpowiedź lub bezczynność nie wchodzi do minut.
 
-Po aktywacji rekord musi wskazywać manifest pierwszego `ACTIVE`, wszystkie source keys, parser/reuse class, source complexity, wynik pierwszego importu i evidence. Po pierwszej rzeczywistej zmianie źródła należy dopisać repeat-update observation. Dzięki temu kolejne fale dadzą rzeczywisty rozkład kosztu i reuse, zamiast jednorazowej estymacji.
+Manual intervention jest osobnym zdarzeniem i nie jest zastępowany czasem pracy.
+
+Po aktywacji rekord musi wskazywać:
+
+- manifest pierwszego `ACTIVE`;
+- wszystkie source keys;
+- parser/reuse class;
+- source complexity;
+- wynik first import;
+- evidence dla pomiaru faz.
+
+Po pierwszej rzeczywistej zmianie źródła należy dopisać repeat-update observation.
+
+## Powiązanie z address coverage
+
+Ekonomia nie może być oceniana wyłącznie per liczba aktywowanych sources.
+
+Dwa źródła o podobnym koszcie mogą odblokować zupełnie inną liczbę adresów. Dlatego priorytet rozszerzeń powinien uwzględniać relację:
+
+`liczba nowych supported PRG addresses / (human effort + maintenance risk)`
+
+Pełny PRG Address Coverage Census ma dostarczyć denominatora potrzebnego do takiej oceny.
 
 ## Go/no-go biznesowy
 
-Na dziś można powiedzieć tylko, że w sześciu aktywacjach pipeline osiągnął first-import manual-intervention rate 16,67%, a trzy mierzone repeat updates były automatyczne. Nie ma jeszcze danych pozwalających podać medianę lub średnią roboczogodzin na gminę. Pierwsza kolejna aktywacja po `2026.3` ma dostarczyć pierwszy kompletny prospektywny pomiar czasu; dopiero potem warto porównywać engineering/data-ops effort między source shapes.
+Przed skalowaniem do kolejnych ~20 gmin potrzebujemy więcej niż dobrej first-import automation.
+
+Minimalny zestaw dowodów:
+
+- pełne address coverage obecnych 8 gmin jest znane;
+- regularny live-source monitoring działa operacyjnie;
+- większa próbka repeat updates potwierdza automatyzację;
+- human-active onboarding jest mierzony prospektywnie;
+- miesięczny maintenance/source-ops cost jest znany przynajmniej dla reprezentatywnej próbki;
+- adapter reuse nie pogarsza correctness;
+- nie ma krytycznych wrong-date mismatches w audytowanych zakresach.
+
+Dopiero wtedy można budować wiarygodny model marży i kosztu obsługi 20, 100 lub 2477 gmin.
