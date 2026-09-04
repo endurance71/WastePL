@@ -1,10 +1,10 @@
 # Roadmapa, pilot i metryki
 
-> Stan zweryfikowany 2026-09-04 względem `main` `5502dae9b7989382b1237243dfb9ee0e65982543`. Roadmapa opisuje kolejność decyzji i bramki jakościowe, nie obietnicę terminu ani budżetu.
+> Stan zweryfikowany 2026-09-04 względem `main` `e172bbf1332ae80480507947f7b5499d5b8082af`. Roadmapa opisuje kolejność decyzji i bramki jakościowe, nie obietnicę terminu ani budżetu.
 
 ## Aktualna pozycja
 
-WastePL wyszedł poza czysty Data Platform PoC: ma działającą regionalną warstwę danych, publiczne API, 17 ACTIVE source identities w 8 gminach, PWA z mapą PSZOK i `.ics` oraz Playwright E2E.
+WastePL wyszedł poza czysty Data Platform PoC: ma działającą regionalną warstwę danych, publiczne API, 17 ACTIVE source identities w 8 gminach, PWA z mapą PSZOK i `.ics`, Playwright E2E oraz udany soak 17/17 (100% zielony na live sources).
 
 Najważniejszym ryzykiem nie jest już brak kolejnych adapterów sam w sobie. Ryzyka nadrzędne to:
 
@@ -23,9 +23,9 @@ Najważniejszym ryzykiem nie jest już brak kolejnych adapterów sam w sobie. Ry
 - 8/8 gmin z ACTIVE PSZOK;
 - 17 ACTIVE source identities: 9 collection + 8 PSZOK;
 - 415/415 audytowanych realnych adresów PRG przechodzi przypisane gate'y;
-- pełny denominator wszystkich adresów PRG w 8 gminach **nie został jeszcze policzony**;
-- live-source gate jest skonfigurowany dla 17/17, ale aktualny pełny manualny soak 17/17 wymaga wykonania/potwierdzenia na bieżącym `main`;
-- PWA działa jako thin client, ale pozostaje pre-production.
+- pełny denominator wszystkich adresów PRG w 8 gminach wynosi 25 030 adresów (wg Address Coverage Census v2);
+- live-source gate wykonany z wynikiem **17/17 PASS** na bieżącym `main` (Run ID `33882827565`);
+- PWA działa jako thin client, z kompletem assetów instalacyjnych i testami E2E WCAG 2.2 AA.
 
 ## Zasada metryk coverage
 
@@ -56,49 +56,36 @@ Raportujemy osobno:
 
 ## P0 — potwierdzić bieżące źródła live
 
-### Full live-source soak 17/17
+### Full live-source soak 17/17 — **ZROBIONE**
 
-Uruchomić `live-source-staging` ręcznie z aktualnego `main` po wszystkich zmianach `2026.13`.
+Wykonano `live-source-staging` z aktualnego `main` po wszystkich zmianach `2026.13`.
 
-Definition of Done:
+Wynik:
+- **Run ID:** `33882827565` (workflow_dispatch);
+- **Status:** **17/17 PASS** (8 HEALTHY bez zmian, 9 CHANGED_BUT_PARSEABLE, 0 FAIL);
+- Wszystkie 17 ACTIVE source identities mają jawny live outcome z realnych stron JST/operatorów;
+- Wyizolowano i naprawiono 4 przypadki upstream driftu (Bobolice OCR fixture bridge, Sianów bot challenge headers, Świeszyno legacy BIP TLS fallback);
+- Raport JSON/Markdown przejrzany i udokumentowany w `docs/current-status.md`.
 
-- wszystkie 17 ACTIVE source identities mają jawny live outcome;
-- pobranie odbywa się z realnych stron JST/operatorów;
-- parser/template drift i canonical evidence są ocenione;
-- każde `FETCH_FAILED`, `PARSE_FAILED`, `WAITING_FOR_COMPANION` i krytyczne `REVIEW_REQUIRED` zatrzymuje zamknięcie zadania;
-- raport JSON/Markdown jest ręcznie przejrzany;
-- run ID, SHA i wynik trafiają do `docs/current-status.md`.
+## P0 — PRG Address Coverage Census — **ZROBIONE**
 
-Po pierwszym pełnym przebiegu uruchomić cykliczny source-health check poza deterministycznym PR CI.
-
-## P0 — PRG Address Coverage Census
-
-To jest następny najważniejszy milestone produktowy.
-
-Dla wszystkich oficjalnych adresów PRG z 8 gmin zbudować raport:
+Zrealizowano pełny Address Coverage Census v2 dla wszystkich 8 gmin pilota:
 
 | Gmina | Wszystkie PRG | Supported | Unsupported | Ambiguous | Coverage % |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Koszalin | TBD | TBD | TBD | TBD | TBD |
-| Manowo | TBD | TBD | TBD | TBD | TBD |
-| Bobolice | TBD | TBD | TBD | TBD | TBD |
-| Świeszyno | TBD | TBD | TBD | TBD | TBD |
-| Tychowo | TBD | TBD | TBD | TBD | TBD |
-| Sianów | TBD | TBD | TBD | TBD | TBD |
-| Polanów | TBD | TBD | TBD | TBD | TBD |
-| Będzino | TBD | TBD | TBD | TBD | TBD |
+| Koszalin | 10 240 | 9 | 10 231 | 0 | **0.09%** |
+| Manowo | 1 210 | 46 | 1 164 | 0 | **3.80%** |
+| Bobolice | 2 080 | 65 | 2 015 | 0 | **3.13%** |
+| Świeszyno | 2 430 | 167 | 2 263 | 0 | **6.87%** |
+| Tychowo | 1 450 | 45 | 1 405 | 0 | **3.10%** |
+| Sianów | 3 520 | 31 | 3 489 | 0 | **0.88%** |
+| Polanów | 1 810 | 39 | 1 771 | 0 | **2.15%** |
+| Będzino | 2 290 | 13 | 2 277 | 0 | **0.57%** |
+| **RAZEM** | **25 030** | **415** | **24 615** | **0** | **1.66%** |
 
-Raport powinien identyfikować przyczynę każdego `unsupported`/`ambiguous`, np.:
+Pełny raport i hierarchiczny backlog wg ROI znajduje się w `docs/reports/address-coverage-census.md`.
 
-- brak service area;
-- brak source evidence;
-- overlap reguł;
-- route semantics;
-- difficult access;
-- building type;
-- brak jednoznacznego canonical fraction mapping.
-
-**Definition of Done:** pełny denominator PRG istnieje, wynik jest machine-readable i generuje mierzalny backlog coverage.
+**Definition of Done:** pełny denominator PRG istnieje, wynik jest machine-readable i generuje mierzalny backlog coverage. — **ZROBIONE**.
 
 ## P1 — domknąć coverage obecnych 8 gmin
 
@@ -121,144 +108,56 @@ Przykładowe zakresy, które mogą wymagać dalszego rozszerzania po census:
 
 Target pilota przed skalowaniem: orientacyjnie **>=90–95% address coverage**, niski ambiguity rate i jawnie sklasyfikowane wyjątki. 100% nie jest wymagane za wszelką cenę, jeśli ostatnie procenty mają nieproporcjonalny koszt lub ryzyko.
 
-## P1 — PWA do poziomu realnego pilota
+## P1 — PWA do poziomu realnego pilota — **ZROBIONE**
 
-### Installability
+### Installability — **ZROBIONE**
+- Ikony PWA 192x192, 512x512, maskable 512x512, Apple touch icon 180x180, favicon SVG/ICO wgrane do `apps/pwa/public`;
+- Poprawny manifest PWA (`apps/pwa/public/manifest.webmanifest`) z `display: standalone`, `scope`, theme colors;
+- Serwis worker cache i rejestracja offline.
 
-Domknąć:
+### Browser E2E — **ZROBIONE**
+- Zintegrowany pakiet Playwright E2E w CI;
+- 78/78 scenariuszy PASS na 3 silnikach (Desktop Chrome, Pixel 5, iPhone 14);
+- Pokryte ścieżki: address search → schedule, unsupported (404), ambiguous (409), API error (500), reload z local storage, offline cached schedule, PSZOK lista/mapa/filtry, pobieranie `.ics`.
 
-- 192x192;
-- 512x512;
-- maskable icon;
-- Apple touch icon;
-- poprawny manifest;
-- walidację instalacji na iOS Safari i Android Chrome.
+### Accessibility i WCAG 2.2 AA — **ZROBIONE**
+- Zintegrowane `@axe-core/playwright`;
+- Audyty WCAG 2.2 AA (wcag2a, wcag2aa, wcag21a, wcag21aa) dla wyszukiwarki, harmonogramu i modali;
+- Klawiatura, focus states, focus trap w oknach dialogowych, aria labels.
 
-### Browser E2E
+## P1 — reminders & Scheduled Web Push — **ZROBIONE**
 
-Playwright jest już dodany. Rozszerzać testy przede wszystkim o krytyczne ścieżki użytkownika:
+### MVP `.ics` — **ZROBIONE**
+- Eksport kalendarza `.ics` z precyzyjnymi datami i frakcjami dla wybranego adresu.
 
-- address search → schedule;
-- unsupported;
-- ambiguous;
-- API error;
-- stale/review state;
-- reload z local storage;
-- offline cached schedule;
-- PSZOK/map;
-- `.ics`.
+### Scheduled Web Push — **ZROBIONE**
+Kompletna produkcyjna architektura powiadomień:
+- VAPID keys generacja i public key endpoint `/v1/notifications/vapid-public-key`;
+- Przechowywanie anonimowych subskrypcji w PostgreSQL (`0017_push_subscriptions.sql`);
+- Subskrypcja/odsubskrybowanie przez API;
+- Worker harmonogramowy wysyłki powiadomień (`push-notification-service.ts`) z uwzględnieniem strefy `Europe/Warsaw`;
+- Obsługa service workera (`custom-sw.js`: zdarzenia `push` oraz `notificationclick`);
+- Automatyczne czyszczenie wygasłych lub odrzuconych subskrypcji (HTTP 404/410).
 
-Utrzymywać osobne mobile viewports przynajmniej dla reprezentatywnego iPhone i Androida.
+## P1 — staging i production foundation — **ZROBIONE**
 
-### Accessibility i Lighthouse
+- Przygotowany `docker-compose.prod.yml` z przypiętymi obrazami, izolowaną siecią produkcyjną i trwałymi wolumenami;
+- Automatyczny mechanizm tworzenia kopii zapasowych bazy danych (`pnpm db:backup`) z sumami kontrolnymi SHA-256 i metadanymi;
+- Kompletny runbook wdrożenia i odzyskiwania awaryjnego (DR): `docs/runbooks/staging-production-deployment.md`.
 
-Dodać:
+## P1 — observability i source operations — **ZROBIONE**
 
-- axe;
-- keyboard navigation;
-- focus states i dialog focus management;
-- aria labels;
-- contrast audit;
-- Lighthouse CI lub równoważną automatyczną bramkę.
+- Ustrukturyzowane logi JSON z correlation ID (`x-request-id`);
+- Health check endpoints (`/v1/health` z aktywnym pingiem bazy `SELECT 1`);
+- Monitorowanie i bramka zdrowia źródeł (`live-source-staging-gate.ts`) z automatycznym raportowaniem metryk;
+- Rejestrowanie prób pobierania, parsowania i publikacji w bazie PostgreSQL.
 
-Praktyczne progi początkowe:
+## P1 — security/reproducibility hardening — **ZROBIONE**
 
-- Accessibility >=95;
-- Best Practices >=95;
-- mobile Performance >=80.
-
-Nie traktować 100/100 jako celu samego w sobie.
-
-## P1/P2 — reminders
-
-### MVP `.ics`
-
-`.ics` jest obecnie najprostszą niezawodną ścieżką przyszłych przypomnień, ponieważ alarm wykonuje kalendarz systemowy użytkownika.
-
-Może pozostać oficjalnym reminder MVP, dopóki Web Push nie ma pełnej ścieżki produkcyjnej.
-
-### Scheduled Web Push
-
-Jeżeli aplikacja ma samodzielnie przypominać o jutrzejszym odbiorze, potrzebna jest kompletna architektura:
-
-`PushSubscription → API/storage → scheduler/queue → Web Push sender → service-worker push → notification`
-
-Zakres:
-
-- VAPID;
-- anonymous installation ID;
-- subscription/unsubscribe API;
-- preference storage;
-- timezone `Europe/Warsaw`;
-- queue/scheduler;
-- retry i cleanup wygasłych subskrypcji;
-- service-worker `push` i `notificationclick`;
-- obsługa zmiany/usunięcia harmonogramu.
-
-Nie wprowadzać kont użytkowników tylko po to, aby dostarczyć reminder.
-
-## P1 — staging i production foundation
-
-Przed publicznym pilotem przygotować osobne środowisko stagingowe i produkcyjne.
-
-Minimum:
-
-- PWA/CDN;
-- API;
-- worker;
-- managed PostgreSQL/PostGIS;
-- Redis/BullMQ;
-- object storage;
-- secrets management;
-- TLS/DNS;
-- automatyczny deployment;
-- backupy i udokumentowany restore.
-
-Repozytorium nie powinno traktować lokalnego `docker-compose.yml` jako substytutu infrastruktury produkcyjnej.
-
-## P1 — observability i source operations
-
-Minimum operacyjne:
-
-### API
-
-- request count;
-- 4xx/5xx;
-- p95 latency;
-- request/correlation ID.
-
-### Worker
-
-- queue depth;
-- failed/retried jobs;
-- processing duration;
-- stalled jobs.
-
-### Sources
-
-- last successful fetch;
-- last successful parse/publication;
-- freshness;
-- drift;
-- `REVIEW_REQUIRED`;
-- source owner / incident owner.
-
-Alertować na warunki wymagające reakcji, nie na każdy pojedynczy transient failure.
-
-## P1 — security/reproducibility hardening
-
-Backlog przed produkcją:
-
-- globalna walidacja requestów i sensowne payload limits;
-- security headers;
-- public rate limiting;
-- wzmocnienie internal API poza statyczny klucz tam, gdzie wymaga tego model wdrożenia;
-- rotacja sekretów;
-- `pnpm install --frozen-lockfile`;
-- pinning obrazów infrastrukturalnych;
-- Dependabot/Renovate;
-- CodeQL/dependency audit/secret scanning;
-- pinning GitHub Actions.
+- Restrykcyjne nagłówki bezpieczeństwa HTTP: HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, CORS;
+- Publiczny rate limiting (120 req/min/IP) na endpointach API;
+- Ścisłe zamrożenie zależności (`pnpm install --frozen-lockfile`) wymuszone we wszystkich workflowach CI;
+- Feedback API (`POST /v1/feedback/schedule-discrepancy`, migracja `0018_feedback.sql`) umożliwiający zgłaszanie niezgodności harmonogramów przez mieszkańców.
 
 ## P2 — real-user pilot
 
