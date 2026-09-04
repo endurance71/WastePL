@@ -1,17 +1,21 @@
 import React from 'react';
-import { MapPin, RefreshCw, WifiOff, Trash2 } from 'lucide-react';
+import { MapPin, RefreshCw, WifiOff, Trash2, Bell } from 'lucide-react';
 import type { ApiAddress } from '../types/api.js';
 
 interface HeaderProps {
   selectedAddress: ApiAddress | null;
   onChangeAddress: () => void;
   isOnline: boolean;
+  onOpenNotifications?: () => void;
+  isNotificationsEnabled?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   selectedAddress,
   onChangeAddress,
   isOnline,
+  onOpenNotifications,
+  isNotificationsEnabled = false,
 }) => {
   return (
     <header>
@@ -38,6 +42,39 @@ export const Header: React.FC<HeaderProps> = ({
             <WifiOff size={13} />
             <span>Offline</span>
           </div>
+        )}
+
+        {onOpenNotifications && (
+          <button
+            type="button"
+            onClick={onOpenNotifications}
+            className="btn-secondary"
+            style={{
+              padding: '6px 10px',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title="Ustawienia powiadomień i przypomnień o wywozie"
+            aria-label="Powiadomienia"
+          >
+            <Bell size={16} color={isNotificationsEnabled ? '#38bdf8' : 'var(--text-muted)'} />
+            {isNotificationsEnabled && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '5px',
+                  right: '5px',
+                  width: '7px',
+                  height: '7px',
+                  backgroundColor: '#22c55e',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 4px #22c55e',
+                }}
+              />
+            )}
+          </button>
         )}
 
         {selectedAddress && (

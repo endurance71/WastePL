@@ -52,4 +52,33 @@ describe('generateIcsCalendar', () => {
     expect(ics).not.toContain('BEGIN:VALARM');
     expect(ics).toContain('SUMMARY:Odpady: Papier\r\n');
   });
+
+  it('supports configurable alarm timings (18:00 evening before, 06:00 morning, or both)', () => {
+    const events: CollectionEvent[] = [
+      { date: '2026-09-15', fraction: 'PAPER', status: 'SCHEDULED' },
+    ];
+
+    const ics18 = generateIcsCalendar({
+      addressText: 'Koszalin',
+      events,
+      alarmTiming: 'EVENING_BEFORE_18',
+    });
+    expect(ics18).toContain('TRIGGER:-PT6H\r\n');
+    expect(ics18).not.toContain('TRIGGER:-PT4H\r\n');
+
+    const icsMorning = generateIcsCalendar({
+      addressText: 'Koszalin',
+      events,
+      alarmTiming: 'MORNING_OF_06',
+    });
+    expect(icsMorning).toContain('TRIGGER;RELATED=START:PT6H\r\n');
+
+    const icsBoth = generateIcsCalendar({
+      addressText: 'Koszalin',
+      events,
+      alarmTiming: 'BOTH',
+    });
+    expect(icsBoth).toContain('TRIGGER:-PT6H\r\n');
+    expect(icsBoth).toContain('TRIGGER:-PT4H\r\n');
+  });
 });
