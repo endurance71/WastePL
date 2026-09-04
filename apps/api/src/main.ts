@@ -3,16 +3,44 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module.js';
 
+import { requestLoggerHook } from './common/logger.middleware.js';
+import { createRateLimiter } from './common/rate-limiter.js';
+
 export async function createApp(): Promise<NestFastifyApplication> {
+  const adapter = new FastifyAdapter({ logger: false });
+  const fastifyInstance = adapter.getInstance();
+
+  // 1. Structured JSON logger hook with x-request-id
+  fastifyInstance.addHook('onRequest', requestLoggerHook);
+
+  // 2. Global Rate Limiting: 120 req / minute per IP
+  fastifyInstance.addHook(
+    'onRequest',
+    createRateLimiter({
+      windowMs: 60_000,
+      maxRequests: 120,
+    }),
+  );
+
+  // 3. Security headers (HSTS, X-Content-Type-Options, X-Frame-Options)
+  fastifyInstance.addHook('onSend', async (_request, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('X-XSS-Protection', '1; mode=block');
+    reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  });
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false }),
+    adapter,
     { bufferLogs: true },
   );
 
+  app.enableCors();
   app.enableShutdownHooks();
   return app;
 }
+
 
 export async function bootstrap(): Promise<void> {
   const app = await createApp();

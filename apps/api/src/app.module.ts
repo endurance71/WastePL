@@ -7,6 +7,8 @@ import { DatabaseService } from './database/database.service.js';
 import { FacilitiesController } from './facilities/facilities.controller.js';
 import { FacilitiesService } from './facilities/facilities.service.js';
 import { HealthController } from './health/health.controller.js';
+import { FeedbackController } from './feedback/feedback.controller.js';
+import { FeedbackService } from './feedback/feedback.service.js';
 import { InternalReviewController } from './internal-review/internal-review.controller.js';
 import { InternalReviewService } from './internal-review/internal-review.service.js';
 import { InternalSourceOpsController } from './internal-source-ops/internal-source-ops.controller.js';
@@ -23,6 +25,7 @@ import { NotificationsService } from './notifications/notifications.service.js';
     InternalReviewController,
     InternalSourceOpsController,
     NotificationsController,
+    FeedbackController,
   ],
   providers: [
     DatabaseService,
@@ -32,6 +35,8 @@ import { NotificationsService } from './notifications/notifications.service.js';
     InternalReviewService,
     InternalSourceOpsService,
     NotificationsService,
+    FeedbackService,
   ],
 })
 export class AppModule {}
+
