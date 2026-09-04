@@ -1,163 +1,338 @@
 # Roadmapa, pilot i metryki
 
-> Stan zweryfikowany 2026-08-31 dla baseline `main` po PR `#82` (`c2722aa85269d90fe1a0d0eb3835cb2646fb30b1`). Roadmapa opisuje kolejność decyzji i bramek jakościowych, nie obietnicę terminu ani budżetu.
-
-## Ukończone etapy
-
-| Etap | Wynik |
-| --- | --- |
-| Sprint 01 | Kontrakty v0.1, pierwszy pion adres → harmonogram, golden gate 30 adresów. |
-| Sprint 02 | Facility v0.2, PSZOK/deposit model, provenance, reconciliation i atomowa ingestia. |
-| Sprint 03 | Oficjalne referencje TERYT/PRG, scheduler/outbox, review workflow, source manifest i readiness gate. |
-| Sprint 04 | Produkcyjny artifact-processing worker, dispatch parserów, transakcyjny publisher, bundle coordination, source-ops API, fixture-independent production gate i real-100 consumer gate. |
-| Sprint 05 do `2026.6` | Coverage expansion + onboarding economics; Sianów/Tychowo PSZOK oraz bezpieczny Polanów Garbno H2. Collection coverage wzrosło do 4/8. |
+> Stan zweryfikowany 2026-09-04 względem `main` `5502dae9b7989382b1237243dfb9ee0e65982543`. Roadmapa opisuje kolejność decyzji i bramki jakościowe, nie obietnicę terminu ani budżetu.
 
 ## Aktualna pozycja
 
-WastePL ma utwardzony Data Platform PoC i wystarczająco dużo realnego coverage, aby po zamknięciu live-source gate rozpocząć pierwszy cienki produkt konsumencki. Najważniejszym ryzykiem nie jest już brak kolejnej abstrakcji backendowej, tylko utrzymywalność realnych upstreamów oraz ograniczone collection coverage.
+WastePL wyszedł poza czysty Data Platform PoC: ma działającą regionalną warstwę danych, publiczne API, 17 ACTIVE source identities w 8 gminach, PWA z mapą PSZOK i `.ics` oraz Playwright E2E.
 
-Aktualny pilot:
+Najważniejszym ryzykiem nie jest już brak kolejnych adapterów sam w sobie. Ryzyka nadrzędne to:
 
-- 8 gmin w manifeście;
-- 8/8 gmin z co najmniej jednym ACTIVE typem danych;
-- 7/8 gmin z ACTIVE collection schedule (Koszalin, Polanów, Manowo, Tychowo, Będzino, Sianów, Świeszyno);
-- 5/8 gmin z ACTIVE PSZOK;
-- 13 ACTIVE source identities;
-- formalny real-100 gate = 100/100;
-- dodatkowy Polanów Garbno gate = 39/39;
-- dodatkowy Będzino Dworek gate = 13/13;
-- dodatkowy Sianów Grabówko gate = 31/31;
-- dodatkowy Świeszyno Chałupy gate = 167/167;
-- onboarding summary przez `2026.9`: 12 activation records, 6 prospective, reuse 7/12, first-import automation 11/12, repeat-update automation 3/3.
+- nieznane pełne **address coverage** całego pilota;
+- utrzymywalność 17 realnych upstreamów;
+- brak technicznego wymuszenia CI na `main`;
+- niedomknięty production operations;
+- niepełna installability/a11y/observability PWA;
+- brak pełnego scheduled Web Push;
+- niewystarczająco dojrzała ekonomia utrzymania do skalowania krajowego.
 
-## P0 — domknąć real-source survivability `#60`
+## Stan bazowy pilota
 
-Przed rozpoczęciem PWA wymagany jest przynajmniej jeden rzeczywisty, ręcznie przejrzany `live-source-staging` run z aktualnego `main`.
+- 8 gmin w manifeście `pilot-koszalin-region@2026.13`;
+- 8/8 gmin z co najmniej jednym ACTIVE collection scope;
+- 8/8 gmin z ACTIVE PSZOK;
+- 17 ACTIVE source identities: 9 collection + 8 PSZOK;
+- 415/415 audytowanych realnych adresów PRG przechodzi przypisane gate'y;
+- pełny denominator wszystkich adresów PRG w 8 gminach **nie został jeszcze policzony**;
+- live-source gate jest skonfigurowany dla 17/17, ale aktualny pełny manualny soak 17/17 wymaga wykonania/potwierdzenia na bieżącym `main`;
+- PWA działa jako thin client, ale pozostaje pre-production.
+
+## Zasada metryk coverage
+
+Od tej wersji roadmapy nie używamy samego `8/8` jako synonimu pełnego coverage.
+
+Raportujemy osobno:
+
+1. **municipality source presence** — liczba gmin z >=1 aktywnym zakresem;
+2. **address coverage** — `supported official PRG addresses / all official PRG addresses in pilot`;
+3. **ambiguity rate** — udział adresów z więcej niż jednym bezpiecznie nierozstrzygalnym service area;
+4. **audited-address correctness** — poprawność dat/frakcji w audytowanych próbkach.
+
+`415/415` jest wynikiem audited correctness dla zdefiniowanych zestawów, a nie dowodem 100% pokrycia całego regionu.
+
+## P0 — repo governance
+
+### Branch protection `#84`
+
+`main` ma wymagać:
+
+- zmian przez pull request;
+- zakończonego wymaganym statusem CI;
+- blokady merge przy pending/failed checks;
+- blokady zwykłych direct pushy;
+- kontrolowanego admin override tylko awaryjnie.
+
+**Definition of Done:** nie da się zmergować PR do `main`, jeżeli wymagany CI nie jest zielony.
+
+## P0 — potwierdzić bieżące źródła live
+
+### Full live-source soak 17/17
+
+Uruchomić `live-source-staging` ręcznie z aktualnego `main` po wszystkich zmianach `2026.13`.
 
 Definition of Done:
 
-- workflow uruchomiony przez `workflow_dispatch`;
-- wszystkie 10 ACTIVE source identities mają jawny live outcome;
-- publiczne upstreamy są naprawdę pobrane, a nie zastąpione fixtures;
+- wszystkie 17 ACTIVE source identities mają jawny live outcome;
+- pobranie odbywa się z realnych stron JST/operatorów;
 - parser/template drift i canonical evidence są ocenione;
-- Koszalin PSZOK bundle jest kompletny;
-- archived JSON/Markdown report został ręcznie przejrzany;
-- każde `FETCH_FAILED`, `PARSE_FAILED`, `WAITING_FOR_COMPANION` lub krytyczny brak evidence jest naprawiony albo jawnie zatrzymuje gate.
+- każde `FETCH_FAILED`, `PARSE_FAILED`, `WAITING_FOR_COMPANION` i krytyczne `REVIEW_REQUIRED` zatrzymuje zamknięcie zadania;
+- raport JSON/Markdown jest ręcznie przejrzany;
+- run ID, SHA i wynik trafiają do `docs/current-status.md`.
 
-PR `#82` dostosował gate do `2026.6`, w tym do authoritative locality context wymaganego przez aktywny Polanów Garbno parser. Deterministyczne CI nie zastępuje jednak realnego soaka.
+Po pierwszym pełnym przebiegu uruchomić cykliczny source-health check poza deterministycznym PR CI.
 
-## P1 — thin consumer PWA `#51`
+## P0 — PRG Address Coverage Census
 
-Po zamknięciu `#60` rozpocząć pierwszy konsumencki vertical. Nie budować jeszcze natywnych aplikacji iOS/Android ani systemu kont.
+To jest następny najważniejszy milestone produktowy.
 
-Zakres MVP:
+Dla wszystkich oficjalnych adresów PRG z 8 gmin zbudować raport:
 
-1. resolve/search adresu przez WastePL API;
-2. najbliższa zbiórka i następne terminy;
-3. frakcja, data, source i freshness;
-4. jawne stany `unsupported`, `ambiguous`, `stale`, `review` i błędy;
-5. zapis adresu w local storage;
-6. lista pobliskich PSZOK;
-7. mapa tylko dla obiektów z trusted location;
-8. mobile-first installable PWA;
-9. podstawowy Lighthouse/a11y gate;
-10. zero parserów i gminnych reguł biznesowych w frontendzie.
+| Gmina | Wszystkie PRG | Supported | Unsupported | Ambiguous | Coverage % |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Koszalin | TBD | TBD | TBD | TBD | TBD |
+| Manowo | TBD | TBD | TBD | TBD | TBD |
+| Bobolice | TBD | TBD | TBD | TBD | TBD |
+| Świeszyno | TBD | TBD | TBD | TBD | TBD |
+| Tychowo | TBD | TBD | TBD | TBD | TBD |
+| Sianów | TBD | TBD | TBD | TBD | TBD |
+| Polanów | TBD | TBD | TBD | TBD | TBD |
+| Będzino | TBD | TBD | TBD | TBD | TBD |
 
-PWA ma walidować wartość dla użytkownika na już istniejącym API. React Native/Expo może zostać dodane później, jeśli zachowanie realnych użytkowników uzasadni koszt drugiego klienta.
+Raport powinien identyfikować przyczynę każdego `unsupported`/`ambiguous`, np.:
 
-## P1 — collection coverage 4/8 → 5/8
+- brak service area;
+- brak source evidence;
+- overlap reguł;
+- route semantics;
+- difficult access;
+- building type;
+- brak jednoznacznego canonical fraction mapping.
 
-Rozszerzanie collection coverage powinno działać równolegle z PWA po zamknięciu #60. Następny subset wybierać według mierzalnego kosztu i ryzyka, nie według najłatwiejszej liczby do dopisania w statusie.
+**Definition of Done:** pełny denominator PRG istnieje, wynik jest machine-readable i generuje mierzalny backlog coverage.
 
-Kryteria wyboru:
+## P1 — domknąć coverage obecnych 8 gmin
 
-- deterministyczny source/artifact capture;
-- możliwość jednoznacznego address/service-area mapping;
-- koszt nowego adaptera vs reuse/extension;
-- stabilność upstreamu;
-- liczba realnych adresów, które nowy subset odblokuje;
-- ryzyko nakładania się difficult-access / building-type / route semantics;
-- brak konieczności zgadywania canonical fractions.
+Nie dodawać kolejnych gmin dla samego wzrostu licznika.
 
-Bieżący backlog kandydatów:
+Priorytet rolloutów wyznaczać według relacji:
 
-- Bobolice — mixed image/attachment H2;
-- Świeszyno — legacy child host;
-- Będzino — route I/II, OSŁONY, difficult access;
-- Sianów — generic `odpady segregowane`;
-- kolejne bezpieczne dzieci Polanowa — tylko osobnymi deterministic gates;
-- Tychowo city/hard-to-reach — dopiero po jednoznacznym modelu źródłowym.
+`liczba odblokowanych adresów / (czas wdrożenia + maintenance risk)`
 
-## P1 — trusted facility geocoding
+Najpierw usuwać największe dziury ujawnione przez Address Coverage Census.
 
-Dla mapy PSZOK nie wolno wprowadzać pozornej precyzji.
+Przykładowe zakresy, które mogą wymagać dalszego rozszerzania po census:
 
-Priorytet dowodu lokalizacji:
+- Bobolice — zakresy poza bezpiecznym Kłanino;
+- Świeszyno — zakresy poza Chałupami;
+- Będzino — pozostałe trasy, OSŁONY i difficult access;
+- Sianów — zakresy z ogólną semantyką `odpady segregowane`;
+- Polanów — kolejne dzieci tylko przy jednoznacznym evidence;
+- Tychowo — city/hard-to-reach tylko przy bezpiecznym modelu źródłowym.
 
-1. współrzędne opublikowane w oficjalnym źródle;
-2. jednoznaczne dopasowanie oficjalnego adresu do PRG;
-3. `location=null`, jeśli nie ma bezpiecznego dowodu.
+Target pilota przed skalowaniem: orientacyjnie **>=90–95% address coverage**, niski ambiguity rate i jawnie sklasyfikowane wyjątki. 100% nie jest wymagane za wszelką cenę, jeśli ostatnie procenty mają nieproporcjonalny koszt lub ryzyko.
 
-Geocoding ma mieć własny provenance i nie może udawać informacji dostarczonej przez gminę.
+## P1 — PWA do poziomu realnego pilota
 
-## P2 — powiadomienia
+### Installability
 
-Dopiero po walidacji podstawowego UX PWA:
+Domknąć:
 
-- przypomnienia lokalne/Web Push;
-- wybierany przez użytkownika czas przypomnienia;
-- obsługa zmian harmonogramu i stale/review states;
-- bez systemu kont, dopóki produkt rzeczywiście go nie potrzebuje.
+- 192x192;
+- 512x512;
+- maskable icon;
+- Apple touch icon;
+- poprawny manifest;
+- walidację instalacji na iOS Safari i Android Chrome.
 
-## P2 — system kaucyjny / punkty zwrotu
+### Browser E2E
 
-Traktować jako osobny strumień danych. Nie blokuje MVP harmonogramów i PSZOK.
+Playwright jest już dodany. Rozszerzać testy przede wszystkim o krytyczne ścieżki użytkownika:
 
-Przed ogólnopolską mapą ustalić:
+- address search → schedule;
+- unsupported;
+- ambiguous;
+- API error;
+- stale/review state;
+- reload z local storage;
+- offline cached schedule;
+- PSZOK/map;
+- `.ics`.
 
-- wiarygodny national feed lub zestaw feedów;
-- licencję i prawo do wykorzystania danych;
-- freshness/update semantics;
-- jakość geolokalizacji;
-- deduplikację punktów/operatorów;
-- odpowiedzialność za nieaktualne lokalizacje.
+Utrzymywać osobne mobile viewports przynajmniej dla reprezentatywnego iPhone i Androida.
 
-Nie budować ręcznie utrzymywanej ogólnopolskiej mapy jako substytutu brakującego feedu.
+### Accessibility i Lighthouse
 
-## Bramka wyjścia z 8-gminnego pilota
+Dodać:
 
-Pilot jest operacyjnie domknięty dopiero, gdy:
+- axe;
+- keyboard navigation;
+- focus states i dialog focus management;
+- aria labels;
+- contrast audit;
+- Lighthouse CI lub równoważną automatyczną bramkę.
 
-- uzgodniony zakres danych dla 8 gmin ma jawny ACTIVE albo świadomie zaakceptowany unsupported scope;
-- real-address gates przechodzą ustalone progi z zerową tolerancją dla krytycznych wrong-date mismatches;
-- live-source soak jest wykonywany regularnie i ma ownerów incydentów;
-- source/provenance/freshness/review semantics są zachowane w API;
-- onboarding i repeat-update economics mają wystarczającą liczbę prospektywnych obserwacji;
-- nie ma krytycznych nierozstrzygniętych konfliktów danych.
+Praktyczne progi początkowe:
 
-Sama liczba ACTIVE sources nie jest bramką wyjścia.
+- Accessibility >=95;
+- Best Practices >=95;
+- mobile Performance >=80.
 
-## P2 — fala 20 gmin
+Nie traktować 100/100 jako celu samego w sobie.
 
-Nie uruchamiać pełnej fali 20 gmin tylko dlatego, że pojedyncze rollouts przechodzą CI. Najpierw potrzebny jest lepszy dowód skalowalności.
+## P1/P2 — reminders
 
-Wymagane sygnały:
+### MVP `.ics`
 
-- rosnący adapter reuse;
-- więcej pełnych `PROSPECTIVE` onboarding records;
-- repeat updates bez ręcznej ingerencji;
-- akceptowalny human-active onboarding time;
-- znany miesięczny maintenance/source-ops cost;
-- działający proces drift/incident ownership;
-- brak degradacji correctness przy wzroście coverage.
+`.ics` jest obecnie najprostszą niezawodną ścieżką przyszłych przypomnień, ponieważ alarm wykonuje kalendarz systemowy użytkownika.
 
-Dopiero potem rozszerzać regionalnie do ~20 gmin, następnie ~100, a rollout krajowy rozważać po dowodzie ekonomii utrzymania.
+Może pozostać oficjalnym reminder MVP, dopóki Web Push nie ma pełnej ścieżki produkcyjnej.
+
+### Scheduled Web Push
+
+Jeżeli aplikacja ma samodzielnie przypominać o jutrzejszym odbiorze, potrzebna jest kompletna architektura:
+
+`PushSubscription → API/storage → scheduler/queue → Web Push sender → service-worker push → notification`
+
+Zakres:
+
+- VAPID;
+- anonymous installation ID;
+- subscription/unsubscribe API;
+- preference storage;
+- timezone `Europe/Warsaw`;
+- queue/scheduler;
+- retry i cleanup wygasłych subskrypcji;
+- service-worker `push` i `notificationclick`;
+- obsługa zmiany/usunięcia harmonogramu.
+
+Nie wprowadzać kont użytkowników tylko po to, aby dostarczyć reminder.
+
+## P1 — staging i production foundation
+
+Przed publicznym pilotem przygotować osobne środowisko stagingowe i produkcyjne.
+
+Minimum:
+
+- PWA/CDN;
+- API;
+- worker;
+- managed PostgreSQL/PostGIS;
+- Redis/BullMQ;
+- object storage;
+- secrets management;
+- TLS/DNS;
+- automatyczny deployment;
+- backupy i udokumentowany restore.
+
+Repozytorium nie powinno traktować lokalnego `docker-compose.yml` jako substytutu infrastruktury produkcyjnej.
+
+## P1 — observability i source operations
+
+Minimum operacyjne:
+
+### API
+
+- request count;
+- 4xx/5xx;
+- p95 latency;
+- request/correlation ID.
+
+### Worker
+
+- queue depth;
+- failed/retried jobs;
+- processing duration;
+- stalled jobs.
+
+### Sources
+
+- last successful fetch;
+- last successful parse/publication;
+- freshness;
+- drift;
+- `REVIEW_REQUIRED`;
+- source owner / incident owner.
+
+Alertować na warunki wymagające reakcji, nie na każdy pojedynczy transient failure.
+
+## P1 — security/reproducibility hardening
+
+Backlog przed produkcją:
+
+- globalna walidacja requestów i sensowne payload limits;
+- security headers;
+- public rate limiting;
+- wzmocnienie internal API poza statyczny klucz tam, gdzie wymaga tego model wdrożenia;
+- rotacja sekretów;
+- `pnpm install --frozen-lockfile`;
+- pinning obrazów infrastrukturalnych;
+- Dependabot/Renovate;
+- CodeQL/dependency audit/secret scanning;
+- pinning GitHub Actions.
+
+## P2 — real-user pilot
+
+Po domknięciu PWA i produkcji uruchomić małą grupę realnych testerów z różnych gmin i typów zabudowy.
+
+Mierzyć funnel:
+
+`app open → address search → address selected → schedule shown → calendar/reminder enabled → return visit`
+
+KPI:
+
+- address search success rate;
+- unsupported rate;
+- ambiguous rate;
+- time-to-first-schedule;
+- `.ics`/reminder activation;
+- repeat usage;
+- zgłoszone wrong-date/fraction cases.
+
+Dodać prosty feedback `Czy harmonogram dla tego adresu jest poprawny? Tak/Nie` z możliwością przekazania bezpiecznych szczegółów błędu.
+
+## P2 — unit economics
+
+Kontynuować machine-readable onboarding metrics, ale rozszerzyć je o realny czas operacyjny:
+
+- discovery;
+- source analysis;
+- adapter/config;
+- tests;
+- review;
+- deployment;
+- repeat update;
+- incident/maintenance.
+
+Kluczowe wskaźniki:
+
+- średni human-active onboarding cost per source/gmina;
+- miesięczny maintenance/source-ops cost;
+- adapter reuse;
+- repeat-update automation;
+- incidents per active source;
+- MTTR.
+
+Obecna próbka jest zbyt mała do wiarygodnego forecastu dla 2477 gmin.
+
+## P3 — fala ~20 gmin
+
+Rozszerzenie regionalne dopiero po osiągnięciu bramki pilota.
+
+Preferować klaster geograficzny/operatorowy, aby maksymalizować reuse formatów, operatorów i procesów.
+
+Nie skalować tylko dlatego, że nowe źródła przechodzą CI.
+
+### Bramka przed falą ~20 gmin
+
+Wymagane:
+
+- branch protection i wymuszony CI;
+- regularny live-source monitoring;
+- znane pełne address coverage obecnych 8 gmin;
+- zaakceptowany poziom coverage i ambiguity;
+- installable PWA z browser E2E/a11y/Lighthouse;
+- production monitoring + backup/restore;
+- real-user pilot;
+- znany koszt miesięcznego utrzymania;
+- więcej niż symboliczna próbka repeat-update automation;
+- brak krytycznych nierozstrzygniętych wrong-date mismatches.
 
 ## Metryki sterujące decyzjami
 
-- **Coverage** — udział adresów z jednoznacznym service area i harmonogramem.
+- **Municipality source presence** — gminy z >=1 aktywnym zakresem.
+- **Address coverage** — udział wszystkich oficjalnych adresów PRG z jednoznacznym harmonogramem.
 - **Correctness** — zgodność dat/frakcji z aktualnym źródłem w audytowanej próbie.
-- **Ambiguity** — liczba przypadków, których system nie może bezpiecznie rozstrzygnąć.
+- **Ambiguity** — udział adresów, których system nie może bezpiecznie rozstrzygnąć.
 - **Provenance completeness** — kompletność source/artifact/parser evidence.
 - **Freshness** — czas od zmiany upstreamu do bezpiecznej publikacji.
 - **Source health** — fetch/parse success i drift.
@@ -165,18 +340,18 @@ Dopiero potem rozszerzać regionalnie do ~20 gmin, następnie ~100, a rollout kr
 - **Unit economics** — human-active onboarding i maintenance per source/municipality.
 - **Adapter reuse** — udział aktywacji bez tworzenia całkiem nowego adaptera.
 - **Repeat-update automation** — udział kolejnych aktualizacji bez interwencji człowieka.
+- **User value** — successful address lookup, reminder/calendar activation i repeat usage.
 
 ## Czego teraz nie robić
 
-- nie budować natywnego iOS/Android przed walidacją thin PWA;
-- nie dodawać kont, social features ani CMS bez sygnału produktowego;
-- nie pompować łatwego PSZOK coverage kosztem collection coverage;
+- nie dodawać kolejnych gmin przed policzeniem coverage obecnych 8;
+- nie traktować `8/8` jako 100% address coverage;
 - nie zgadywać route/building/fraction/coordinate semantics;
-- nie traktować fixture CI jako zamiennika realnego public-upstream soaka;
-- nie skalować krajowo przed dowodem unit economics i source-ops.
+- nie traktować fixture CI jako substytutu realnego live soaka;
+- nie budować kont użytkowników bez potrzeby;
+- nie skalować krajowo przed dowodem unit economics i source operations;
+- nie dodawać nowych funkcji, które nie zwiększają coverage/correctness, nie obniżają kosztu utrzymania ani nie poprawiają realnego UX mieszkańca.
 
 ## Kolejność wykonawcza
 
-**`#60 live soak → #51 thin PWA + collection 4/8→5/8 → trusted facility geocoding → notifications → deposit feed → fala 20 gmin`.**
-
-Decyzje między etapami opierają się na jakości, utrzymywalności i koszcie, nie wyłącznie na liczbie dodanych gmin.
+**branch protection → current live soak 17/17 → PRG Address Coverage Census → domknięcie coverage 8 gmin → PWA installability + E2E/a11y/Lighthouse → reminders → staging/prod + observability → real-user pilot → unit economics → fala ~20 gmin.**

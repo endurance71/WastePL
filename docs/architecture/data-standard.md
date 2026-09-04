@@ -34,11 +34,24 @@ Surowej historii nie nadpisujemy. Nowy artefakt lub ponowne przetworzenie tworzy
 
 Reguła może zależeć od TERC/SIMC/ULIC, nazwy ulicy, zakresu lub parzystości numeru, typu zabudowy i wyjątków źródłowych. Geometria wspiera rozstrzygnięcie, ale nie zastępuje opublikowanej reguły operatora.
 
+## Coverage i correctness
+
+Presence źródła w gminie nie jest tym samym co pełne pokrycie adresów.
+
+Obowiązują osobne metryki:
+
+- **municipality source presence** — gmina ma co najmniej jeden aktywny zakres;
+- **address coverage** — udział wszystkich oficjalnych adresów PRG, dla których resolver zwraca jednoznaczny właściwy service area i harmonogram;
+- **audited-address correctness** — zgodność odpowiedzi dla jawnie zdefiniowanej próbki testowej/audytowej;
+- **ambiguity** — przypadki, których nie można bezpiecznie rozstrzygnąć.
+
+Aktualne `415/415` oznacza poprawność w audytowanych zestawach realnych adresów PRG. Nie jest denominator całego regionu. Pełne coverage ma zostać policzone przez PRG Address Coverage Census.
+
 ## Harmonogram i frakcje
 
 Każde wydarzenie wiąże datę, frakcję, service area i provenance. Normalizacja nazw frakcji nie usuwa oryginalnej etykiety źródłowej. Duplikaty semantyczne podlegają deterministycznej deduplikacji; konflikt dat lub obszaru wymaga review.
 
-Fixtures w migracjach i testach są oznaczane jako fixture-derived. Nie wolno prezentować ich jako pełnego produkcyjnego pobrania. Zestaw 30 adresów służy regresji, a planowane 100 realnych adresów służy bramce pilota.
+Fixtures w migracjach i testach są oznaczane jako fixture-derived. Nie wolno prezentować ich jako pełnego produkcyjnego pobrania. Historyczne zestawy 30/100 adresów oraz nowsze dodatkowe gate'y pozostają kontraktami regresyjnymi/audytowymi, ale nie zastępują pełnego census wszystkich adresów PRG pilota.
 
 ## Obiekty
 
