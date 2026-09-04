@@ -42,11 +42,11 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
 | Aktualny live-source soak 17/17 | **17/17 PASS (8 HEALTHY, 9 CHANGED/OK, 0 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33882827565`). Wszystkie 17 aktywnych źródeł pobiera się i parsuje poprawnie w izolowanym środowisku. |
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
-| Playwright E2E | **81/81 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA oraz feedback flow. |
+| Playwright E2E | **93/93 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA, feedback flow oraz testy offline/stale-cache/error. |
 | PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
 | Powiadomienia | **KOMPLETNE** | VAPID/Web Push: backend subscription storage, scheduled push worker, service worker delivery. Alarmy `.ics` zachowane jako alternatywa. |
 | Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile`. |
-| Production blueprint | **GOTOWY** | `docker-compose.prod.yml`, pinned images, isolated network, persistent volumes. |
+| Production blueprint | **GOTOWY** | `docker-compose.prod.yml`, Caddy reverse proxy z TLS, PWA Nginx SPA container, pętla zwrotna dla DB/Redis/MinIO. |
 | Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
 | Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
 | Observability | **GOTOWE** | Structured JSON logs, `x-request-id`, health check z DB ping (`SELECT 1`). |

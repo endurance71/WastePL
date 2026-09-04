@@ -1,13 +1,37 @@
 # Runbook: Wdrożenie Staging i Production oraz Disaster Recovery
 
-## 1. Architektura Środowiska
+## 1. Architektura Środowiska i Topologia Sieciowa
 
-Architektura produkcyjna WastePL składa się z 5 ściśle odizolowanych komponentów:
-1. **PostgreSQL / PostGIS 16-3.4**: Baza danych z modelem temporalnym, tabelami geometrycznymi PRG i audytowalnymi subskrypcjami push.
-2. **Redis 7.2 Alpine**: Kolejki BullMQ (`INGESTION_QUEUE`, `ARTIFACT_PROCESSING_QUEUE`), deduplikacja zadań i cache.
-3. **MinIO Object Storage**: Trwały, niemutowalny magazyn pobranych surowych artefaktów źródłowych (PDF/HTML) ze sprawdzaniem sum kontrolnych SHA-256.
-4. **WastePL API (`apps/api`)**: Czysty Fastify/NestJS microservice serwujący REST API (`/v1/addresses`, `/v1/collection`, `/v1/facilities`, `/v1/notifications`, `/v1/feedback`). Posiada wbudowany rate limiter, structured request logging oraz nagłówki HSTS i CSP.
-5. **WastePL Worker (`apps/worker`)**: Wieloetapowy procesor danych: harmonogramowanie odpytywania źródeł, transakcyjne publikowanie harmonogramów oraz wysyłka powiadomień Web Push o określonych godzinach w strefie `Europe/Warsaw`.
+Architektura produkcyjna i stagingowa WastePL opiera się na separacji ruchu brzegowego od warstwy danych:
+
+```text
+Internet
+  │  (Porty 80 / 443 — Public TLS / Let's Encrypt / HSTS)
+  ▼
+Caddy Reverse Proxy
+  ├── /v1/* ──────────────► WastePL API (Fastify/NestJS, port 3000)
+  │                            │
+  └── /* ─────────────────► WastePL PWA (Nginx Alpine SPA, port 80)
+                               │
+                ┌──────────────┴──────────────┐
+                ▼                             ▼
+       PostgreSQL / PostGIS             Redis 7.2
+       (Internal network only)    (Internal network only)
+                ▲                             ▲
+                └──────────────┬──────────────┘
+                               │
+                      WastePL Worker ◄──────► MinIO S3
+                   (Scheduled Tasks / Push)  (Internal network only)
+```
+
+### Izolacja sieciowa (Bramka P1-B.1 & P1-B.2)
+1. **PostgreSQL / PostGIS 16-3.4**: Odizolowany w sieci `wastepl-backend`. Port bazy jest powiązany wyłącznie z pętlą zwrotną `127.0.0.1:5432` dla lokalnych narzędzi administracyjnych.
+2. **Redis 7.2 Alpine**: Odizolowany w sieci `wastepl-backend`. Port powiązany wyłącznie z `127.0.0.1:6379`.
+3. **MinIO Object Storage**: Trwały magazyn surowych artefaktów. Porty 9000 i 9001 powiązane wyłącznie z `127.0.0.1`.
+4. **WastePL API (`apps/api`)**: Połączony z obiema sieciami (`wastepl-backend` i `wastepl-frontend`).
+5. **WastePL Worker (`apps/worker`)**: Działa w sieci `wastepl-backend`.
+6. **Consumer PWA (`apps/pwa`)**: Kontener Nginx serwujący zoptymalizowany build SPA w sieci `wastepl-frontend`.
+7. **Caddy Reverse Proxy**: Jedyny kontener wystawiający porty `80` i `443` na świat, z automatycznym certyfikatem TLS i nagłówkami bezpieczeństwa.
 
 ---
 
@@ -17,9 +41,10 @@ Zmienne środowiskowe wymagane do uruchomienia produkcyjnego:
 
 | Zmienna | Opis | Przykład / Wymóg |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | Połączenie z bazą danych PostgreSQL | `postgresql://user:pass@host:5432/wastepl` |
-| `REDIS_URL` | Połączenie z klastrem / instancją Redis | `redis://:pass@host:6379` |
-| `S3_ENDPOINT` | Endpoint magazynu S3 / MinIO | `https://s3.wastepl.pl` |
+| `DOMAIN` | Publiczna domena serwisu | `staging.wastepl.pl` lub `app.wastepl.pl` |
+| `DATABASE_URL` | Połączenie z bazą danych PostgreSQL | `postgresql://user:pass@postgres:5432/wastepl` |
+| `REDIS_URL` | Połączenie z instancją Redis | `redis://:pass@redis:6379` |
+| `S3_ENDPOINT` | Endpoint magazynu S3 / MinIO | `http://minio:9000` |
 | `S3_BUCKET` | Nazwa bucketu artefaktów | `wastepl-prod-artifacts` |
 | `S3_ACCESS_KEY` | Klucz dostępowy S3 | Bezpieczny ciąg znaków |
 | `S3_SECRET_KEY` | Klucz tajny S3 | Bezpieczny ciąg znaków |
@@ -44,7 +69,7 @@ Zmienne środowiskowe wymagane do uruchomienia produkcyjnego:
    ```
 3. **Krok 3: Rolling update serwisów kontenerowych**
    ```bash
-   docker compose -f docker-compose.prod.yml up -d --build --no-deps api worker
+   docker compose -f docker-compose.prod.yml up -d --build
    ```
 4. **Krok 4: Weryfikacja zdrowia systemu**
    ```bash

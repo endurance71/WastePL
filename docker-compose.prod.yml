@@ -1,5 +1,7 @@
 # WastePL Production & Staging Blueprint
 # All container versions are strictly pinned. Network isolation and persistent volume bindings are enforced.
+# Public services (Reverse Proxy / TLS) terminate traffic and forward to internal docker networks.
+# Databases and storage (PostgreSQL, Redis, MinIO) are isolated in the backend network without host port binds.
 
 services:
   postgres:
@@ -9,8 +11,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-wastepl}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-in-production}
       POSTGRES_DB: ${POSTGRES_DB:-wastepl}
+    # Database port is bound only to loopback for secure administrative access (e.g. migrations / backups)
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,8 +28,9 @@ services:
     image: redis:7.2.4-alpine
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-change-in-production}
+    # Redis port is bound only to loopback for secure administrative inspection
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_prod_data:/data
     healthcheck:
@@ -44,9 +48,10 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-wastepl-storage}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-in-production}
+    # MinIO console & S3 API ports bound only to loopback for administrative access
     ports:
-      - "${MINIO_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_prod_data:/data
     healthcheck:
@@ -71,8 +76,9 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:kontakt@wastepl.pl}
+    # API exposed internally to proxy; loopback fallback for local smoke-tests
     ports:
-      - "${API_PORT:-3000}:3000"
+      - "127.0.0.1:${API_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,6 +86,7 @@ services:
         condition: service_healthy
     networks:
       - wastepl-backend
+      - wastepl-frontend
 
   worker:
     build:
@@ -109,11 +116,43 @@ services:
     networks:
       - wastepl-backend
 
+  pwa:
+    build:
+      context: .
+      dockerfile: apps/pwa/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PWA_PORT:-8080}:80"
+    networks:
+      - wastepl-frontend
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-staging.wastepl.pl}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - pwa
+    networks:
+      - wastepl-frontend
+
 networks:
   wastepl-backend:
+    driver: bridge
+  wastepl-frontend:
     driver: bridge
 
 volumes:
   postgres_prod_data:
   redis_prod_data:
   minio_prod_data:
+  caddy_data:
+  caddy_config:

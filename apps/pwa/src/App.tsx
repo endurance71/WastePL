@@ -10,6 +10,9 @@ import {
   getFacilities,
   getSavedAddress,
   saveAddress,
+  getCachedSchedule,
+  saveCachedSchedule,
+  type CachedScheduleEntry,
   ApiError,
 } from './services/api.js';
 import type {
@@ -17,7 +20,7 @@ import type {
   CollectionScheduleResponse,
   FacilityItem,
 } from './types/api.js';
-import { Calendar, MapPin, Loader2, AlertTriangle, Info } from 'lucide-react';
+import { Calendar, MapPin, Loader2, AlertTriangle, Info, Clock } from 'lucide-react';
 import { NotificationModal } from './components/NotificationModal.js';
 import { ScheduleFeedbackModal } from './components/ScheduleFeedbackModal.js';
 import {
@@ -35,6 +38,8 @@ export const App: React.FC = () => {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
 
   const [schedule, setSchedule] = useState<CollectionScheduleResponse | null>(null);
+  const [cachedScheduleMeta, setCachedScheduleMeta] = useState<CachedScheduleEntry | null>(null);
+  const [isServingFromCache, setIsServingFromCache] = useState(false);
   const [facilities, setFacilities] = useState<FacilityItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [scheduleError, setScheduleError] = useState<{
@@ -65,6 +70,13 @@ export const App: React.FC = () => {
     const saved = getSavedAddress();
     if (saved) {
       setSelectedAddress(saved);
+      // Pre-seed from cache immediately if present (optimistic render for cold-start offline)
+      const cached = getCachedSchedule(saved.id);
+      if (cached) {
+        setSchedule(cached.data);
+        setCachedScheduleMeta(cached);
+        setIsServingFromCache(true);
+      }
     }
     syncNotificationStatus();
   }, []);
@@ -73,44 +85,62 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!selectedAddress) {
       setSchedule(null);
+      setCachedScheduleMeta(null);
+      setIsServingFromCache(false);
       setFacilities([]);
       setScheduleError(null);
       return;
     }
 
     const loadData = async () => {
-      setIsLoading(true);
+      // Check existing client cache for this address
+      const cached = getCachedSchedule(selectedAddress.id);
+      if (cached) {
+        setSchedule(cached.data);
+        setCachedScheduleMeta(cached);
+        setIsServingFromCache(true);
+      }
+
+      setIsLoading(!cached);
       setScheduleError(null);
 
       // Fetch collection schedule
       try {
         const scheduleData = await getCollection(selectedAddress.id, 90);
         setSchedule(scheduleData);
+        saveCachedSchedule(selectedAddress.id, scheduleData);
+        setCachedScheduleMeta({ cachedAt: new Date().toISOString(), data: scheduleData });
+        setIsServingFromCache(false);
       } catch (err) {
-        if (err instanceof ApiError) {
-          if (err.status === 404) {
-            setScheduleError({
-              code: 'NOT_COVERED',
-              message:
-                'Dla tego adresu harmonogram nie jest jeszcze opublikowany w pilotażu. Obecnie pokrywamy 4 z 8 gmin w regionie koszalińskim.',
-            });
-          } else if (err.status === 409) {
-            setScheduleError({
-              code: 'AMBIGUOUS',
-              message:
-                'Wykryto nakładające się rejony odbioru dla tego adresu. Wymagana jest weryfikacja przez operatora.',
-            });
+        if (cached) {
+          // Graceful fallback to cached data when network/API fails
+          setIsServingFromCache(true);
+        } else {
+          if (err instanceof ApiError) {
+            if (err.status === 404) {
+              setScheduleError({
+                code: 'NOT_COVERED',
+                message:
+                  'Dla tego adresu harmonogram nie jest jeszcze opublikowany w pilotażu. Obecnie pokrywamy 4 z 8 gmin w regionie koszalińskim.',
+              });
+            } else if (err.status === 409) {
+              setScheduleError({
+                code: 'AMBIGUOUS',
+                message:
+                  'Wykryto nakładające się rejony odbioru dla tego adresu. Wymagana jest weryfikacja przez operatora.',
+              });
+            } else {
+              setScheduleError({
+                code: err.code,
+                message: err.message,
+              });
+            }
           } else {
             setScheduleError({
-              code: err.code,
-              message: err.message,
+              code: 'UNKNOWN',
+              message: 'Wystąpił problem z połączeniem. Sprawdź internet.',
             });
           }
-        } else {
-          setScheduleError({
-            code: 'UNKNOWN',
-            message: 'Wystąpił problem z połączeniem. Sprawdź internet.',
-          });
         }
       }
 
@@ -271,6 +301,35 @@ export const App: React.FC = () => {
                     </div>
                   ) : schedule && schedule.events.length > 0 ? (
                     <>
+                      {isServingFromCache && cachedScheduleMeta && (
+                        <div
+                          className="notice-box notice-warning"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            background: 'rgba(245, 158, 11, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            padding: '10px 14px',
+                            borderRadius: 'var(--radius-md)',
+                            fontSize: '0.82rem',
+                            color: '#fbbf24',
+                          }}
+                        >
+                          <Clock size={16} style={{ flexShrink: 0 }} />
+                          <div>
+                            <strong>Tryb offline / Dane z pamięci podręcznej:</strong>{' '}
+                            Wyświetlany harmonogram został zapisany lokalnie w dniu{' '}
+                            {new Date(cachedScheduleMeta.cachedAt).toLocaleDateString('pl-PL')}{' '}
+                            o godz.{' '}
+                            {new Date(cachedScheduleMeta.cachedAt).toLocaleTimeString('pl-PL', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                            .
+                          </div>
+                        </div>
+                      )}
                       <NextCollectionCard
                         event={schedule.events[0]!}
                         serviceAreaName={schedule.serviceArea.name}
