@@ -31,8 +31,9 @@ W fali `2026.10` WastePL osiągnęło 100% (8/8) pokrycia harmonogramami wywozu,
 | Manowo PSZOK post-gate | **PASS** | Ul. Komunalna 5 Koszalin, PGK Koszalin, 12 frakcji, Wt 08:00–16:00, Czw 08:00–16:00. |
 | Łącznie audytowanych real PRG addresses | **415/415** | Wszystkie 415 adresów testowane na publicznym API `/v1/collection`. |
 | Trusted PSZOK Geocoding (PRG GUGiK) | **8/8 (100%)** | Wszystkie 8 punktów PSZOK posiada zweryfikowane urzędowe współrzędne PRG (GUGiK). |
+| PWA Notifications & Calendar (.ics) | **Aktywne** | Web Notifications API, obsługa uprawnień, test powiadomień, alarmy (18:00/20:00 dzień wcześniej, 06:00 rano, oba). |
 | Golden facilities | **8/8** | Istniejący clean-runtime facility pack pozostaje zielony. |
-| Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK, interaktywna mapa Leaflet + OpenStreetMap, nawigacja GPS). |
+| Consumer PWA (`apps/pwa`) | **Aktywny** | React 19 + TypeScript + Vite + PWA service worker (offline, countdown hero, provenance, PSZOK, mapa Leaflet + OpenStreetMap, nawigacja GPS, Web Notifications API, alarmy .ics). |
 
 ## Rollout Polanów `2026.6`
 

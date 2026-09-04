@@ -5,6 +5,7 @@ export interface IcsGenerationOptions {
   addressText: string;
   events: CollectionEvent[];
   alarmEveningBefore?: boolean;
+  alarmTiming?: 'EVENING_BEFORE_18' | 'EVENING_BEFORE_20' | 'MORNING_OF_06' | 'BOTH' | 'NONE';
 }
 
 function formatDateToIcs(dateStr: string): string {
@@ -80,12 +81,29 @@ export function generateIcsCalendar(options: IcsGenerationOptions): string {
     lines.push('STATUS:CONFIRMED');
     lines.push('TRANSP:TRANSPARENT');
 
-    if (alarmEveningBefore) {
+    const effectiveTiming = options.alarmTiming ?? (alarmEveningBefore ? 'EVENING_BEFORE_20' : 'NONE');
+
+    if (effectiveTiming === 'EVENING_BEFORE_18' || effectiveTiming === 'BOTH') {
       lines.push('BEGIN:VALARM');
       lines.push('ACTION:DISPLAY');
       lines.push(`DESCRIPTION:${escapeIcsText(`Przypomnienie: jutro wywóz odpadów (${fractionLabel})`)}`);
-      // Trigger at 20:00 the evening before (-4 hours before midnight)
+      lines.push('TRIGGER:-PT6H');
+      lines.push('END:VALARM');
+    }
+
+    if (effectiveTiming === 'EVENING_BEFORE_20' || effectiveTiming === 'BOTH') {
+      lines.push('BEGIN:VALARM');
+      lines.push('ACTION:DISPLAY');
+      lines.push(`DESCRIPTION:${escapeIcsText(`Przypomnienie: jutro wywóz odpadów (${fractionLabel})`)}`);
       lines.push('TRIGGER:-PT4H');
+      lines.push('END:VALARM');
+    }
+
+    if (effectiveTiming === 'MORNING_OF_06') {
+      lines.push('BEGIN:VALARM');
+      lines.push('ACTION:DISPLAY');
+      lines.push(`DESCRIPTION:${escapeIcsText(`Przypomnienie: dziś wywóz odpadów (${fractionLabel})`)}`);
+      lines.push('TRIGGER;RELATED=START:PT6H');
       lines.push('END:VALARM');
     }
 

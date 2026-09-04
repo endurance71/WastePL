@@ -7,6 +7,7 @@ import {
   getFractionClass,
   getFractionLabel,
 } from '../utils/formatters.js';
+import { getSavedNotificationPreferences } from '../services/notifications.js';
 import { downloadIcsFile, generateIcsCalendar } from '../utils/ics-generator.js';
 
 interface CollectionTimelineProps {
@@ -34,10 +35,11 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
   const handleExportCalendar = () => {
     if (!filteredEvents.length) return;
     const targetAddress = addressText ?? 'Mój adres';
+    const prefs = getSavedNotificationPreferences();
     const icsContent = generateIcsCalendar({
       addressText: targetAddress,
       events: filteredEvents,
-      alarmEveningBefore: true,
+      alarmTiming: prefs.reminderTiming,
     });
     const safeFilename = `odpady-${targetAddress.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}.ics`;
     downloadIcsFile(safeFilename, icsContent);

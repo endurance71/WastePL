@@ -18,12 +18,19 @@ import type {
   FacilityItem,
 } from './types/api.js';
 import { Calendar, MapPin, Loader2, AlertTriangle, Info } from 'lucide-react';
+import { NotificationModal } from './components/NotificationModal.js';
+import {
+  getNotificationPermission,
+  getSavedNotificationPreferences,
+} from './services/notifications.js';
 
 export const App: React.FC = () => {
   const [selectedAddress, setSelectedAddress] = useState<ApiAddress | null>(null);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [activeTab, setActiveTab] = useState<'SCHEDULE' | 'PSZOK'>('SCHEDULE');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
 
   const [schedule, setSchedule] = useState<CollectionScheduleResponse | null>(null);
   const [facilities, setFacilities] = useState<FacilityItem[]>([]);
@@ -45,12 +52,19 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  const syncNotificationStatus = () => {
+    const isGranted = getNotificationPermission() === 'granted';
+    const isPrefEnabled = getSavedNotificationPreferences().enabled;
+    setIsNotificationsEnabled(isGranted && isPrefEnabled);
+  };
+
   // Restore saved address on initial mount
   useEffect(() => {
     const saved = getSavedAddress();
     if (saved) {
       setSelectedAddress(saved);
     }
+    syncNotificationStatus();
   }, []);
 
   // Load schedule and facilities when address changes
@@ -134,6 +148,8 @@ export const App: React.FC = () => {
         selectedAddress={selectedAddress}
         onChangeAddress={handleChangeAddress}
         isOnline={isOnline}
+        onOpenNotifications={() => setIsNotificationModalOpen(true)}
+        isNotificationsEnabled={isNotificationsEnabled}
       />
 
       {/* Address selection prompt or search modal */}
@@ -256,6 +272,7 @@ export const App: React.FC = () => {
                       <NextCollectionCard
                         event={schedule.events[0]!}
                         serviceAreaName={schedule.serviceArea.name}
+                        onOpenNotifications={() => setIsNotificationModalOpen(true)}
                       />
                       <CollectionTimeline
                         events={schedule.events}
@@ -284,6 +301,16 @@ export const App: React.FC = () => {
           )}
         </>
       )}
+
+      <NotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => {
+          setIsNotificationModalOpen(false);
+          syncNotificationStatus();
+        }}
+        addressText={selectedAddress?.canonicalText}
+        events={schedule?.events}
+      />
     </div>
   );
 };

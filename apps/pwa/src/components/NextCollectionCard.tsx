@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, Bell } from 'lucide-react';
 import type { CollectionEvent } from '../types/api.js';
 import {
   formatDayCountdown,
@@ -11,11 +11,13 @@ import {
 interface NextCollectionCardProps {
   event: CollectionEvent;
   serviceAreaName: string;
+  onOpenNotifications?: () => void;
 }
 
 export const NextCollectionCard: React.FC<NextCollectionCardProps> = ({
   event,
   serviceAreaName,
+  onOpenNotifications,
 }) => {
   const countdown = formatDayCountdown(event.date);
   const fractionLabel = getFractionLabel(event.fraction);
@@ -51,18 +53,43 @@ export const NextCollectionCard: React.FC<NextCollectionCardProps> = ({
         >
           Najbliższy wywóz
         </span>
-        <span
-          style={{
-            padding: '4px 12px',
-            borderRadius: 'var(--radius-pill)',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            background: countdown.isUrgent ? '#ef4444' : 'rgba(56, 189, 248, 0.2)',
-            color: '#ffffff',
-          }}
-        >
-          {countdown.relativeText}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-pill)',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              background: countdown.isUrgent ? '#ef4444' : 'rgba(56, 189, 248, 0.2)',
+              color: '#ffffff',
+            }}
+          >
+            {countdown.relativeText}
+          </span>
+          {onOpenNotifications && (
+            <button
+              type="button"
+              onClick={onOpenNotifications}
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                borderRadius: 'var(--radius-pill)',
+                padding: '4px 8px',
+                color: '#38bdf8',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
+              title="Ustaw przypomnienie o wywozie"
+            >
+              <Bell size={12} />
+              <span>Przypomnij</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ marginBottom: '16px' }}>
