@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Stan zweryfikowany 2026-09-04 względem `main` `5502dae9b7989382b1237243dfb9ee0e65982543` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-04, commit `5502dae9b7989382b1237243dfb9ee0e65982543`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
