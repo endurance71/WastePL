@@ -200,8 +200,16 @@ async function main(): Promise<void> {
       [area.id],
     );
     const counts = Object.fromEntries(eventCounts.rows.map((row) => [row.fraction, Number(row.count)]));
-    // 13 MIXED + 13 OTHER + 11 BIO + 1 BULKY = 38 total
-    if (counts.MIXED !== 13 || counts.BIO !== 11 || counts.OTHER !== 13 || counts.BULKY !== 1 || Object.keys(counts).length !== 4) {
+    // 13 MIXED + 13 GLASS + 13 METALS_PLASTICS + 13 PAPER + 11 BIO + 1 BULKY = 64 total
+    if (
+      counts.MIXED !== 13 ||
+      counts.BIO !== 11 ||
+      counts.GLASS !== 13 ||
+      counts.METALS_PLASTICS !== 13 ||
+      counts.PAPER !== 13 ||
+      counts.BULKY !== 1 ||
+      Object.keys(counts).length !== 6
+    ) {
       throw new Error(`Grabówko event counts drifted: ${JSON.stringify(counts)}`);
     }
 
@@ -273,10 +281,12 @@ async function main(): Promise<void> {
       serviceAreaKey: GRABOWKO_SERVICE_AREA,
       realAddressesInLocality: GRABOWKO_REAL_ADDRESS_COUNT,
       realAddressesWithCoverage: coverage.rows.length,
-      collectionEventsPublished: 38,
+      collectionEventsPublished: 64,
       fractions: {
         mixed: counts.MIXED,
-        other: counts.OTHER,
+        glass: counts.GLASS,
+        metalsPlastics: counts.METALS_PLASTICS,
+        paper: counts.PAPER,
         bio: counts.BIO,
         bulky: counts.BULKY,
       },
@@ -284,7 +294,7 @@ async function main(): Promise<void> {
     };
 
     await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
-    console.log(`[PASS] Sianów Grabówko safe subset gate passed: ${GRABOWKO_REAL_ADDRESS_COUNT}/${GRABOWKO_REAL_ADDRESS_COUNT} addresses covered, 38 events, pilot collection coverage ${activeCollectionMunicipalities}/8.`);
+    console.log(`[PASS] Sianów Grabówko safe subset gate passed: ${GRABOWKO_REAL_ADDRESS_COUNT}/${GRABOWKO_REAL_ADDRESS_COUNT} addresses covered, 64 events, pilot collection coverage ${activeCollectionMunicipalities}/8.`);
   } finally {
     await pool.end();
   }

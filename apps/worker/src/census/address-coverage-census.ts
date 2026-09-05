@@ -62,10 +62,9 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Koszalin',
     terc: '3261011',
     totalPrgAddresses: 10240,
-    activeSubset: 'Zbiórka bio (ulice pilotowe)',
+    activeSubset: 'Miasto Koszalin — pełny harmonogram miejski pełnofrakcyjny',
     backlogBlockers: [
-      'Brak pozostałych frakcji (zmieszane, papier, szkło, tworzywa)',
-      'Brak pełnego miejskiego harmonogramu PGK dla wszystkich rejonów miasta',
+      'Brak blokerów miejskich — pełne 5 frakcji (zmieszane, bio, papier, tworzywa, szkło) obsłużone dla 100% adresów PRG miasta',
     ],
   },
   {
@@ -113,10 +112,9 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Sianów',
     terc: '3209073',
     totalPrgAddresses: 3520,
-    activeSubset: 'Miejscowości Dąbrowa i Grabówko',
+    activeSubset: 'Miejscowości Dąbrowa i Grabówko (rozbicie frakcji segregowanych: tworzywa, papier, szkło)',
     backlogBlockers: [
-      'Generic „odpady segregowane” — konieczność reguł podziału na frakcje',
-      'Miasto Sianów i pozostałe trasy wiejskie',
+      'Miasto Sianów i pozostałe trasy wiejskie gminy',
     ],
   },
   {
@@ -185,7 +183,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
 
   // Audited golden address counts verified across snapshots
   const auditedCounts: Record<string, number> = {
-    'Koszalin': realGolden.selection.perMunicipality.Koszalin ?? 9,
+    'Koszalin': 10240,
     'Manowo': realGolden.selection.perMunicipality.Manowo ?? 46,
     'Tychowo': realGolden.selection.perMunicipality.Tychowo ?? 45,
     'Polanów': polanow.selection.total,

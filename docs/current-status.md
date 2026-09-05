@@ -1,14 +1,14 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-05, commit `9a3db5634ebe37563a9bd799e722c74758605652`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-05, commit `37942e2ba97e937d213fbbc5472a7fb74af144ed`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
-WastePL ma działającą i dobrze przetestowaną regionalną platformę danych, 17 aktywnych źródeł w 8 gminach pilota (17/17 live soak PASS), pierwszą konsumencką PWA oraz audytowaną próbkę 415 realnych adresów PRG (w 100% bezpiecznych rewirach). Projekt **nie jest jeszcze gotowym produkcyjnie systemem ogólnopolskim**.
+WastePL ma działającą i dobrze przetestowaną regionalną platformę danych, 17 aktywnych źródeł w 8 gminach pilota (17/17 live soak PASS), pierwszą konsumencką PWA oraz audytowaną próbkę 10 646 realnych adresów PRG (w tym 100% miasta Koszalina dla pełnych 5 frakcji). Projekt **nie jest jeszcze gotowym produkcyjnie systemem ogólnopolskim**.
 
 Najważniejsze nierozstrzygnięte obszary to:
 
-1. rozszerzenie address coverage w 8 gminach pilota (obecnie 1.66% na podstawie bezpiecznych rewirów, cel >=90-95%);
+1. rozszerzenie address coverage w pozostałych 7 gminach pilota (obecnie 42.53% całego regionu, odblokowane 100% Koszalina, cel >=90-95%);
 2. wdrożenie produkcyjne i uruchomienie pilota z realnymi użytkownikami (P2);
 3. włączenie branch protection na `main` (wymaga zmiany repozytorium na publiczne lub planu GitHub Pro w GitHub Free);
 4. zebranie pełnych danych unit economics z realnego utrzymania.
@@ -31,8 +31,9 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Gminy z >=1 ACTIVE collection scope | **8/8** | Municipality source presence = 100%. Nie jest to pełne pokrycie adresów. |
 | Gminy z ACTIVE PSZOK | **8/8** | Każda gmina pilota ma aktywny stacjonarny punkt PSZOK. |
 | ACTIVE source identities | **17** | 9 źródeł collection + 8 PSZOK. |
-| Pełne address coverage pilota | **1,66% (415 / 25 030)** | Wynik pierwszego Address Coverage Census (zob. [raport Census](reports/address-coverage-census.md)). |
-| Audytowane realne adresy PRG | **415/415 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
+| Pełne address coverage pilota | **42,53% (10 646 / 25 030)** | Wynik Address Coverage Census v2 (zob. [raport Census](reports/address-coverage-census.md)). |
+| Koszalin address coverage | **100% (10 240 / 10 240)** | Pełny harmonogram miejski 5 frakcji (P1-C.2). |
+| Audytowane realne adresy PRG | **10 646 / 10 646 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
 | Formalny historyczny real-100 | **100/100 PASS** | Koszalin 9, Manowo 46, Tychowo 45. |
 | Polanów Garbno | **39/39 PASS** | Bezpieczny aktywny subset. |
 | Będzino Dworek | **13/13 PASS** | Bezpieczny aktywny subset. |

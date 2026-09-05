@@ -119,4 +119,32 @@ describe('PgkKoszalinPdfTextAdapter', () => {
       expect((error as PdfTextParseError).code).toBe('AMBIGUOUS_FRACTION');
     }
   });
+
+  it('normalizes the Koszalin city-wide multi-fraction schedule across all canonical fractions', async () => {
+    const input = await fixture(
+      'koszalin-city-wide-2026.txt',
+      'https://www.pgkkoszalin.pl/wp-content/uploads/harmonogramy/2026/koszalin2/city-wide.pdf',
+      'pgk-koszalin-city-wide-2026',
+    );
+
+    expect(adapter.supports(input.text)).toBe(true);
+    const dataset = adapter.parse(input);
+
+    expect(dataset.municipality).toEqual({
+      terc: '3261011',
+      name: 'Koszalin',
+      municipalityType: 'DISTRICT_CITY',
+    });
+    expect(dataset.serviceAreas).toHaveLength(1);
+    expect(dataset.serviceAreas[0]?.key).toBe('koszalin-city-wide');
+    expect(dataset.serviceAreas[0]?.coverage).toEqual([
+      { type: 'LOCALITY', priority: 50, simc: '0949448' },
+    ]);
+
+    const fractions = new Set(dataset.collectionEvents.map((e) => e.fraction));
+    expect(fractions).toEqual(new Set(['MIXED', 'PAPER', 'METALS_PLASTICS', 'GLASS', 'BIO']));
+    expect(dataset.collectionEvents.length).toBeGreaterThan(100);
+
+    await expect(validateWastePlDataset(dataset)).resolves.toBeUndefined();
+  });
 });
