@@ -106,6 +106,26 @@ describe('Telemetry Service', () => {
     expect(getQueuedEvents()).toHaveLength(0);
   });
 
+  it('preserves an event queued while an earlier batch is in flight', async () => {
+    const first = trackEvent('APP_OPEN');
+    let resolveFetch: ((value: { ok: boolean; status: number }) => void) | undefined;
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<{ ok: boolean; status: number }>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const flushPromise = flushTelemetryQueue();
+    const second = trackEvent('ADDRESS_SELECTED', { terc: '3261011' });
+    resolveFetch?.({ ok: true, status: 200 });
+
+    expect(await flushPromise).toBe(true);
+    const remaining = getQueuedEvents();
+    expect(remaining.map((event) => event.id)).not.toContain(first.id);
+    expect(remaining.map((event) => event.id)).toContain(second.id);
+  });
+
   it('preserves queue if backend flush fails', async () => {
     trackEvent('ADDRESS_SELECTED', { terc: '3261011' });
 
