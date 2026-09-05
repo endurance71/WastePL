@@ -45,11 +45,11 @@ jobs:
           category: '/language:${{ matrix.language }}'
           upload: 'never'
           upload-database: false
-          output: ../results
+          output: '${{ github.workspace }}/codeql-results'
 
       - name: Upload CodeQL SARIF artifact
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: codeql-sarif-results
-          path: ../results
+          path: codeql-results
           if-no-files-found: warn
