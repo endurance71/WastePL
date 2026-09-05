@@ -9,6 +9,7 @@ import {
 import type { MunicipalCollectionReferenceContext } from './municipal-collection-adapter.js';
 
 export const SIANOW_SAFE_H2_SOURCE_KEY = 'sianow-collection-dabrowa-grabowko-safe-h2-2026';
+export const SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY = 'sianow-collection-borowiec-safe-h2-2026';
 
 export const SIANOW_TERC = '3209073';
 
@@ -73,7 +74,7 @@ function parseRows(text: string): ParsedMonthRow[] {
 
   if (monthLines.length !== 6) {
     throw new PdfTextParseError(
-      `Expected exactly six H2 month rows for Sianów Dąbrowa i Grabówko, got ${monthLines.length}`,
+      `Expected exactly six H2 month rows for Sianów, got ${monthLines.length}`,
       'UNSUPPORTED_TEMPLATE',
     );
   }
@@ -118,16 +119,6 @@ function parseRows(text: string): ParsedMonthRow[] {
   });
 }
 
-function assertTemplate(text: string): void {
-  const norm = normalizedText(text);
-  if (!norm.includes('harmonogram odbioru odpadów') || !norm.includes('2026')) {
-    throw new PdfTextParseError('Missing expected Sianów header markers', 'UNSUPPORTED_TEMPLATE');
-  }
-  if (!norm.includes('sianów') || !norm.includes('dąbrowa i grabówko')) {
-    throw new PdfTextParseError('Missing expected Sianów Dąbrowa i Grabówko locality markers', 'UNSUPPORTED_TEMPLATE');
-  }
-}
-
 function quality(input: PdfTextArtifactInput, warnings: string[] = []): NormalizedQuality {
   return {
     verificationStatus: 'OFFICIAL_SOURCE',
@@ -139,13 +130,14 @@ function quality(input: PdfTextArtifactInput, warnings: string[] = []): Normaliz
 
 function event(
   input: PdfTextArtifactInput,
+  serviceAreaKey: string,
   fraction: WasteFractionCode,
   date: string,
   note: string | null,
   warnings: string[] = [],
 ): NormalizedCollectionEvent {
   return {
-    serviceAreaKey: 'sianow-safe-h2-grabowko',
+    serviceAreaKey,
     fraction,
     date,
     status: 'SCHEDULED',
@@ -157,11 +149,14 @@ function event(
 
 export function supportsSianowH2(text: string): boolean {
   const normalized = normalizedText(text);
-  return (
+  const isPgkSianow =
     normalized.includes('harmonogram odbioru odpadów') &&
     normalized.includes('pgk koszalin') &&
-    normalized.includes('sianów') &&
-    normalized.includes('dąbrowa i grabówko')
+    normalized.includes('sianów');
+
+  return (
+    isPgkSianow &&
+    (normalized.includes('dąbrowa i grabówko') || normalized.includes('borowiec'))
   );
 }
 
@@ -171,7 +166,10 @@ export function parseSianowH2(
   parserKey: string,
   parserVersion: string,
 ): NormalizedDataset {
-  if (input.sourceKey !== SIANOW_SAFE_H2_SOURCE_KEY) {
+  if (
+    input.sourceKey !== SIANOW_SAFE_H2_SOURCE_KEY &&
+    input.sourceKey !== SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY
+  ) {
     throw new PdfTextParseError(`Unsupported Sianów source ${input.sourceKey}`, 'UNSUPPORTED_TEMPLATE');
   }
   if (context.municipality.terc !== SIANOW_TERC) {
@@ -180,17 +178,22 @@ export function parseSianowH2(
       'MISSING_METADATA',
     );
   }
-  assertTemplate(input.text);
 
-  const grabowkoMatches = context.localities.filter(
-    (locality) => locality.name.toLocaleLowerCase('pl-PL') === 'grabówko',
-  );
-  if (grabowkoMatches.length !== 1 || !grabowkoMatches[0]) {
-    throw new PdfTextParseError(
-      `Grabówko did not resolve uniquely inside TERC ${context.municipality.terc}`,
-      'MISSING_METADATA',
-      'Grabówko',
-    );
+  const norm = normalizedText(input.text);
+  if (!norm.includes('harmonogram odbioru odpadów') || !norm.includes('2026')) {
+    throw new PdfTextParseError('Missing expected Sianów header markers', 'UNSUPPORTED_TEMPLATE');
+  }
+
+  const isBorowiec = input.sourceKey === SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY;
+
+  if (isBorowiec) {
+    if (!norm.includes('borowiec')) {
+      throw new PdfTextParseError('Missing expected Sianów Borowiec locality markers', 'UNSUPPORTED_TEMPLATE');
+    }
+  } else {
+    if (!norm.includes('dąbrowa i grabówko')) {
+      throw new PdfTextParseError('Missing expected Sianów Dąbrowa i Grabówko locality markers', 'UNSUPPORTED_TEMPLATE');
+    }
   }
 
   const rows = parseRows(input.text);
@@ -202,12 +205,16 @@ export function parseSianowH2(
     'GLASS',
   ];
 
+  const serviceAreaKey = isBorowiec
+    ? 'sianow-safe-h2-borowiec-rural'
+    : 'sianow-safe-h2-grabowko';
+
   for (const row of rows) {
     for (const day of row.mixed) {
-      collectionEvents.push(event(input, 'MIXED', isoDate(row.month, day), null));
+      collectionEvents.push(event(input, serviceAreaKey, 'MIXED', isoDate(row.month, day), null));
     }
     for (const day of row.bio) {
-      collectionEvents.push(event(input, 'BIO', isoDate(row.month, day), null));
+      collectionEvents.push(event(input, serviceAreaKey, 'BIO', isoDate(row.month, day), null));
     }
     for (const day of row.segregated) {
       const date = isoDate(row.month, day);
@@ -215,6 +222,7 @@ export function parseSianowH2(
         collectionEvents.push(
           event(
             input,
+            serviceAreaKey,
             fraction,
             date,
             'Źródło: odpady segregowane (wspólny odbiór tworzyw, papieru i szkła)',
@@ -224,12 +232,75 @@ export function parseSianowH2(
     }
     if (row.bulky) {
       for (const day of row.bulky) {
-        collectionEvents.push(event(input, 'BULKY', isoDate(row.month, day), 'Źródło: gabaryty'));
+        collectionEvents.push(event(input, serviceAreaKey, 'BULKY', isoDate(row.month, day), 'Źródło: gabaryty'));
       }
     }
   }
 
   collectionEvents.sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
+
+  if (isBorowiec) {
+    // 7 clean rural localities absent from 15-utrudnione.pdf
+    const cleanLocalities = [
+      'borowiec',
+      'szczeglino nowe',
+      'przytok',
+      'ratajki',
+      'sowno',
+      'suszka',
+      'sowieński młyn',
+    ];
+
+    const coverage = cleanLocalities
+      .map((name) => context.localities.find((l) => l.name.toLocaleLowerCase('pl-PL') === name))
+      .filter((l): l is NonNullable<typeof l> => Boolean(l))
+      .map((l) => ({ type: 'LOCALITY' as const, priority: 50, simc: l.simc }));
+
+    return {
+      schemaVersion: '0.1.0',
+      municipality: context.municipality,
+      serviceAreas: [
+        {
+          key: serviceAreaKey,
+          name: 'Gmina Sianów — Trasa Borowiec (tereny wiejskie bezpieczne)',
+          buildingType: 'SINGLE_FAMILY',
+          coverage,
+        },
+      ],
+      collectionEvents,
+      facilities: [],
+      alerts: [],
+      sources: [
+        {
+          sourceKey: input.sourceKey,
+          url: input.url,
+          ownerType: input.ownerType ?? 'MUNICIPALITY',
+          format: 'PDF_TEXT',
+          reuseBasis: 'Sianów H2 2026 PGK Borowiec schedule; clean rural safe subset',
+          artifact: {
+            sha256: input.sha256,
+            retrievedAt: input.retrievedAt,
+            parserKey,
+            parserVersion,
+            extractionConfidence: 0.99,
+            storageUri: input.storageUri,
+          },
+        },
+      ],
+    };
+  }
+
+  // Grabówko route
+  const grabowkoMatches = context.localities.filter(
+    (locality) => locality.name.toLocaleLowerCase('pl-PL') === 'grabówko',
+  );
+  if (grabowkoMatches.length !== 1 || !grabowkoMatches[0]) {
+    throw new PdfTextParseError(
+      `Grabówko did not resolve uniquely inside TERC ${context.municipality.terc}`,
+      'MISSING_METADATA',
+      'Grabówko',
+    );
+  }
 
   const dabrowaMatches = context.localities.filter(
     (locality) => locality.name.toLocaleLowerCase('pl-PL') === 'dąbrowa',
@@ -245,7 +316,7 @@ export function parseSianowH2(
     municipality: context.municipality,
     serviceAreas: [
       {
-        key: 'sianow-safe-h2-grabowko',
+        key: serviceAreaKey,
         name: 'Gmina Sianów — Grabówko (Trasa Dąbrowa/Grabówko)',
         buildingType: 'SINGLE_FAMILY',
         coverage,

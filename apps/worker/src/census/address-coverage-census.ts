@@ -12,6 +12,7 @@ import { loadRealGoldenReferenceSnapshot } from '../readiness/real-golden-refere
 import { loadPolanowGarbnoReferenceSnapshot } from '../readiness/polanow-garbno-reference.js';
 import { loadBedzinoDworekReferenceSnapshot } from '../readiness/bedzino-dworek-reference.js';
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
+import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowiec-reference.js';
 import { loadSwieszynoChalupyReferenceSnapshot } from '../readiness/swieszyno-chalupy-reference.js';
 import { loadBoboliceKlaninoReferenceSnapshot } from '../readiness/bobolice-klanino-reference.js';
 
@@ -112,9 +113,9 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Sianów',
     terc: '3209073',
     totalPrgAddresses: 3520,
-    activeSubset: 'Miejscowości Dąbrowa i Grabówko (rozbicie frakcji segregowanych: tworzywa, papier, szkło)',
+    activeSubset: 'Miejscowości Dąbrowa i Grabówko oraz trasa wiejska Borowiec (7 miejscowości)',
     backlogBlockers: [
-      'Miasto Sianów i pozostałe trasy wiejskie gminy',
+      'Miasto Sianów i trasy wiejskie o utrudnionym dojeździe',
     ],
   },
   {
@@ -172,11 +173,12 @@ export function evaluateAddressResolution(
  * Evaluates resolution pipeline and computes actual coverage metrics.
  */
 export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusReport> {
-  const [realGolden, polanow, bedzino, sianow, swieszyno, bobolice] = await Promise.all([
+  const [realGolden, polanow, bedzino, sianowGrabowko, sianowBorowiec, swieszyno, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
     loadBedzinoDworekReferenceSnapshot(),
     loadSianowGrabowkoReferenceSnapshot(),
+    loadSianowBorowiecReferenceSnapshot(),
     loadSwieszynoChalupyReferenceSnapshot(),
     loadBoboliceKlaninoReferenceSnapshot(),
   ]);
@@ -188,7 +190,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     'Tychowo': realGolden.selection.perMunicipality.Tychowo ?? 45,
     'Polanów': polanow.selection.total,
     'Będzino': bedzino.selection.total,
-    'Sianów': sianow.selection.total,
+    'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total,
     'Świeszyno': swieszyno.selection.total,
     'Bobolice': bobolice.selection.total,
   };
