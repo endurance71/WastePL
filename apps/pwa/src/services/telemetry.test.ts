@@ -53,26 +53,36 @@ describe('Telemetry Service', () => {
     expect(queued[0]?.eventType).toBe('ADDRESS_SEARCH');
   });
 
+  it('strips exact address and fingerprint-like fields before queueing', () => {
+    const event = trackEvent('ADDRESS_SELECTED', {
+      addressId: '00000000-0000-0000-0000-000000000001',
+      municipality: 'Koszalin',
+      terc: '3261011',
+      userAgent: 'should-not-leave-browser',
+    });
+
+    expect(event.payload).toEqual({ terc: '3261011' });
+    expect(JSON.stringify(getQueuedEvents())).not.toContain('addressId');
+    expect(JSON.stringify(getQueuedEvents())).not.toContain('userAgent');
+  });
+
   it('bounds queue size to 100 entries', () => {
     for (let i = 0; i < 110; i++) {
-      trackEvent('ADDRESS_SEARCH', { index: i });
+      trackEvent('ADDRESS_SEARCH', { queryLength: i, resultCount: 0 });
     }
     const queued = getQueuedEvents();
     expect(queued.length).toBe(100);
-    // Oldest 10 items should have been discarded (first remaining is index 10)
-    expect(queued[0]?.payload?.['index']).toBe(10);
+    expect(queued[0]?.payload?.['queryLength']).toBe(10);
   });
 
   it('records APP_OPEN on first visit and RETURN_VISIT after 2+ hours', () => {
-    // 1st visit
     const firstEvent = recordSessionStart();
     expect(firstEvent.eventType).toBe('APP_OPEN');
+    expect(firstEvent.payload).toBeUndefined();
 
-    // Immediate next open (within 2h) -> still APP_OPEN
     const immediateEvent = recordSessionStart();
     expect(immediateEvent.eventType).toBe('APP_OPEN');
 
-    // Simulate 3 hours later
     const threeHoursAgo = Date.now() - 3 * 60 * 60 * 1000;
     mockStorage['wastepl_last_visit_timestamp'] = threeHoursAgo.toString();
 
@@ -81,28 +91,43 @@ describe('Telemetry Service', () => {
   });
 
   it('flushes queue via HTTP and clears stored items upon success', async () => {
-    trackEvent('ADDRESS_SELECTED', { addressId: 'addr-123' });
+    trackEvent('ADDRESS_SELECTED', { terc: '3261011' });
     expect(getQueuedEvents()).toHaveLength(1);
 
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-    });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
     vi.stubGlobal('fetch', fetchMock);
 
     const success = await flushTelemetryQueue();
     expect(success).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith(
       '/v1/telemetry/events',
-      expect.objectContaining({
-        method: 'POST',
-      }),
+      expect.objectContaining({ method: 'POST' }),
     );
     expect(getQueuedEvents()).toHaveLength(0);
   });
 
+  it('preserves an event queued while an earlier batch is in flight', async () => {
+    const first = trackEvent('APP_OPEN');
+    let resolveFetch: ((value: { ok: boolean; status: number }) => void) | undefined;
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<{ ok: boolean; status: number }>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const flushPromise = flushTelemetryQueue();
+    const second = trackEvent('ADDRESS_SELECTED', { terc: '3261011' });
+    resolveFetch?.({ ok: true, status: 200 });
+
+    expect(await flushPromise).toBe(true);
+    const remaining = getQueuedEvents();
+    expect(remaining.map((event) => event.id)).not.toContain(first.id);
+    expect(remaining.map((event) => event.id)).toContain(second.id);
+  });
+
   it('preserves queue if backend flush fails', async () => {
-    trackEvent('ADDRESS_SELECTED', { addressId: 'addr-123' });
+    trackEvent('ADDRESS_SELECTED', { terc: '3261011' });
 
     const fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
     vi.stubGlobal('fetch', fetchMock);
@@ -110,5 +135,12 @@ describe('Telemetry Service', () => {
     const success = await flushTelemetryQueue();
     expect(success).toBe(false);
     expect(getQueuedEvents()).toHaveLength(1);
+  });
+
+  it('clearQueuedEvents removes buffered telemetry', () => {
+    trackEvent('APP_OPEN');
+    expect(getQueuedEvents()).toHaveLength(1);
+    clearQueuedEvents();
+    expect(getQueuedEvents()).toHaveLength(0);
   });
 });
