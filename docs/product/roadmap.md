@@ -89,17 +89,14 @@ Proces zespołowy używa PR-ów i zielonego CI, lecz direct push nie jest techni
 
 **DoD:** `main` ma ruleset/branch protection wymagający PR oraz zielonego `ci`, albo ryzyko jest formalnie zaakceptowane i P0 zdefiniowane na nowo. Do tego czasu P0.3 pozostaje otwarte.
 
-### P0.4 — integralność `current-status.md` [W TRAKCIE]
+### P0.4 — integralność `current-status.md` [ZROBIONE]
 
-Aktualny SHA w `docs/current-status.md` może być poprawny, ale checker na `main` sprawdza tylko format 40 znaków. To wcześniej pozwoliło przejść dokumentowi z nieistniejącym pełnym SHA.
+Wdrożono w PR `#112`:
+- `scripts/check-docs.mjs` weryfikuje istnienie commitu (`git cat-file -e <sha>^{commit}`);
+- weryfikuje osiągalność z `HEAD` (`git merge-base --is-ancestor <sha> HEAD`);
+- pełna historia w CI (`fetch-depth: 0`).
 
-Remediation PR `#112` dodaje:
-
-- `git cat-file -e <sha>^{commit}`;
-- `git merge-base --is-ancestor <sha> HEAD`;
-- pełną historię w checkout (`fetch-depth: 0`).
-
-**DoD:** CI odrzuca nieistniejący lub nieosiągalny verification SHA.
+**DoD:** CI odrzuca nieistniejący lub nieosiągalny verification SHA. Spełnione w PR `#112`.
 
 ### P0.5 — stale live-source alert `#101` [ZROBIONE]
 
