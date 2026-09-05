@@ -1,6 +1,6 @@
 # Roadmapa WastePL — pilot, jakość, coverage i skalowanie
 
-> Stan zweryfikowany 2026-09-05 względem `main` `54da49b8587a45aa7e6c14007c841a9faf183f74` oraz manifestu `pilot-koszalin-region@2026.13`. Ten dokument rozdziela **kod/blueprint**, **weryfikację CI** i **realne wdrożenie operacyjne**. Status `ZROBIONE` oznacza spełnione kryterium DoD, a nie tylko istnienie pliku lub procedury.
+> Stan zweryfikowany 2026-09-05 względem `main` `435ae20e18bd920743efe98e1e0b4980a0f91596` oraz manifestu `pilot-koszalin-region@2026.13`. Ten dokument rozdziela **kod/blueprint**, **weryfikację CI** i **realne wdrożenie operacyjne**. Status `ZROBIONE` oznacza spełnione kryterium DoD, a nie tylko istnienie pliku lub procedury.
 
 ## 1. Aktualna pozycja projektu
 
@@ -8,15 +8,14 @@ WastePL jest zaawansowaną regionalną platformą danych i pre-production PWA. F
 
 Największym ograniczeniem produktu nie jest obecnie brak modułów aplikacji. Są nim:
 
-- **address coverage: 1,66% (415 / 25 030 adresów PRG)**;
+- **address coverage: 42,53% (10 646 / 25 030 adresów PRG)** z odblokowanym 100% miasta Koszalina, z celem >=90–95% w całym regionie;
 - brak technicznie wymuszonego branch protection / required CI na `main`;
 - brak potwierdzonego publicznego stagingu działającego na realnej domenie;
 - brak empirycznie zweryfikowanego off-site backupu i restore drill na środowisku staging;
-- niepełny security automation hardening (CodeQL/SAST, secret scanning, dependency update automation, SHA pinning GitHub Actions);
-- brak wiarygodnych danych unit economics z realnego utrzymania źródeł;
-- telemetryka mieszkańców na `main` ma klienta PWA, ale przy tym punkcie weryfikacji nie ma jeszcze backendowego collectora `/v1/telemetry/events`.
+- niepełny security automation hardening (CodeQL/SAST, secret scanning, dependency update automation — pinning GitHub Actions SHA zrealizowany);
+- brak wiarygodnych danych unit economics z realnego utrzymania źródeł.
 
-Wniosek strategiczny: **nie dokładamy dużych nowych modułów. Domykamy wiarygodność repo i telemetrykę, uruchamiamy realny staging, a większość pracy produktowej kierujemy w zwiększenie coverage obecnych 8 gmin.**
+Wniosek strategiczny: **nie dokładamy dużych nowych modułów. Utrzymujemy wiarygodność repo i telemetrykę, uruchamiamy realny staging, a większość pracy produktowej kierujemy w zwiększenie coverage obecnych 8 gmin.**
 
 ## 2. Stan bazowy pilota
 
@@ -27,11 +26,11 @@ Wniosek strategiczny: **nie dokładamy dużych nowych modułów. Domykamy wiaryg
 | Gminy z ACTIVE PSZOK | 8/8 |
 | ACTIVE source identities | 17 (9 collection + 8 PSZOK) |
 | Oficjalne adresy PRG w pilocie | 25 030 |
-| Supported | 415 |
-| Unsupported | 24 615 |
+| Supported | 10 646 |
+| Unsupported | 14 384 |
 | Ambiguous | 0 |
-| Address coverage | **1,66%** |
-| Audytowane adresy w bezpiecznych zakresach | 415/415 PASS |
+| Address coverage | **42,53%** |
+| Audytowane adresy w bezpiecznych zakresach | 10 646 / 10 646 PASS |
 | Manual live-source soak | 17/17 PASS (`33882827565`) |
 | Playwright na ostatnim zweryfikowanym zestawie | 93/93 PASS |
 | Lighthouse CI na ostatnim zweryfikowanym zestawie | 100/100/100/100 |
@@ -198,7 +197,10 @@ Koszalin osiągnął 100% address coverage (10 240 / 10 240 PRG) dla pełnego ha
 
 ### P1-C.3 — kolejne zakresy
 
-Po Koszalinie wybierać następne źródła według mierzonego ROI/adapters reuse (kolejny w rankingu: Sianów — rozbicie odpadów segregowanych na 3 frakcje, 3 489 adresów PRG).
+Wybierać następne źródła według mierzonego ROI i adapters reuse:
+- **Sianów (wykonano w PR #119)**: rozbicie odpadów segregowanych na 3 kanoniczne frakcje (`METALS_PLASTICS`, `PAPER`, `GLASS`) dla Dąbrowy i Grabówka zostało zrealizowane. Dalszy backlog Sianowa to miasto Sianów oraz pozostałe trasy wiejskie (odblokowanie brakujących 3 489 adresów).
+- **Będzino (Trasa II, EKOSAN)**: odblokowanie kolejnych miejscowości bez osłon śmietnikowych i posesji trudnodostępnych (kolejny najwyższy ROI: 2 277 adresów PRG).
+- **Świeszyno, Polanów, Tychowo, Manowo, Bobolice**: sukcesywne włączanie rewirów o udowodnionej jednoznaczności (brak nakładania się tras i osłon).
 
 ### P1-C.4 — bramka coverage przed skalowaniem
 

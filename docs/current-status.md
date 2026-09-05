@@ -51,9 +51,9 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
 | Automated DB restore | **GOTOWY** | `pnpm db:restore` — weryfikacja SHA-256, dry-run i atomic psql restore. |
 | Source Prioritization | **GOTOWE** | `pnpm census:prioritize` — model ROI (odblokowane adresy / (czas + ryzyko)). |
-| Resident Telemetry Funnel | **GOTOWE** | Zero-PII client-side telemetry service (P2.2) z buforem offline i rejestracją pełnego lejka mieszkańców. |
+| Resident Telemetry Funnel | **GOTOWE** | Pseudonimowy serwis telemetrii mieszkańców (P2.2) z buforem offline, haszowaniem SHA-256 identyfikatora instalacji i brakiem surowych adresów/User-Agent. |
 | Lighthouse CI | **100/100/100/100 PASS** | `pnpm pwa:lhci` — Performance 100, Accessibility 100, Best Practices 100, SEO 100 w GitHub Actions CI. |
-| Security Audit & SAST | **GOTOWE** | `pnpm security:audit` w CI (`--audit-level=high`), zero high/critical vulnerabilities. |
+| Dependency Security Audit | **GOTOWE** | `pnpm security:audit` w CI (`--audit-level=high`), zero podatności high/critical. CodeQL/SAST w trakcie konfiguracji. |
 | Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
 | Observability | **GOTOWE** | Structured JSON logs, `x-request-id`, health check z DB ping (`SELECT 1`). |
 | Security hardening | **GOTOWE** | Rate limiter (120 req/min/IP), HSTS, `nosniff`, `X-Frame-Options: DENY`, CORS. |
@@ -134,7 +134,7 @@ Obecne możliwości:
 
 Pozostałe zadania przed publicznym pilotem:
 
-- Lighthouse performance gate (automatyczny threshold w CI);
+- wdrożenie CodeQL / SAST w workflow CI;
 - produkcyjny staging pod dedykowaną domeną i zbieranie telemetrii.
 
 ## Powiadomienia — obowiązująca semantyka
@@ -190,9 +190,10 @@ Dodatkowe hardening backlog:
 - structured JSON logs i request tracing — **✅ zrobione** (`logger.middleware.ts`, `x-request-id`);
 - rate limiting — **✅ zrobione** (`rate-limiter.ts`, 120 req/min/IP);
 - security headers (HSTS, nosniff, X-Frame-Options, XSS) — **✅ zrobione** (`main.ts`);
-- dependency update automation;
-- CodeQL/dependency audit/secret scanning;
-- pinning krytycznych GitHub Actions.
+- dependency security audit w CI (`pnpm security:audit`) — **✅ zrobione**;
+- pinning krytycznych GitHub Actions do pełnych SHA — **✅ zrobione** (PR #124);
+- CodeQL/SAST — w trakcie wdrażania;
+- dependency update automation.
 
 ## Najbliższa kolejność prac
 
