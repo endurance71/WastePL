@@ -26,7 +26,7 @@ export interface TelemetryEvent {
   id: string;
   installationId: string;
   eventType: TelemetryEventType;
-  timestamp: string; // ISO 8601
+  timestamp: string;
   payload?: Record<string, string | number | boolean | null>;
 }
 
@@ -36,13 +36,78 @@ const STORAGE_KEY_INSTALLATION_ID = 'wastepl_installation_id';
 const MAX_QUEUE_SIZE = 100;
 
 function getStorage(): Storage | null {
-  if (typeof localStorage !== 'undefined') {
-    return localStorage;
-  }
-  if (typeof window !== 'undefined' && 'localStorage' in window) {
-    return window.localStorage;
-  }
+  if (typeof localStorage !== 'undefined') return localStorage;
+  if (typeof window !== 'undefined' && 'localStorage' in window) return window.localStorage;
   return null;
+}
+
+function boundedString(value: unknown, maxLength: number): string | undefined {
+  return typeof value === 'string' && value.length <= maxLength ? value : undefined;
+}
+
+function boundedInteger(value: unknown, min: number, max: number): number | undefined {
+  return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
+    ? value
+    : undefined;
+}
+
+function telemetryPayload(
+  eventType: TelemetryEventType,
+  raw?: Record<string, string | number | boolean | null>,
+): Record<string, string | number | boolean | null> | undefined {
+  if (!raw) return undefined;
+  const output: Record<string, string | number | boolean | null> = {};
+
+  switch (eventType) {
+    case 'ADDRESS_SEARCH': {
+      const queryLength = boundedInteger(raw.queryLength, 0, 512);
+      const resultCount = boundedInteger(raw.resultCount, 0, 250);
+      if (queryLength !== undefined) output.queryLength = queryLength;
+      if (resultCount !== undefined) output.resultCount = resultCount;
+      break;
+    }
+    case 'ADDRESS_SELECTED': {
+      const terc = boundedString(raw.terc, 7);
+      if (terc && /^\d{7}$/.test(terc)) output.terc = terc;
+      break;
+    }
+    case 'SCHEDULE_SHOWN': {
+      const terc = boundedString(raw.terc, 7);
+      const eventCount = boundedInteger(raw.eventCount, 0, 500);
+      const sourceParser = boundedString(raw.sourceParser, 64);
+      if (terc && /^\d{7}$/.test(terc)) output.terc = terc;
+      if (eventCount !== undefined) output.eventCount = eventCount;
+      if (typeof raw.isCached === 'boolean') output.isCached = raw.isCached;
+      if (sourceParser !== undefined) output.sourceParser = sourceParser;
+      break;
+    }
+    case 'REMINDER_ICS_EXPORT': {
+      const eventCount = boundedInteger(raw.eventCount, 0, 500);
+      const fractionFilter = boundedString(raw.fractionFilter, 48);
+      const sourceParser = boundedString(raw.sourceParser, 64);
+      if (eventCount !== undefined) output.eventCount = eventCount;
+      if (fractionFilter !== undefined) output.fractionFilter = fractionFilter;
+      if (sourceParser !== undefined) output.sourceParser = sourceParser;
+      break;
+    }
+    case 'REMINDER_PUSH_OPT_IN': {
+      const timing = boundedString(raw.timing, 32);
+      if (timing !== undefined) output.timing = timing;
+      break;
+    }
+    case 'FEEDBACK_SUBMITTED': {
+      const feedbackType = boundedString(raw.feedbackType, 32);
+      if (feedbackType !== undefined) output.feedbackType = feedbackType;
+      if (typeof raw.isCorrect === 'boolean') output.isCorrect = raw.isCorrect;
+      break;
+    }
+    case 'APP_OPEN':
+    case 'RETURN_VISIT':
+    case 'FEEDBACK_MODAL_OPEN':
+      break;
+  }
+
+  return Object.keys(output).length > 0 ? output : undefined;
 }
 
 export function getAnonymousInstallationId(): string {
@@ -79,8 +144,7 @@ export function saveQueuedEvents(events: TelemetryEvent[]): void {
   const storage = getStorage();
   if (!storage) return;
   try {
-    const trimmed = events.slice(-MAX_QUEUE_SIZE);
-    storage.setItem(STORAGE_KEY_TELEMETRY_QUEUE, JSON.stringify(trimmed));
+    storage.setItem(STORAGE_KEY_TELEMETRY_QUEUE, JSON.stringify(events.slice(-MAX_QUEUE_SIZE)));
   } catch {
     // ignore storage write errors
   }
@@ -100,16 +164,15 @@ export function trackEvent(
   eventType: TelemetryEventType,
   payload?: Record<string, string | number | boolean | null>,
 ): TelemetryEvent {
-  const installationId = getAnonymousInstallationId();
   const event: TelemetryEvent = {
     id:
       typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
         : 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    installationId,
+    installationId: getAnonymousInstallationId(),
     eventType,
     timestamp: new Date().toISOString(),
-    payload,
+    payload: telemetryPayload(eventType, payload),
   };
 
   const queue = getQueuedEvents();
@@ -132,9 +195,7 @@ export async function flushTelemetryQueue(): Promise<boolean> {
   try {
     const response = await fetch('/v1/telemetry/events', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ events: queue }),
       keepalive: true,
     });
@@ -163,9 +224,7 @@ export function recordSessionStart(): TelemetryEvent {
     if (lastVisitStr) {
       const lastVisitTime = parseInt(lastVisitStr, 10);
       const diffHours = (now - lastVisitTime) / (1000 * 60 * 60);
-      if (diffHours >= 2) {
-        isReturnVisit = true;
-      }
+      if (diffHours >= 2) isReturnVisit = true;
     }
     try {
       storage.setItem(STORAGE_KEY_LAST_VISIT, now.toString());
