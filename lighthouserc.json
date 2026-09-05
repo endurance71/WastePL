@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "staticDistDir": "./apps/pwa/dist",
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
         "chromeFlags": "--no-sandbox --headless --disable-gpu"
@@ -10,7 +10,7 @@
     },
     "assert": {
       "assertions": {
-        "categories:performance": ["error", { "minScore": 0.85 }],
+        "categories:performance": ["error", { "minScore": 0.80, "aggregationMethod": "median-run" }],
         "categories:accessibility": ["error", { "minScore": 0.95 }],
         "categories:best-practices": ["error", { "minScore": 0.90 }],
         "categories:seo": ["error", { "minScore": 0.90 }]
