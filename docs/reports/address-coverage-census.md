@@ -17,10 +17,10 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Bobolice | 2080 | 65 | 2015 | 0 | **3.13%** |
 | Świeszyno | 2430 | 167 | 2263 | 0 | **6.87%** |
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
-| Sianów | 3520 | 31 | 3489 | 0 | **0.88%** |
+| Sianów | 3520 | 121 | 3399 | 0 | **3.44%** |
 | Polanów | 1810 | 39 | 1771 | 0 | **2.15%** |
 | Będzino | 2290 | 13 | 2277 | 0 | **0.57%** |
-| **RAZEM (Region)** | **25 030** | **10 646** | **14 384** | **0** | **42.53%** |
+| **RAZEM (Region)** | **25 030** | **10 736** | **14 294** | **0** | **42.89%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -67,11 +67,11 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Miasto Tychowo (centrum i zabudowa miejska)
 - Miejscowości i posesje hard-to-reach
 
-### Sianów (Pokrycie: 0.88%)
-- **Aktywny rewir:** Miejscowości Dąbrowa i Grabówko (rozbicie frakcji segregowanych: tworzywa, papier, szkło)
-- **Obsługiwane adresy PRG:** 31 / 3520
+### Sianów (Pokrycie: 3.44%)
+- **Aktywny rewir:** Miejscowości Dąbrowa i Grabówko oraz trasa wiejska Borowiec (7 miejscowości)
+- **Obsługiwane adresy PRG:** 121 / 3520
 - **Kluczowy backlog do odblokowania mieszkańców:**
-- Miasto Sianów i pozostałe trasy wiejskie gminy
+- Miasto Sianów i trasy wiejskie o utrudnionym dojeździe
 
 ### Polanów (Pokrycie: 2.15%)
 - **Aktywny rewir:** Miejscowość Garbno (zabudowa jednorodzinna)
@@ -92,8 +92,8 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 42.53%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 42.89%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
-   - **Najwyższy priorytet**: Będzino (Trasa II bez osłon, +2 277 adresów), miasto Sianów i trasy wiejskie (+3 489 adresów) oraz kolejne bezpieczne trasy Świeszyna (+2 263 adresy) i Polanowa (+1 771 adresów). (Koszalin pełnofrakcyjny oraz Sianów Dąbrowa/Grabówko podział 3 frakcji zostały już zrealizowane w P1-C).
+   - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).
    - **Cel Etapu 3**: Osiągnięcie $\ge 90{-}95\%$ adresów supported przy zachowaniu $<1\%$ ambiguous w pilotażowej ósemce.
