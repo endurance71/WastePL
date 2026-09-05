@@ -223,23 +223,19 @@ Runbook definiuje kohorty oparte na audytowanych zakresach m.in. Świeszyno-Cha�
 
 Definicja kohorty nie jest równoznaczna z uruchomieniem rekrutacji ani aktywnym stagingiem.
 
-### P2.2 — telemetry funnel [KLIENT GOTOWY, BACKEND W TRAKCIE]
+### P2.2 — telemetry funnel [ZROBIONE]
 
-Na `main` przy tej weryfikacji klient PWA rejestruje lejek i buforuje eventy offline, ale wysyła je do `/v1/telemetry/events`, którego backend nie implementuje.
+Na `main` klient PWA rejestruje lejek i buforuje eventy offline, a backend w `apps/api` (`TelemetryController`, `TelemetryService`, migracja `0019_resident_telemetry.sql` wdrożone w PR `#113`) implementuje bezpieczny kolektor telemetryczny:
 
-Nie używamy określenia „Zero PII”. Trwały identyfikator instalacji jest **pseudonimowym identyfikatorem analitycznym**.
+- backend collector `POST /v1/telemetry/events`;
+- idempotencja po `event_id`;
+- hashing SHA-256 identyfikatora instalacji przed zapisem w bazie;
+- ścisła allowlista parametrów po stronie klienta i serwera;
+- całkowity brak surowych `addressId` i `userAgent` w telemetryce (ochrona prywatności);
+- oznaczenie retencji 90 dni i cykliczny cleanup;
+- testy jednostkowe, kontrolera, serwisu i E2E na PostgreSQL.
 
-Remediation PR `#113` dodaje:
-
-- backend collector i migrację;
-- idempotencję po `event_id`;
-- SHA-256 installation ID przed zapisem;
-- ścisłą allowlistę payloadu po stronie klienta i serwera;
-- usunięcie exact `addressId` i `userAgent` z telemetryki;
-- oznaczenie retencji 90 dni i cleanup;
-- testy API/DB oraz ochronę przed utratą eventów podczas równoległego flushu.
-
-**DoD:** endpoint działa end-to-end na realnym API, eventy są przechowywane zgodnie z minimalizacją danych i można policzyć funnel bez dokładnego adresu mieszkańca.
+**DoD:** endpoint działa end-to-end na realnym API, eventy są przechowywane zgodnie z minimalizacją danych i można policzyć funnel bez dokładnego adresu mieszkańca. Spełnione w PR `#113`.
 
 ### P2.3 — feedback mieszkańców [ZROBIONE W KODZIE]
 
