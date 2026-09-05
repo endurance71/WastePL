@@ -19,17 +19,6 @@ import process from 'node:process';
 
 const CANDIDATES = [
   {
-    key: 'koszalin-city-wide-pgk-all-fractions',
-    municipality: 'Koszalin',
-    terc: '3261011',
-    unblockedAddresses: 10231,
-    estimatedHours: 24,
-    maintenanceRisk: 2,
-    adapterReuse: 'EXTENDED_EXISTING',
-    upstreamStability: 'HIGH',
-    rationale: 'PGK Koszalin is an established municipal operator. Unlocking multi-fraction coverage resolves 40.9% of the entire pilot denominator with low incremental maintenance risk.',
-  },
-  {
     key: 'sianow-segregated-split-and-town',
     municipality: 'Sianów',
     terc: '3209073',
@@ -38,7 +27,7 @@ const CANDIDATES = [
     maintenanceRisk: 3,
     adapterReuse: 'EXTENDED_EXISTING',
     upstreamStability: 'MEDIUM',
-    rationale: 'Second largest unlocked address volume (3,489 PRG). Requires splitting generic segregated waste into canonical fractions (paper/metals_plastics/glass).',
+    rationale: 'Largest remaining unlocked address volume (3,489 PRG). Requires splitting generic segregated waste into canonical fractions (paper/metals_plastics/glass).',
   },
   {
     key: 'bedzino-trasa-2-ekosan',

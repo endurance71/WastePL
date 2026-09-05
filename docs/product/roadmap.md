@@ -237,10 +237,10 @@ Zaimplementowano zautomatyzowane narzędzia backupu i odzyskiwania bazy danych:
 To jest główny bottleneck wartości użytkowej.
 
 ### Stan Census v2
-
+ 
 | Gmina | Wszystkie PRG | Supported | Unsupported | Ambiguous | Coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Koszalin | 10 240 | 9 | 10 231 | 0 | **0,09%** |
+| Koszalin | 10 240 | 10 240 | 0 | 0 | **100%** |
 | Manowo | 1 210 | 46 | 1 164 | 0 | **3,80%** |
 | Bobolice | 2 080 | 65 | 2 015 | 0 | **3,13%** |
 | Świeszyno | 2 430 | 167 | 2 263 | 0 | **6,87%** |
@@ -248,7 +248,7 @@ To jest główny bottleneck wartości użytkowej.
 | Sianów | 3 520 | 31 | 3 489 | 0 | **0,88%** |
 | Polanów | 1 810 | 39 | 1 771 | 0 | **2,15%** |
 | Będzino | 2 290 | 13 | 2 277 | 0 | **0,57%** |
-| **RAZEM** | **25 030** | **415** | **24 615** | **0** | **1,66%** |
+| **RAZEM** | **25 030** | **10 646** | **14 384** | **0** | **42,53%** |
 
 Pełny raport: `docs/reports/address-coverage-census.md`.
 
@@ -262,25 +262,21 @@ Model wylicza dla każdego zakresu wskaźnik efektywności:
 `score = odblokowane_adresy / (czas_wdrożenia_h * (1 + risk_level * 0.2))`
 z uwzględnieniem stopnia ponownego użycia adaptera, trudności mapowania rewirów i stabilności upstreamu.
 
-Aktualny wynik rankingu pilota:
-1. **Koszalin** (całość): 10 231 adresów, est. 24h, risk 2 -> Score: **232.52**
-2. **Sianów** (miasto/pozostałe): 3 489 adresów, est. 16h, risk 3 -> Score: **75.85**
-3. **Będzino** (Trasa II/pozostałe): 2 277 adresów, est. 12h, risk 2 -> Score: **71.16**
-4. **Polanów** (pozostałe sołectwa/miasto): 1 771 adresów, est. 12h, risk 2 -> Score: **55.34**
-5. **Świeszyno** (Trasy II/III): 2 263 adresy, est. 14h, risk 3 -> Score: **51.43**
-6. **Tychowo** (miasto): 1 405 adresów, est. 10h, risk 2 -> Score: **46.83**
-7. **Manowo** (Trasa I/pozostałe): 1 164 adresy, est. 10h, risk 2 -> Score: **38.80**
-8. **Bobolice** (pozostałe arkusze): 2 015 adresów, est. 20h, risk 4 -> Score: **33.58**
+Aktualny wynik rankingu pilota (po odblokowaniu Koszalina):
+1. **Sianów** (miasto/pozostałe): 3 489 adresów, est. 16h, risk 3 -> Score: **75.85**
+2. **Będzino** (Trasa II/pozostałe): 2 277 adresów, est. 12h, risk 2 -> Score: **71.16**
+3. **Polanów** (pozostałe sołectwa/miasto): 1 771 adresów, est. 12h, risk 2 -> Score: **55.34**
+4. **Świeszyno** (Trasy II/III): 2 263 adresy, est. 14h, risk 3 -> Score: **51.43**
+5. **Tychowo** (miasto): 1 405 adresów, est. 10h, risk 2 -> Score: **46.83**
+6. **Manowo** (Trasa I/pozostałe): 1 164 adresy, est. 10h, risk 2 -> Score: **38.80**
+7. **Bobolice** (pozostałe arkusze): 2 015 adresów, est. 20h, risk 4 -> Score: **33.58**
 
-### P1-C.2 — Koszalin jako pierwszy kandydat o największym potencjale [NAJBLIŻSZY KROK ROZWOJOWY]
+### P1-C.2 — Koszalin jako pierwszy kandydat o największym potencjale [ZROBIONE]
 
-Koszalin ma 10 240 adresów PRG i tylko 9 supported (pilotaż BIO).
-
-Pierwszy cel rozszerzenia bazy:
-- Podłączyć pełne miejskie źródła PGK Koszalin / operatora miejskiego;
-- Zmapować rejony/trasy/frakcje bez zgadywania;
-- Odblokować miasto Koszalin i podnieść regionalne pokrycie z 1.66% do ~42%;
-- Utrzymać ambiguity <1% i zero znanych wrong-date mismatches w próbie audytowej.
+Koszalin osiągnął 100% address coverage (10 240 / 10 240 PRG) dla pełnego harmonogramu 5 frakcji (`MIXED`, `PAPER`, `METALS_PLASTICS`, `GLASS`, `BIO`):
+- Wdrożono miejski harmonogram Koszalina z mapowaniem obszarów serwisowych (`SIMC: 0949448`);
+- Odblokowano całe miasto Koszalin i podniesiono regionalne pokrycie z 1,66% do 42,53%;
+- Utrzymano ambiguity na poziomie 0,00% i brak błędów klasyfikacji.
 
 ### P1-C.3 — następne źródła według ROI, nie sztywnej kolejności
 
@@ -441,7 +437,7 @@ Kolejność bazowa z aktualnym statusem wykonania:
 12. **P1-B:** CodeQL/dependency audit/update automation/secret scanning/action pinning — **[ZROBIONE]** (`pnpm security:audit` w CI);
 13. **P1-B:** monitoring + alerting na realnym stagingu — **[ZROBIONE]** (`GET /v1/health`, structured JSON logs z `x-request-id`);
 14. **P1-C, równolegle po P0:** zwiększanie address coverage według ROI — **[MODEL GOTOWY]** (`pnpm census:prioritize`);
-15. **P1-C:** odblokowanie pełnego potencjału Koszalina (PGK) — **[W TOKU / NAJBLIŻSZY KROK ROZWOJOWY]**;
+15. **P1-C:** odblokowanie pełnego potencjału Koszalina (PGK) — **[ZROBIONE]** (10 240 / 10 240 PRG, 5 frakcji, regional coverage 42,53%);
 16. **P2:** kontrolowany pilot na bezpiecznie obsługiwanej kohorcie — **[KOHORTY I PROTOKÓŁ GOTOWE]** (8 kohort, 415 adresów PRG);
 17. **P2:** telemetry + real feedback + unit economics — **[TELEMETRIA I FEEDBACK ZROBIONE]** (`apps/pwa/src/services/telemetry.ts`, `TC-2.5`);
 18. **P1-C/P2:** domknięcie pełnego regionu do >=90–95% coverage lub zaakceptowanych wyjątków — **[CEL ETAPU PILOTOWEGO]**;

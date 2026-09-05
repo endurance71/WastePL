@@ -285,6 +285,85 @@ function parseKoszalinBio(input: PdfTextArtifactInput, parserKey: string, parser
   };
 }
 
+function parseKoszalinCityWide(input: PdfTextArtifactInput, parserKey: string, parserVersion: string): NormalizedDataset {
+  const lines = cleanLines(input.text);
+  const rangeLine = lines.find((line) => /\d{2}\.\d{2}\.\d{4}\s*-\s*\d{2}\.\d{2}\.\d{4}/.test(line));
+  const range = rangeLine?.match(/(\d{2}\.\d{2}\.\d{4})\s*-\s*(\d{2}\.\d{2}\.\d{4})/);
+  if (!range?.[1] || !range[2]) {
+    throw new PdfTextParseError('Koszalin city-wide validity range is missing', 'MISSING_METADATA');
+  }
+  const start = parsePolishDate(range[1]);
+  const end = parsePolishDate(range[2]);
+  if (end < start) throw new PdfTextParseError('Koszalin city-wide validity range is reversed', 'INVALID_ROW', rangeLine ?? null);
+
+  const fractionDays: Array<{ fraction: WasteFractionCode; weekdays: number[] }> = [];
+  let currentFraction: WasteFractionCode | null = null;
+
+  for (const line of lines) {
+    const fractionMatch = /^frakcja:\s*(.+)$/i.exec(line);
+    if (fractionMatch?.[1]) {
+      const name = fractionMatch[1].trim().toLocaleLowerCase('pl-PL');
+      if (name.includes('zmieszane')) currentFraction = 'MIXED';
+      else if (name.includes('papier')) currentFraction = 'PAPER';
+      else if (name.includes('metale') || name.includes('tworzywa')) currentFraction = 'METALS_PLASTICS';
+      else if (name.includes('szkło')) currentFraction = 'GLASS';
+      else if (name.includes('bio')) currentFraction = 'BIO';
+      else currentFraction = 'OTHER';
+      continue;
+    }
+
+    const dayMatch = /^dzień odbioru:\s*(.+)$/i.exec(line);
+    if (dayMatch?.[1] && currentFraction) {
+      const days = dayMatch[1]
+        .split(',')
+        .map((d) => d.trim().toLocaleLowerCase('pl-PL'))
+        .map((name) => WEEKDAYS[name])
+        .filter((w): w is number => w !== undefined);
+      fractionDays.push({ fraction: currentFraction, weekdays: days });
+      currentFraction = null;
+    }
+  }
+
+  if (fractionDays.length === 0) {
+    throw new PdfTextParseError('No Koszalin city-wide fraction schedule found', 'UNSUPPORTED_TEMPLATE');
+  }
+
+  const serviceAreaKey = 'koszalin-city-wide';
+  const serviceArea: NormalizedServiceArea = {
+    key: serviceAreaKey,
+    name: 'Miasto Koszalin — pełny harmonogram miejski',
+    buildingType: null,
+    coverage: [
+      {
+        type: 'LOCALITY',
+        priority: 50,
+        simc: '0949448',
+      },
+    ],
+  };
+
+  const collectionEvents: NormalizedCollectionEvent[] = [];
+  for (const entry of fractionDays) {
+    for (const weekday of entry.weekdays) {
+      for (const date of datesForWeekday(start, end, weekday)) {
+        collectionEvents.push(event(input, serviceAreaKey, entry.fraction, date, 0.99));
+      }
+    }
+  }
+
+  collectionEvents.sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
+
+  return {
+    schemaVersion: '0.1.0',
+    municipality: { terc: '3261011', name: 'Koszalin', municipalityType: 'DISTRICT_CITY' },
+    serviceAreas: [serviceArea],
+    collectionEvents,
+    facilities: [],
+    alerts: [],
+    sources: [source(input, parserKey, parserVersion, 0.99)],
+  };
+}
+
 export class PgkKoszalinPdfTextAdapter implements PdfTextAdapter {
   readonly parserKey = 'pgk-koszalin-pdf-text';
   readonly parserVersion = '0.1.0';
@@ -294,6 +373,7 @@ export class PgkKoszalinPdfTextAdapter implements PdfTextAdapter {
     return (
       normalized.includes('gmina manowo') ||
       normalized.includes('zabudowa wielorodzinna miasta koszalina - bio') ||
+      normalized.includes('harmonogram miejski pełnofrakcyjny') ||
       normalized.includes('data odbioru odpadów zmieszanych i segregowanych')
     );
   }
@@ -308,6 +388,9 @@ export class PgkKoszalinPdfTextAdapter implements PdfTextAdapter {
     }
     if (normalized.includes('gmina manowo')) {
       return parseManowo(input, this.parserKey, this.parserVersion);
+    }
+    if (normalized.includes('harmonogram miejski pełnofrakcyjny')) {
+      return parseKoszalinCityWide(input, this.parserKey, this.parserVersion);
     }
     if (normalized.includes('zabudowa wielorodzinna miasta koszalina - bio')) {
       return parseKoszalinBio(input, this.parserKey, this.parserVersion);

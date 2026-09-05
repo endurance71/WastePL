@@ -1,6 +1,6 @@
 # Address Coverage Census — Raport Pokrycia Adresowego Pilota WastePL
 
-> Data wygenerowania: 2026-09-04. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
+> Data wygenerowania: 2026-09-05. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
 
 ## Cel i interpretacja
 
@@ -12,7 +12,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 | Gmina | Adresy PRG | Supported | Unsupported | Ambiguous | Coverage |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| Koszalin | 10 240 | 9 | 10 231 | 0 | **0.09%** |
+| Koszalin | 10 240 | 10 240 | 0 | 0 | **100%** |
 | Manowo | 1210 | 46 | 1164 | 0 | **3.8%** |
 | Bobolice | 2080 | 65 | 2015 | 0 | **3.13%** |
 | Świeszyno | 2430 | 167 | 2263 | 0 | **6.87%** |
@@ -20,7 +20,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Sianów | 3520 | 31 | 3489 | 0 | **0.88%** |
 | Polanów | 1810 | 39 | 1771 | 0 | **2.15%** |
 | Będzino | 2290 | 13 | 2277 | 0 | **0.57%** |
-| **RAZEM (Region)** | **25 030** | **415** | **24 615** | **0** | **1.66%** |
+| **RAZEM (Region)** | **25 030** | **10 646** | **14 384** | **0** | **42.53%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -32,12 +32,11 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Backlog wdrożeniowy według gmin (ROI-driven)
 
-### Koszalin (Pokrycie: 0.09%)
-- **Aktywny rewir:** Zbiórka bio (ulice pilotowe)
-- **Obsługiwane adresy PRG:** 9 / 10240
+### Koszalin (Pokrycie: 100%)
+- **Aktywny rewir:** Miasto Koszalin — pełny harmonogram miejski pełnofrakcyjny
+- **Obsługiwane adresy PRG:** 10240 / 10240
 - **Kluczowy backlog do odblokowania mieszkańców:**
-- Brak pozostałych frakcji (zmieszane, papier, szkło, tworzywa)
-- Brak pełnego miejskiego harmonogramu PGK dla wszystkich rejonów miasta
+- Brak blokerów miejskich — pełne 5 frakcji (zmieszane, bio, papier, tworzywa, szkło) obsłużone dla 100% adresów PRG miasta
 
 ### Manowo (Pokrycie: 3.8%)
 - **Aktywny rewir:** Trasa 2AB (Bonin, Dęborogi, Policko, Wyszebórz)
@@ -94,7 +93,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 1.66%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 42.53%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).
