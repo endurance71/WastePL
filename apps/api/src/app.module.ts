@@ -15,6 +15,8 @@ import { InternalSourceOpsController } from './internal-source-ops/internal-sour
 import { InternalSourceOpsService } from './internal-source-ops/internal-source-ops.service.js';
 import { NotificationsController } from './notifications/notifications.controller.js';
 import { NotificationsService } from './notifications/notifications.service.js';
+import { TelemetryController } from './telemetry/telemetry.controller.js';
+import { TelemetryService } from './telemetry/telemetry.service.js';
 
 @Module({
   controllers: [
@@ -26,6 +28,7 @@ import { NotificationsService } from './notifications/notifications.service.js';
     InternalSourceOpsController,
     NotificationsController,
     FeedbackController,
+    TelemetryController,
   ],
   providers: [
     DatabaseService,
@@ -36,7 +39,7 @@ import { NotificationsService } from './notifications/notifications.service.js';
     InternalSourceOpsService,
     NotificationsService,
     FeedbackService,
+    TelemetryService,
   ],
 })
 export class AppModule {}
-
