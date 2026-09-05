@@ -112,10 +112,9 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Sianów',
     terc: '3209073',
     totalPrgAddresses: 3520,
-    activeSubset: 'Miejscowości Dąbrowa i Grabówko',
+    activeSubset: 'Miejscowości Dąbrowa i Grabówko (rozbicie frakcji segregowanych: tworzywa, papier, szkło)',
     backlogBlockers: [
-      'Generic „odpady segregowane” — konieczność reguł podziału na frakcje',
-      'Miasto Sianów i pozostałe trasy wiejskie',
+      'Miasto Sianów i pozostałe trasy wiejskie gminy',
     ],
   },
   {

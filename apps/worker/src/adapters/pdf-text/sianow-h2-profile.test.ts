@@ -76,16 +76,20 @@ describe('parseSianowH2', () => {
       },
     ]);
 
-    // 13 MIXED + 13 OTHER + 11 BIO + 1 BULKY = 38 total events
-    expect(result.collectionEvents).toHaveLength(38);
+    // 13 MIXED + (13 * 3 = 39) METALS_PLASTICS/PAPER/GLASS + 11 BIO + 1 BULKY = 64 total events
+    expect(result.collectionEvents).toHaveLength(64);
 
     const mixedEvents = result.collectionEvents.filter((e) => e.fraction === 'MIXED');
-    const otherEvents = result.collectionEvents.filter((e) => e.fraction === 'OTHER');
+    const metalsPlasticsEvents = result.collectionEvents.filter((e) => e.fraction === 'METALS_PLASTICS');
+    const paperEvents = result.collectionEvents.filter((e) => e.fraction === 'PAPER');
+    const glassEvents = result.collectionEvents.filter((e) => e.fraction === 'GLASS');
     const bioEvents = result.collectionEvents.filter((e) => e.fraction === 'BIO');
     const bulkyEvents = result.collectionEvents.filter((e) => e.fraction === 'BULKY');
 
     expect(mixedEvents).toHaveLength(13);
-    expect(otherEvents).toHaveLength(13);
+    expect(metalsPlasticsEvents).toHaveLength(13);
+    expect(paperEvents).toHaveLength(13);
+    expect(glassEvents).toHaveLength(13);
     expect(bioEvents).toHaveLength(11);
     expect(bulkyEvents).toHaveLength(1);
 
@@ -93,8 +97,8 @@ describe('parseSianowH2', () => {
     expect(mixedEvents[0]?.date).toBe('2026-07-08');
     expect(mixedEvents[mixedEvents.length - 1]?.date).toBe('2026-12-21');
 
-    expect(otherEvents[0]?.date).toBe('2026-07-07');
-    expect(otherEvents[otherEvents.length - 1]?.date).toBe('2026-12-19');
+    expect(metalsPlasticsEvents[0]?.date).toBe('2026-07-07');
+    expect(metalsPlasticsEvents[metalsPlasticsEvents.length - 1]?.date).toBe('2026-12-19');
 
     expect(bioEvents[0]?.date).toBe('2026-07-07');
     expect(bioEvents[bioEvents.length - 1]?.date).toBe('2026-12-19');
