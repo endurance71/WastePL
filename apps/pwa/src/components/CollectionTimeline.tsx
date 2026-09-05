@@ -9,6 +9,7 @@ import {
 } from '../utils/formatters.js';
 import { getSavedNotificationPreferences } from '../services/notifications.js';
 import { downloadIcsFile, generateIcsCalendar } from '../utils/ics-generator.js';
+import { trackEvent } from '../services/telemetry.js';
 
 interface CollectionTimelineProps {
   events: CollectionEvent[];
@@ -45,6 +46,11 @@ export const CollectionTimeline: React.FC<CollectionTimelineProps> = ({
     });
     const safeFilename = `odpady-${targetAddress.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}.ics`;
     downloadIcsFile(safeFilename, icsContent);
+    trackEvent('REMINDER_ICS_EXPORT', {
+      eventCount: filteredEvents.length,
+      fractionFilter: selectedFraction,
+      sourceParser: source.parserKey || source.format,
+    });
   };
 
   return (

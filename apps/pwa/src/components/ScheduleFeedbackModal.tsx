@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Loader2, MessageSquare, X } from 'lucide-react';
 import { submitDiscrepancyFeedback } from '../services/api.js';
+import { trackEvent } from '../services/telemetry.js';
 
 interface ScheduleFeedbackModalProps {
   isOpen: boolean;
@@ -20,6 +21,12 @@ export const ScheduleFeedbackModal: React.FC<ScheduleFeedbackModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      trackEvent('FEEDBACK_MODAL_OPEN', { addressId: addressId ?? null });
+    }
+  }, [isOpen, addressId]);
 
   if (!isOpen) return null;
 
@@ -42,6 +49,11 @@ export const ScheduleFeedbackModal: React.FC<ScheduleFeedbackModalProps> = ({
           details: details.trim() || undefined,
         });
       }
+      trackEvent('FEEDBACK_SUBMITTED', {
+        addressId: addressId ?? null,
+        feedbackType,
+        isCorrect: feedbackType === 'CORRECT',
+      });
       setIsSubmitted(true);
       setTimeout(() => {
         setIsSubmitted(false);

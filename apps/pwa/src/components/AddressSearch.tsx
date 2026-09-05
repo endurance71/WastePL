@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MapPin, Search, Loader2 } from 'lucide-react';
 import { searchAddress } from '../services/api.js';
+import { trackEvent } from '../services/telemetry.js';
 import type { AddressCandidate, ApiAddress } from '../types/api.js';
 
 interface AddressSearchProps {
@@ -29,6 +30,10 @@ export const AddressSearch: React.FC<AddressSearchProps> = ({ onSelectAddress })
         const items = await searchAddress(query);
         setResults(items);
         setHasSearched(true);
+        trackEvent('ADDRESS_SEARCH', {
+          queryLength: query.trim().length,
+          resultCount: items.length,
+        });
       } catch (err) {
         setError('Nie udało się wyszukać adresu. Sprawdź połączenie.');
       } finally {
@@ -133,7 +138,14 @@ export const AddressSearch: React.FC<AddressSearchProps> = ({ onSelectAddress })
             <li key={address.id}>
               <button
                 type="button"
-                onClick={() => onSelectAddress(address)}
+                onClick={() => {
+                  trackEvent('ADDRESS_SELECTED', {
+                    addressId: address.id,
+                    municipality: address.municipality.name,
+                    terc: address.municipality.terc,
+                  });
+                  onSelectAddress(address);
+                }}
                 style={{
                   width: '100%',
                   textAlign: 'left',

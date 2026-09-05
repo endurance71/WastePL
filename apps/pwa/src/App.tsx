@@ -28,6 +28,8 @@ import {
   getSavedNotificationPreferences,
 } from './services/notifications.js';
 
+import { recordSessionStart, trackEvent } from './services/telemetry.js';
+
 export const App: React.FC = () => {
   const [selectedAddress, setSelectedAddress] = useState<ApiAddress | null>(null);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
@@ -65,8 +67,9 @@ export const App: React.FC = () => {
     setIsNotificationsEnabled(isGranted && isPrefEnabled);
   };
 
-  // Restore saved address on initial mount
+  // Restore saved address on initial mount and track session start
   useEffect(() => {
+    recordSessionStart();
     const saved = getSavedAddress();
     if (saved) {
       setSelectedAddress(saved);
@@ -76,6 +79,12 @@ export const App: React.FC = () => {
         setSchedule(cached.data);
         setCachedScheduleMeta(cached);
         setIsServingFromCache(true);
+        trackEvent('SCHEDULE_SHOWN', {
+          addressId: saved.id,
+          eventCount: cached.data.events.length,
+          isCached: true,
+          sourceParser: cached.data.source.parserKey || cached.data.source.format,
+        });
       }
     }
     syncNotificationStatus();
@@ -111,10 +120,22 @@ export const App: React.FC = () => {
         saveCachedSchedule(selectedAddress.id, scheduleData);
         setCachedScheduleMeta({ cachedAt: new Date().toISOString(), data: scheduleData });
         setIsServingFromCache(false);
+        trackEvent('SCHEDULE_SHOWN', {
+          addressId: selectedAddress.id,
+          eventCount: scheduleData.events.length,
+          isCached: false,
+          sourceParser: scheduleData.source.parserKey || scheduleData.source.format,
+        });
       } catch (err) {
         if (cached) {
           // Graceful fallback to cached data when network/API fails
           setIsServingFromCache(true);
+          trackEvent('SCHEDULE_SHOWN', {
+            addressId: selectedAddress.id,
+            eventCount: cached.data.events.length,
+            isCached: true,
+            sourceParser: cached.data.source.parserKey || cached.data.source.format,
+          });
         } else {
           if (err instanceof ApiError) {
             if (err.status === 404) {
