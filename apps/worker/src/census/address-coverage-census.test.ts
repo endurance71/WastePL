@@ -130,11 +130,11 @@ describe('Address Coverage Census v2', () => {
 
     expect(report.censusEngineVersion).toBe('2.0.0');
     expect(report.totalPilotAddresses).toBe(25030);
-    expect(report.totalSupported).toBe(10829);
-    expect(report.totalUnsupported).toBe(14201);
+    expect(report.totalSupported).toBe(11303);
+    expect(report.totalUnsupported).toBe(13727);
     expect(report.totalAmbiguous).toBe(0);
     expect(report.totalErrors).toBe(0);
-    expect(report.overallCoveragePercent).toBe(43.26);
+    expect(report.overallCoveragePercent).toBe(45.16);
 
     expect(report.municipalities).toHaveLength(8);
     for (const item of report.municipalities) {
@@ -147,7 +147,7 @@ describe('Address Coverage Census v2', () => {
 
     const markdown = formatCensusMarkdown(report);
     expect(markdown).toContain('Address Coverage Census — Raport Pokrycia Adresowego');
-    expect(markdown).toContain('43.26%');
+    expect(markdown).toContain('45.16%');
     expect(markdown).toContain('Koszalin');
     expect(markdown).toContain('Będzino');
   });

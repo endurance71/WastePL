@@ -26,11 +26,11 @@ Wniosek strategiczny: **nie dokładamy dużych nowych modułów. Utrzymujemy wia
 | Gminy z ACTIVE PSZOK | 8/8 |
 | ACTIVE source identities | 17 (9 collection + 8 PSZOK) |
 | Oficjalne adresy PRG w pilocie | 25 030 |
-| Supported | 10 829 |
-| Unsupported | 14 201 |
+| Supported | 11 303 |
+| Unsupported | 13 727 |
 | Ambiguous | 0 |
-| Address coverage | **43,26%** |
-| Audytowane adresy w bezpiecznych zakresach | 10 829 / 10 829 PASS |
+| Address coverage | **45,16%** |
+| Audytowane adresy w bezpiecznych zakresach | 11 303 / 11 303 PASS |
 | Manual live-source soak | 17/17 PASS (`33882827565`) |
 | Playwright na ostatnim zweryfikowanym zestawie | 93/93 PASS |
 | Lighthouse CI na ostatnim zweryfikowanym zestawie | 100/100/100/100 |
@@ -184,10 +184,10 @@ Structured logs, `x-request-id`, `/v1/health` i procedury operacyjne istnieją. 
 | Bobolice | 2 080 | 65 | 2 015 | 3,13% |
 | Świeszyno | 2 430 | 167 | 2 263 | 6,87% |
 | Tychowo | 1 450 | 45 | 1 405 | 3,10% |
-| Sianów | 3 520 | 121 | 3 399 | 3,44% |
+| Sianów | 3 520 | 214 | 3 306 | 6,08% |
 | Polanów | 1 810 | 39 | 1 771 | 2,15% |
-| Będzino | 2 290 | 13 | 2 277 | 0,57% |
-| **RAZEM** | **25 030** | **10 736** | **14 294** | **42,89%** |
+| Będzino | 2 290 | 487 | 1 803 | 21,27% |
+| **RAZEM** | **25 030** | **11 303** | **13 727** | **45,16%** |
 
 ### P1-C.1 — model priorytetyzacji [ZROBIONE]
 

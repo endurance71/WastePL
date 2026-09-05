@@ -10,7 +10,7 @@ import {
 } from '@wastepl/domain';
 import { loadRealGoldenReferenceSnapshot } from '../readiness/real-golden-reference.js';
 import { loadPolanowGarbnoReferenceSnapshot } from '../readiness/polanow-garbno-reference.js';
-import { loadBedzinoDworekReferenceSnapshot } from '../readiness/bedzino-dworek-reference.js';
+import { loadBedzinoTrasa1ReferenceSnapshot } from '../readiness/bedzino-trasa-1-reference.js';
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
 import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowiec-reference.js';
 import { loadSianowDabrowaReferenceSnapshot } from '../readiness/sianow-dabrowa-reference.js';
@@ -134,7 +134,7 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Będzino',
     terc: '3209012',
     totalPrgAddresses: 2290,
-    activeSubset: 'Miejscowość Dworek (Trasa I)',
+    activeSubset: 'Trasa I — 12 miejscowości wiejskich (Dworek, Będzinko, Borkowice, Kiszkowo, Łasin Kosz., Łopienica, Miłogoszcz, Słowienkowo, Smolne, Strachomino, Uliszki, Zagaje)',
     backlogBlockers: [
       'Trasa II (operator EKOSAN)',
       'Osłony śmietnikowe w 5 miejscowościach (Będzino, Tymień, Dobrzyca, Mścice, Stoisław)',
@@ -177,7 +177,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
   const [realGolden, polanow, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, swieszyno, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
-    loadBedzinoDworekReferenceSnapshot(),
+    loadBedzinoTrasa1ReferenceSnapshot(),
     loadSianowGrabowkoReferenceSnapshot(),
     loadSianowBorowiecReferenceSnapshot(),
     loadSianowDabrowaReferenceSnapshot(),

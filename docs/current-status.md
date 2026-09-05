@@ -31,12 +31,12 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Gminy z >=1 ACTIVE collection scope | **8/8** | Municipality source presence = 100%. Nie jest to pełne pokrycie adresów. |
 | Gminy z ACTIVE PSZOK | **8/8** | Każda gmina pilota ma aktywny stacjonarny punkt PSZOK. |
 | ACTIVE source identities | **17** | 9 źródeł collection + 8 PSZOK. |
-| Pełne address coverage pilota | **43,26% (10 829 / 25 030)** | Wynik Address Coverage Census v2 (zob. [raport Census](reports/address-coverage-census.md)). |
+| Pełne address coverage pilota | **45,16% (11 303 / 25 030)** | Wynik Address Coverage Census v2 (zob. [raport Census](reports/address-coverage-census.md)). |
 | Koszalin address coverage | **100% (10 240 / 10 240)** | Pełny harmonogram miejski 5 frakcji (P1-C.2). |
-| Audytowane realne adresy PRG | **10 829 / 10 829 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
+| Audytowane realne adresy PRG | **11 303 / 11 303 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
 | Formalny historyczny real-100 | **100/100 PASS** | Koszalin 9, Manowo 46, Tychowo 45. |
 | Polanów Garbno | **39/39 PASS** | Bezpieczny aktywny subset. |
-| Będzino Dworek | **13/13 PASS** | Bezpieczny aktywny subset. |
+| Będzino Trasa I (12 miejscowości) | **487/487 PASS** | Bezpieczny aktywny subset (Dworek, Będzinko, Borkowice, Kiszkowo, Łasin Kosz., Łopienica, Miłogoszcz, Słowienkowo, Smolne, Strachomino, Uliszki, Zagaje). |
 | Sianów Grabówko + Borowiec rural + Dąbrowa | **214/214 PASS** | Bezpieczny aktywny subset (Grabówko 31 + Borowiec rural 90 + Dąbrowa 93). |
 | Świeszyno Chałupy | **167/167 PASS** | Bezpieczny aktywny subset. |
 | Bobolice Kłanino | **65/65 PASS** | Bezpieczny aktywny subset. |

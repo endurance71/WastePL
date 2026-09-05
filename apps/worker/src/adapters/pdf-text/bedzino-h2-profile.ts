@@ -237,6 +237,7 @@ export function parseBedzinoH2(
     'łopienica',
     'miłogoszcz',
     'słowieńkowo',
+    'słowienkowo',
     'smolne',
     'strachomino',
     'uliszki',

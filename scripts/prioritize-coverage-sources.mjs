@@ -33,7 +33,7 @@ const CANDIDATES = [
     key: 'bedzino-trasa-2-ekosan',
     municipality: 'Będzino',
     terc: '3209012',
-    unblockedAddresses: 2277,
+    unblockedAddresses: 1803,
     estimatedHours: 12,
     maintenanceRisk: 2,
     adapterReuse: 'EXTENDED_EXISTING',
