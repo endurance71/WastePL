@@ -43,3 +43,13 @@ jobs:
         uses: github/codeql-action/analyze@6f5948dfacef28e207b48d0905cf90c03365536d # v3.37.9
         with:
           category: '/language:${{ matrix.language }}'
+          upload: 'never'
+          upload-database: false
+          output: ../results
+
+      - name: Upload CodeQL SARIF artifact
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: codeql-sarif-results
+          path: ../results
+          if-no-files-found: warn
