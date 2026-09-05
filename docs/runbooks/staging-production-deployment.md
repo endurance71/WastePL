@@ -126,8 +126,31 @@ System wdraża trójstopniowy monitoring operacyjny:
 
 ## 6. Uruchomienie Kontrolowanego Pilota Kohorty Mieszkańców (Bramka P2.1)
 
-Kontrolowany pilot z realnymi użytkownikami uruchamiany jest po spełnieniu kryteriów bramki P2:
-- Użytkownicy rekrutowani wyłącznie z rewirów o wskaźniku Address Coverage $\ge 95\%$ (np. sołectwo Kłanino, Trasa 2AB Manowo, Dworek Będzino).
-- Aktywny telemetry funnel w PWA: wyszukiwanie -> wybór adresu -> odczyt harmonogramu -> powiadomienie -> feedback.
-- Dostępność formularza zgłaszania nieprawidłowości (`ScheduleFeedbackModal`) oraz monitorowanie `POST /v1/feedback/schedule-discrepancy`.
+Kontrolowany pilot z realnymi użytkownikami uruchamiany jest zgodnie z bramką **P2.1** roadmapy, która zakłada zapraszanie mieszkańców **wyłącznie z bezpiecznie obsługiwanych zakresów** (Address Coverage $\ge 95\%$ zapraszanej grupy) bez udawania, że cały region jest już pokryty.
+
+### Zdefiniowane kohorty pilotowe (100% poprawności, 0% ambiguity)
+
+| Kohorta | Gmina | Zakres / Miejscowość | Adresy PRG | Zbiórka / Frakcje | Status bramki P2.1 |
+| :--- | :--- | :--- | ---: | :--- | :--- |
+| **Kohorta 1 (Świeszyno-Chałupy)** | Świeszyno | Sołectwo Chałupy (Trasa I) | **167** | Wszystkie frakcje H2 (zmieszane, bio, papier, plastik, szkło) | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 2 (Bobolice-Kłanino)** | Bobolice | Miejscowość Kłanino | **65** | Zabudowa jednorodzinna H2 | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 3 (Manowo-Bonin+)** | Manowo | Bonin, Dęborogi, Policko, Wyszebórz | **46** | Trasa 2AB (pełen harmonogram miesięczny) | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 4 (Tychowo-Wieś)** | Tychowo | Tereny wiejskie (grupy 1–4) | **45** | Zabudowa jednorodzinna wiejska | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 5 (Polanów-Garbno)** | Polanów | Miejscowość Garbno | **39** | Zabudowa jednorodzinna H2 | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 6 (Sianów-Grabówko)** | Sianów | Miejscowość Grabówko | **31** | Zabudowa jednorodzinna H2 | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 7 (Będzino-Dworek)** | Będzino | Miejscowość Dworek (Trasa I) | **13** | Zabudowa jednorodzinna H2 | **GOTOWA DO ZAPROSZEŃ** |
+| **Kohorta 8 (Koszalin-Bio-Pilot)** | Koszalin | Ulice objęte pilotażem BIO | **9** | Frakcja BIO zabudowa wielorodzinna | **GOTOWA (z zastrzeżeniem bio-only)** |
+
+### Procedura rekrutacji i bezpieczeństwo mieszkańców
+
+1. **Weryfikacja adresu przed zaproszeniem**:
+   - Mieszkaniec wpisuje adres w PWA.
+   - W przypadku adresu spoza kohorty aplikacja zwraca czytelny status `404 NOT_COVERED` informujący o planowanym harmonogramie dla danej gminy, bez generowania fałszywych terminów.
+2. **Obserwacja telemetryczna lejka (P2.2)**:
+   - Dashboard monitoruje w czasie rzeczywistym przejście przez lejek: `APP_OPEN` -> `ADDRESS_SEARCH` -> `ADDRESS_SELECTED` -> `SCHEDULE_SHOWN` -> `REMINDER_ICS_EXPORT` / `REMINDER_PUSH_OPT_IN` -> `RETURN_VISIT`.
+   - Rejestrowany jest wskaźnik konwersji i czas do pierwszego harmonogramu.
+3. **Pętla zwrotna jakości (P2.3)**:
+   - Przycisk „Zgłoś uwagę” (`ScheduleFeedbackModal`) umożliwia mieszkańcowi natychmiastowe zgłoszenie `WRONG_DATE`, `MISSING_FRACTION` lub potwierdzenie poprawności `CORRECT`.
+   - Zgłoszenia trafiają do tabeli `feedback_discrepancy` z identyfikatorem `installationId` i znacznikiem czasu klienta.
+   - Każde zgłoszenie o rozbieżności wstrzymuje automatyczne potwierdzanie źródła i kieruje rewizję do manualnego przeglądu (`REVIEW_REQUIRED`).
 
