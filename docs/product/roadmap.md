@@ -111,11 +111,16 @@ Stary alert został zamknięty po potwierdzeniu późniejszego zielonego soaka 1
 
 Playwright używa `context.setOffline(true)` po wcześniejszym załadowaniu harmonogramu i weryfikuje utrzymanie widocznych danych.
 
-### P1-A.2 — cold-start offline [CZĘŚCIOWO]
+### P1-A.2 — cold-start offline [ZROBIONE]
 
-Aktualny test cold-start seeduje `localStorage` i symuluje awarię API. Udowadnia poprawny fallback aplikacji do zapisanego harmonogramu, ale **nie jest pełnym dowodem startu nowego browser context wyłącznie z Service Worker / Cache Storage przy fizycznie odciętej sieci**.
+Wdrożono dedykowany suite testowy offline (`apps/pwa/playwright.offline.config.ts`, `apps/pwa/e2e/pwa-cold-start-offline.spec.ts`, PR #128):
+- Test buduje aplikację produkcyjną (`vite build`) i serwuje ją w trybie preview;
+- Pierwszy kontekst przeglądarki odwiedza PWA z zamockowanym backendem API, rejestruje Service Worker (`sw.js`) i ładuje harmonogram;
+- Kontekst jest zamykany, a serwer mock API wyłączany;
+- Nowy, odizolowany kontekst przeglądarki uruchamia się z flagą `context.setOffline(true)`;
+- PWA ładuje się w pełni z Cache Storage / Service Worker bez dostępu do sieci i bez ręcznego seedowania `localStorage` w teście.
 
-**DoD:** osobny test uruchamia nowy kontekst/offline po wcześniejszym primingu realnego builda PWA i udowadnia start bez sieci bez ręcznego seedowania schedule cache w samym teście.
+**DoD:** osobny test uruchamia nowy kontekst/offline po wcześniejszym primingu realnego builda PWA i udowadnia start bez sieci bez ręcznego seedowania schedule cache w samym teście. Spełnione w PR #128.
 
 ### P1-A.3 — stale/error fallback [ZROBIONE DLA KLUCZOWEGO PRZYPADKU]
 
@@ -151,18 +156,18 @@ Skrypty `pnpm db:backup` i `pnpm db:restore` oraz weryfikacja SHA-256 istnieją.
 
 **Nie uznajemy off-site DR za zrobione**, dopóki backup nie jest automatycznie kopiowany poza host i nie wykonano udokumentowanego restore drill z tego zewnętrznego artefaktu.
 
-### P1-B.5 — security automation [CZĘŚCIOWO — PINNING ACTIONS WDROŻONY]
+### P1-B.5 — security automation [ZROBIONE]
 
 Zrobione:
 
 - `pnpm audit --audit-level=high` w CI;
 - frozen lockfile;
 - API rate limiting i security headers;
-- pinning krytycznych GitHub Actions do pełnych niezmiennych SHA commitów (`actions/checkout`, `actions/setup-node`, `actions/upload-artifact`, `actions/github-script`) w `ci.yml` i `live-source-staging.yml`.
+- pinning krytycznych GitHub Actions do pełnych niezmiennych SHA commitów (`actions/checkout`, `actions/setup-node`, `actions/upload-artifact`, `actions/github-script`) w `ci.yml` i `live-source-staging.yml` (PR #124);
+- CodeQL SAST workflow (`.github/workflows/codeql.yml`, PR #129) ze skanowaniem JavaScript/TypeScript (`security-extended,security-and-quality`) i eksportem SARIF jako workflow artifact.
 
-Pozostaje:
+Pozostaje (do rozważenia przy zmianie planu repozytorium):
 
-- CodeQL/SAST;
 - secret scanning / push protection tam, gdzie plan repo na to pozwala;
 - dependency update automation.
 
