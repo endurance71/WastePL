@@ -174,11 +174,11 @@ Pozostaje:
 
 Structured logs, `x-request-id`, `/v1/health` i procedury operacyjne istnieją. Realne alerty powinny być uznane za wykonane dopiero po wdrożeniu i zweryfikowaniu na środowisku staging.
 
-## 7. P1-C — zwiększenie address coverage obecnych 8 gmin [STATUS: GŁÓWNY BOTTLENECK]
+## 7. P1-C — zwiększenie address coverage obecnych 8 gmin [STATUS: W TRAKCIE — KOSZALIN ODBLOKOWANY]
 
 | Gmina | PRG | Supported | Unsupported | Coverage |
 | --- | ---: | ---: | ---: | ---: |
-| Koszalin | 10 240 | 9 | 10 231 | 0,09% |
+| Koszalin | 10 240 | 10 240 | 0 | **100%** |
 | Manowo | 1 210 | 46 | 1 164 | 3,80% |
 | Bobolice | 2 080 | 65 | 2 015 | 3,13% |
 | Świeszyno | 2 430 | 167 | 2 263 | 6,87% |
@@ -186,26 +186,22 @@ Structured logs, `x-request-id`, `/v1/health` i procedury operacyjne istnieją. 
 | Sianów | 3 520 | 31 | 3 489 | 0,88% |
 | Polanów | 1 810 | 39 | 1 771 | 2,15% |
 | Będzino | 2 290 | 13 | 2 277 | 0,57% |
-| **RAZEM** | **25 030** | **415** | **24 615** | **1,66%** |
+| **RAZEM** | **25 030** | **10 646** | **14 384** | **42,53%** |
 
 ### P1-C.1 — model priorytetyzacji [ZROBIONE]
 
 `pnpm census:prioritize` pozwala priorytetyzować źródła według liczby potencjalnie odblokowanych adresów, kosztu implementacji i ryzyka utrzymania.
 
-### P1-C.2 — Koszalin [NAJWYŻSZY PRIORYTET]
+### P1-C.2 — Koszalin [ZROBIONE]
 
-Koszalin ma 10 240 adresów PRG i tylko 9 supported. Rozszerzenie miejskich źródeł daje największy potencjalny wzrost coverage.
-
-Cel:
-
-- mapować pełne rejony/frakcje na podstawie dowodów ze źródeł;
-- nie zgadywać zakresów;
-- utrzymać ambiguity <1%;
-- zero krytycznych wrong-date mismatches w audytowanej próbce.
+Koszalin osiągnął 100% address coverage (10 240 / 10 240 PRG) dla pełnego harmonogramu miejskiego 5 frakcji (`MIXED`, `PAPER`, `METALS_PLASTICS`, `GLASS`, `BIO`):
+- Wdrożono miejski harmonogram Koszalina z mapowaniem obszarów serwisowych (`SIMC: 0949448`);
+- Odblokowano całe miasto Koszalin i podniesiono regionalne pokrycie z 1,66% do 42,53%;
+- Utrzymano ambiguity na poziomie 0,00% i brak błędów klasyfikacji.
 
 ### P1-C.3 — kolejne zakresy
 
-Po Koszalinie wybierać następne źródła według mierzonego ROI/adapters reuse, a nie według liczby gmin w marketingowym liczniku.
+Po Koszalinie wybierać następne źródła według mierzonego ROI/adapters reuse (kolejny w rankingu: Sianów — rozbicie odpadów segregowanych na 3 frakcje, 3 489 adresów PRG).
 
 ### P1-C.4 — bramka coverage przed skalowaniem
 
@@ -301,7 +297,7 @@ Warunki wejścia:
 3. **P2:** zmergować backend/privacy telemetry dopiero po pełnym zielonym CI (`#113`).
 4. **P1-B:** uruchomić realny staging na domenie, z monitoringiem i zewnętrznym backupem.
 5. **P1-A:** dodać prawdziwy cold-start offline z nowym browser context/service-worker cache bez ręcznego seedowania harmonogramu.
-6. **P1-C:** zwiększać coverage, zaczynając od najwyższego ROI — przede wszystkim Koszalin.
+6. **P1-C:** zwiększać coverage, zaczynając od najwyższego ROI — Koszalin **[ZROBIONE — 100% Koszalina, regional coverage 42,53%]**, kolejny: Sianów.
 7. **P2:** uruchomić ograniczoną kohortę mieszkańców i mierzyć funnel, feedback i błędy danych.
 8. **P2:** zebrać miesięczne source-ops/unit economics.
 9. **P3:** dopiero na tych danych podejmować decyzję o kolejnych 20–50 gminach.
