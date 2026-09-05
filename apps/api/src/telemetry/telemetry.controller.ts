@@ -54,7 +54,7 @@ function optionalInteger(
   max: number,
 ): number | undefined {
   const value = payload[key];
-  if (!Number.isInteger(value) || typeof value !== 'number' || value < min || value > max) {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) {
     return undefined;
   }
   return value;
