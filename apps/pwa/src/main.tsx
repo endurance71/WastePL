@@ -4,7 +4,7 @@ import { App } from './App.js';
 import './styles/index.css';
 
 // Register Service Worker from vite-plugin-pwa
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+if ('serviceWorker' in navigator && (import.meta.env.PROD || window.location.port === '4173' || window.location.search.includes('sw=1'))) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
