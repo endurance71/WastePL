@@ -68,11 +68,10 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Miejscowości i posesje hard-to-reach
 
 ### Sianów (Pokrycie: 0.88%)
-- **Aktywny rewir:** Miejscowości Dąbrowa i Grabówko
+- **Aktywny rewir:** Miejscowości Dąbrowa i Grabówko (rozbicie frakcji segregowanych: tworzywa, papier, szkło)
 - **Obsługiwane adresy PRG:** 31 / 3520
 - **Kluczowy backlog do odblokowania mieszkańców:**
-- Generic „odpady segregowane” — konieczność reguł podziału na frakcje
-- Miasto Sianów i pozostałe trasy wiejskie
+- Miasto Sianów i pozostałe trasy wiejskie gminy
 
 ### Polanów (Pokrycie: 2.15%)
 - **Aktywny rewir:** Miejscowość Garbno (zabudowa jednorodzinna)
