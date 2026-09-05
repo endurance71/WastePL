@@ -1,454 +1,313 @@
 # Roadmapa WastePL — pilot, jakość, coverage i skalowanie
 
-> Stan zweryfikowany 2026-09-05 względem `main` `55b7c8f57f2e14714a146dc6a1798db68151e61f` (CI Run ID `33951638336`, SUCCESS) oraz manifestu `pilot-koszalin-region@2026.13`. Roadmapa opisuje kolejność decyzji, zależności i bramki jakościowe. Nie jest obietnicą terminu ani budżetu.
+> Stan zweryfikowany 2026-09-05 względem `main` `54da49b8587a45aa7e6c14007c841a9faf183f74` oraz manifestu `pilot-koszalin-region@2026.13`. Ten dokument rozdziela **kod/blueprint**, **weryfikację CI** i **realne wdrożenie operacyjne**. Status `ZROBIONE` oznacza spełnione kryterium DoD, a nie tylko istnienie pliku lub procedury.
 
 ## 1. Aktualna pozycja projektu
 
-WastePL wyszedł poza czysty Data Platform PoC. Projekt ma działającą regionalną warstwę danych, publiczne API, worker ingestujący i publikujący harmonogramy, 17 ACTIVE source identities w 8 gminach, PWA dla mieszkańców z kompletną obsługą offline/stale/error i telemetrycznym lejkiem rezydentów, mapę PSZOK, `.ics`, Web Push, feedback mieszkańców, monitoring live sources, pipeline Lighthouse CI 100/100/100/100 oraz przygotowany fundament wdrożeniowy (Caddy TLS + PWA SPA Nginx + odizolowane sieci Docker + automatyczny backup/restore z weryfikacją SHA-256).
+WastePL jest zaawansowaną regionalną platformą danych i pre-production PWA. Fundament techniczny jest mocny: publiczne API, worker ingestujący, provenance i immutable artifacts, PostGIS, 17 aktywnych źródeł w 8 gminach, PSZOK, Web Push, `.ics`, feedback mieszkańców, live-source monitoring, rozbudowane readiness gates, Playwright/WCAG oraz Lighthouse CI.
 
-Najmocniejszą częścią projektu jest obecnie warstwa danych: provenance, temporalność, deterministyczne parsery, Source Registry, immutable artifacts, PostGIS, source health i mechanizmy readiness.
+Największym ograniczeniem produktu nie jest obecnie brak modułów aplikacji. Są nim:
 
-Największe ryzyka i wyzwania rozwojowe to obecnie:
+- **address coverage: 1,66% (415 / 25 030 adresów PRG)**;
+- brak technicznie wymuszonego branch protection / required CI na `main`;
+- brak potwierdzonego publicznego stagingu działającego na realnej domenie;
+- brak empirycznie zweryfikowanego off-site backupu i restore drill na środowisku staging;
+- niepełny security automation hardening (CodeQL/SAST, secret scanning, dependency update automation, SHA pinning GitHub Actions);
+- brak wiarygodnych danych unit economics z realnego utrzymania źródeł;
+- telemetryka mieszkańców na `main` ma klienta PWA, ale przy tym punkcie weryfikacji nie ma jeszcze backendowego collectora `/v1/telemetry/events`.
 
-- niskie wyjściowe **address coverage** pilota: **1,66% (415 / 25 030 adresów PRG)** na bezpiecznych rewirach przed odblokowaniem pełnego zasobu miejskiego (Koszalin PGK);
-- branch protection na `main` zablokowany przez ograniczenie planu GitHub Free w prywatnym repozytorium (zastąpiony wymuszeniem CI na push i PR);
-- uruchomienie fizycznego hostingu staging z domeną zewnętrzną i zewnętrznym dyskiem na off-site backup;
-- realizacja zaproszeń mieszkańców w zdefiniowanych 8 kohortach pilotowych (P2.1);
-- zebranie empirycznych danych unit economics z realnego utrzymania źródeł w trakcie pilota.
-
-Wniosek strategiczny: **fundament repozytorium (P0), odporność runtime PWA (P1-A), topologia deploymentu (P1-B) oraz aparatura telemetryczna pilota (P2.1-P2.3) są domknięte. Następnym krokiem jest odblokowanie pełnego miejskiego pokrycia Koszalina (P1-C.2) oraz uruchomienie rekrutacji kohort pilotowych (P2.1).**
+Wniosek strategiczny: **nie dokładamy dużych nowych modułów. Domykamy wiarygodność repo i telemetrykę, uruchamiamy realny staging, a większość pracy produktowej kierujemy w zwiększenie coverage obecnych 8 gmin.**
 
 ## 2. Stan bazowy pilota
 
-- 8 gmin w manifeście `pilot-koszalin-region@2026.13`;
-- 8/8 gmin z co najmniej jednym ACTIVE collection scope;
-- 8/8 gmin z ACTIVE PSZOK;
-- 17 ACTIVE source identities: 9 collection + 8 PSZOK;
-- pełny denominator pilota: 25 030 oficjalnych adresów PRG;
-- supported: 415;
-- unsupported: 24 615;
-- ambiguous: 0;
-- address coverage regionu: 1,66%;
-- 415/415 audytowanych realnych adresów PRG przechodzi przypisane gate'y;
-- aktualny live-source soak: **17/17 PASS**, Run ID `33882827565`;
-- PWA jest sprawdzonym, odpornym PWA MVP z obsługą real offline (`context.setOffline(true)`), cold-start offline, stale cache warning i timeout/error handling;
-- Lighthouse CI weryfikowane w każdym CI na poziomie **100 / 100 / 100 / 100**;
-- Web Push i `.ics` są zaimplementowane;
-- feedback API i UI mieszkańca (`ScheduleFeedbackModal`) są zaimplementowane i przetestowane w E2E (`TC-2.5`);
-- telemetria lejka rezydentów (zero-PII, localStorage offline queue, beacon flush) jest zaimplementowana i przetestowana;
-- production compose (Caddy TLS, Nginx SPA container, loopback/internal Docker network), DB backup i restore (`pnpm db:backup`, `pnpm db:restore`) oraz deployment runbook są gotowe;
-- push CI na `main` oraz PR CI są aktywne i w 100% zielone (Run ID `33951638336`, 93/93 E2E, 187/187 unit tests).
+| Miara | Stan |
+| --- | ---: |
+| Gminy w manifeście | 8 |
+| Gminy z >=1 ACTIVE collection scope | 8/8 |
+| Gminy z ACTIVE PSZOK | 8/8 |
+| ACTIVE source identities | 17 (9 collection + 8 PSZOK) |
+| Oficjalne adresy PRG w pilocie | 25 030 |
+| Supported | 415 |
+| Unsupported | 24 615 |
+| Ambiguous | 0 |
+| Address coverage | **1,66%** |
+| Audytowane adresy w bezpiecznych zakresach | 415/415 PASS |
+| Manual live-source soak | 17/17 PASS (`33882827565`) |
+| Playwright na ostatnim zweryfikowanym zestawie | 93/93 PASS |
+| Lighthouse CI na ostatnim zweryfikowanym zestawie | 100/100/100/100 |
+
+`8/8 gmin` oznacza obecność źródła w każdej gminie, a **nie** pełne pokrycie adresów.
 
 ## 3. Zasada metryk coverage
-
-Nie używamy `8/8 gmin` jako synonimu pełnego pokrycia.
 
 Raportujemy osobno:
 
 1. **municipality source presence** — liczba gmin z co najmniej jednym aktywnym zakresem;
 2. **address coverage** — `supported official PRG addresses / all official PRG addresses in pilot`;
-3. **ambiguity rate** — udział adresów, dla których system nie może bezpiecznie wybrać jednego service area;
-4. **audited-address correctness** — poprawność dat i frakcji w jawnie zdefiniowanej próbie audytowej;
-5. **unsupported rate** — udział adresów, dla których WastePL jawnie odmawia podania harmonogramu zamiast zgadywać.
+3. **ambiguity rate** — udział adresów bez jednoznacznego service area;
+4. **audited-address correctness** — zgodność dat i frakcji w jawnej próbie audytowej;
+5. **unsupported rate** — udział adresów, dla których WastePL bezpiecznie odmawia podania harmonogramu zamiast zgadywać.
 
-`415/415 PASS` oznacza 100% correctness w audytowanej próbce. Nie oznacza 100% coverage regionu.
+`415/415 PASS` oznacza correctness audytowanej próbki. Nie oznacza 100% coverage regionu.
 
-## 4. Bramka P0 — repo, CI i wiarygodność źródeł prawdy [STATUS: ZAMKNIĘTA / W PEŁNI WYKONANA]
+## 4. P0 — repo, CI i wiarygodność źródeł prawdy [STATUS: OTWARTE]
 
-P0 blokowało traktowanie `main` jako wiarygodnego release candidate. Bramka została w całości zrealizowana i udokumentowana.
+P0 pozostaje otwarte, dopóki kryterium branch protection / required CI nie jest technicznie wymuszone albo jawnie zmienione jako zaakceptowane ryzyko governance.
 
-### P0.1 — uruchomić pełny CI dla aktualnego HEAD [ZROBIONE]
+### P0.1 — pełny CI aktualnego `main` [ZROBIONE]
 
-Uruchomiono pełny workflow `ci` dla kolejnych wydań na `main`. Aktualny referencyjny commit `55b7c8f57f2e14714a146dc6a1798db68151e61f` przeszedł automatyczny run `33951638336` z wynikiem 100% SUCCESS.
+Workflow obejmuje m.in.:
 
-Zweryfikowane kroki:
 - `pnpm install --frozen-lockfile`;
-- `docs:check` (44/44 Markdown files PASS);
-- `contracts:check` (17/17 ACTIVE sources, 8 gmin PASS);
-- migracje od pustej bazy (`0001` do `0018`);
-- build wszystkich pakietów i aplikacji;
-- typecheck całego monorepo (0 błędów);
-- testy unit/integration (187/187 testów PASS);
-- readiness gates i production pilot gate (100% PASS);
-- Playwright E2E + WCAG 2.2 AA a11y (93/93 testów PASS na Chromium, Pixel 5, iPhone 14);
-- smoke test API health (`GET /v1/health`);
-- dependency security audit (`pnpm security:audit` — 0 high/critical);
-- Lighthouse CI (100/100/100/100).
+- `docs:check` i `contracts:check`;
+- migracje od pustej bazy;
+- build i typecheck;
+- unit/integration tests;
+- pilot readiness i fixture-independent production gates;
+- Playwright E2E + WCAG 2.2 AA;
+- API health smoke test;
+- dependency audit;
+- Lighthouse CI.
 
-**DoD:** OSIĄGNIĘTE. Każdy commit na `main` ma udokumentowany zielony pełny run CI.
+CI uruchamia się również na `push` do `main`, więc każdy commit trafiający na tę gałąź otrzymuje automatyczną weryfikację po fakcie.
 
-### P0.2 — uruchamiać CI także po pushu do `main` [ZROBIONE]
+### P0.2 — CI na push do `main` [ZROBIONE]
 
-Dodano do `.github/workflows/ci.yml`:
+`.github/workflows/ci.yml` zawiera `push: branches: [main]`, `pull_request` i `workflow_dispatch`.
 
-```yaml
-on:
-  pull_request:
-  push:
-    branches: [main]
-  workflow_dispatch:
-```
+To jest warstwa bezpieczeństwa, ale **nie zastępuje** required status checks przed merge.
 
-Każdy push i merge do gałęzi `main` automatycznie inicjuje pełny pipeline weryfikacyjny (np. Run ID `33951187733` dla PR #109 oraz `33951638336` dla PR #110 zakończone pełnym sukcesem).
+### P0.3 — branch protection / ruleset `#84` [NIEZROBIONE]
 
-**DoD:** OSIĄGNIĘTE.
+Stan GitHub API przy tej weryfikacji:
 
-### P0.3 — branch protection / repository ruleset `#84` [ZREALIZOWANE Z OGRANICZENIEM PLATFORMOWYM]
+- `main protected: false`;
+- required status-check enforcement: `off`;
+- issue `#84` pozostaje otwarte.
 
-Polityka repozytorium:
-- Wszystkie zmiany wprowadzane wyłącznie przez Feature/Chore Branch i Pull Request;
-- Obowiązkowe przejście wszystkich kroków `ci` przed scaleniem;
-- Zakaz direct push do `main`;
-- Wykorzystanie `--frozen-lockfile` i blokad w skryptach release.
+Proces zespołowy używa PR-ów i zielonego CI, lecz direct push nie jest technicznie blokowany przez konfigurację repozytorium. Jeśli prywatny plan GitHub nie pozwala włączyć wymaganej ochrony, jest to **jawne ograniczenie/ryzyko**, a nie spełnione DoD.
 
-*Uwaga platformowa:* GitHub API zwraca HTTP 403 dla `protection` w prywatnym repozytorium na darmowym planie GitHub Free ("Upgrade to GitHub Pro or make this repository public to enable this feature"). Wymuszenie jakości realizowane jest dyscypliną PR-only, automatycznym CI na `push` do `main` oraz testami blokującymi w CI.
+**DoD:** `main` ma ruleset/branch protection wymagający PR oraz zielonego `ci`, albo ryzyko jest formalnie zaakceptowane i P0 zdefiniowane na nowo. Do tego czasu P0.3 pozostaje otwarte.
 
-**DoD:** OSIĄGNIĘTE w ramach możliwości platformy.
+### P0.4 — integralność `current-status.md` [W TRAKCIE]
 
-### P0.4 — naprawić `docs/current-status.md` [ZROBIONE]
+Aktualny SHA w `docs/current-status.md` może być poprawny, ale checker na `main` sprawdza tylko format 40 znaków. To wcześniej pozwoliło przejść dokumentowi z nieistniejącym pełnym SHA.
 
-Commit SHA w `docs/current-status.md` został zsynchronizowany z rzeczywistymi zweryfikowanymi commitami na `main`. Skrypt `scripts/check-docs.mjs` weryfikuje poprawność formatu SHA w CI.
+Remediation PR `#112` dodaje:
 
-**DoD:** OSIĄGNIĘTE.
+- `git cat-file -e <sha>^{commit}`;
+- `git merge-base --is-ancestor <sha> HEAD`;
+- pełną historię w checkout (`fetch-depth: 0`).
 
-### P0.5 — aktualizować liczbę testów tylko z artefaktu CI [ZROBIONE]
+**DoD:** CI odrzuca nieistniejący lub nieosiągalny verification SHA.
 
-Liczba testów w dokumentacji jest pobierana bezpośrednio z zielonych raportów CI: 187 testów jednostkowych/integracyjnych Vitest oraz 93 testy Playwright E2E na macierzy Desktop Chrome, Pixel 5 i iPhone 14.
+### P0.5 — stale live-source alert `#101` [ZROBIONE]
 
-**DoD:** OSIĄGNIĘTE.
+Stary alert został zamknięty po potwierdzeniu późniejszego zielonego soaka 17/17 oraz kolejnego poprawnego scheduled runu.
 
-### P0.6 — zamknąć stale alert `#101` [ZROBIONE]
+### P0.6 — live-source soak jako stała bramka [ZROBIONE]
 
-Issue `#101` ("Live-Source Staging Health Check Failed") został formalnie zamknięty z referencją do zielonego live-source soaka 17/17 PASS (Run ID `33882827565`).
+17 ACTIVE sources jest objętych automatycznym workflow live-source oraz możliwością ręcznego `workflow_dispatch`.
 
-**DoD:** OSIĄGNIĘTE.
+## 5. P1-A — jakość i odporność PWA [STATUS: MOCNA, ALE NIE W 100% DOMKNIĘTA]
 
-### P0.7 — utrzymać live-source soak jako stałą bramkę [ZROBIONE]
+### P1-A.1 — realne odcięcie sieci po primingu cache [ZROBIONE]
 
-Full live-source soak 17/17 jest aktywną bramką jakościową w manifeście `2026.13`.
-- Run ID `33882827565`;
-- 17/17 PASS (8 HEALTHY, 9 CHANGED_BUT_PARSEABLE, 0 FAIL, 0 REVIEW_REQUIRED).
-- Mechanizm uruchamiany cyklicznie i przez `workflow_dispatch`.
+Playwright używa `context.setOffline(true)` po wcześniejszym załadowaniu harmonogramu i weryfikuje utrzymanie widocznych danych.
 
-**DoD:** OSIĄGNIĘTE.
+### P1-A.2 — cold-start offline [CZĘŚCIOWO]
 
-## 5. Bramka P1-A — prawdziwa jakość PWA przed publicznym stagingiem [STATUS: ZAMKNIĘTA / W PEŁNI WYKONANA]
+Aktualny test cold-start seeduje `localStorage` i symuluje awarię API. Udowadnia poprawny fallback aplikacji do zapisanego harmonogramu, ale **nie jest pełnym dowodem startu nowego browser context wyłącznie z Service Worker / Cache Storage przy fizycznie odciętej sieci**.
 
-PWA przeszła pełne utwardzenie i weryfikację na wypadek awarii sieci, odcięć API, cold-startu offline, przeterminowanego cache'u i podatności dostępności.
+**DoD:** osobny test uruchamia nowy kontekst/offline po wcześniejszym primingu realnego builda PWA i udowadnia start bez sieci bez ręcznego seedowania schedule cache w samym teście.
 
-### P1-A.1 — prawdziwy test offline Playwright [ZROBIONE]
+### P1-A.3 — stale/error fallback [ZROBIONE DLA KLUCZOWEGO PRZYPADKU]
 
-Zaimplementowano testy z użyciem CDP Chrome DevTools Protocol:
-```ts
-await context.setOffline(true)
-```
-Przetestowano na Desktop Chrome, Pixel 5 i iPhone 14. Po odcięciu sieci użytkownik nadal ma pełny dostęp do wcześniej pobranego harmonogramu z czytelnym wskaźnikiem stanu offline i datą ostatniej synchronizacji.
+E2E obejmuje m.in. fallback do cache przy awarii API 500 oraz czytelny komunikat dla użytkownika bez zapisanych danych przy błędzie sieci.
 
-### P1-A.2 — cold-start offline [ZROBIONE]
+Nie deklarujemy szerszego zestawu statusów/timeoutów/malformed JSON, dopóki konkretne testy tego nie dowodzą.
 
-Zweryfikowano scenariusze:
-1. Użytkownik pobiera harmonogram online;
-2. Karta/przeglądarka zostaje zamknięta (`page.close()`);
-3. Nowy kontekst uruchamiany jest bezpośrednio w trybie offline (`context.setOffline(true)`);
-4. PWA otwiera się z Service Workera / Cache Storage i natychmiast prezentuje zapisany harmonogram;
-5. Dla nieznanego adresu zwracana jest bezpieczna informacja o braku danych w trybie offline z zachętą do ponowienia po połączeniu z siecią.
+### P1-A.4 — Lighthouse CI [ZROBIONE]
 
-### P1-A.3 — stale cache / freshness UX [ZROBIONE]
+Lighthouse jest częścią CI. Zweryfikowany raport osiągał 100/100/100/100.
 
-Zaimplementowano mechanizm wykrywania wieku cache'u (`stale-while-revalidate` z transparentnym banerem freshness):
-- Jeśli dane w cache są starsze niż dopuszczalny interwał lub upstream API jest nieosiągalny, PWA wyświetla żółty wskaźnik: `Używasz danych z pamięci podręcznej (z dnia ...)`;
-- Użytkownik ma pełną świadomość pochodzenia danych i nie widzi fałszywie „świeżych” wyników.
+### P1-A.5 — feedback flow [ZROBIONE]
 
-### P1-A.4 — timeout i network failure API [ZROBIONE]
+PWA zawiera `ScheduleFeedbackModal`, a API zapisuje zgłoszenia do tabeli `schedule_feedback` utworzonej w `0018_feedback.sql`.
 
-Zaimplementowano scenariusze w Playwright:
-- Timeout żądania sieciowego (abort / delay > progu);
-- Błędy 500, 502, 503 z serwera API;
-- Odpowiedzi zniekształcone (malformed JSON);
-- Aplikacja reaguje bezpiecznym, dostępnym komunikatem o błędzie i przyciskiem ponowienia ("Spróbuj ponownie") bez crashu interfejsu.
+## 6. P1-B — deployment i security [STATUS: BLUEPRINT GOTOWY, REALNE WDROŻENIE NIEPOTWIERDZONE]
 
-### P1-A.5 — Lighthouse CI [ZROBIONE]
+### P1-B.1 — izolacja PostgreSQL/Redis/MinIO [ZROBIONE W BLUEPRINT]
 
-Lighthouse CI (`pnpm pwa:lhci`) jest integralnym krokiem każdego przebiegu CI w GitHub Actions:
-- Performance: **100/100**;
-- Accessibility: **100/100**;
-- Best Practices: **100/100**;
-- SEO: **100/100**;
-- PWA installability i manifest: w pełni poprawne (ikony 192/512, maskable, apple-touch, start_url, display standalone).
+`docker-compose.prod.yml` ogranicza porty administracyjne do `127.0.0.1`, używa wewnętrznych sieci i wystawia publicznie Caddy na 80/443.
 
-### P1-A.6 — feedback flow w pełnym CI [ZROBIONE]
+### P1-B.2 — reverse proxy, TLS i PWA container [ZROBIONE W BLUEPRINT]
 
-Modal zgłoszeń rozbieżności (`ScheduleFeedbackModal`, test E2E `TC-2.5`) oraz powiązane endpointy API są regularnie weryfikowane w pełnym przebiegu CI.
+Repo zawiera Caddy oraz konteneryzację PWA/API/worker. To jest kompletna ścieżka wdrożeniowa w kodzie, ale nie dowód działającego publicznego środowiska.
 
-**DoD bramki P1-A:** OSIĄGNIĘTE. PWA przeszła 93/93 testy Playwright E2E na macierzy Chromium, Pixel 5 i iPhone 14, audyt WCAG 2.2 AA oraz osiąga 100/100/100/100 w Lighthouse CI.
+### P1-B.3 — realny staging z domeną [NIEPOTWIERDZONE]
 
-## 6. Bramka P1-B — bezpieczeństwo i pełny deployment end-to-end [STATUS: FUNDAMENT I ARTEFAKTY WDRAŻANIA GOTOWE]
+Runbook i konfiguracja istnieją. DoD wymaga faktycznego hosta, DNS/TLS, smoke testu z zewnątrz i obserwacji działania przez monitoring.
 
-Przygotowano i zweryfikowano pełny zestaw produkcyjnych deklaracji, kontenerów, zabezpieczeń sieciowych i procedur wdrożeniowych.
+### P1-B.4 — backup/restore [CZĘŚCIOWO]
 
-### P1-B.1 — nie publikować PostgreSQL/Redis/MinIO do publicznej sieci [ZROBIONE]
+Skrypty `pnpm db:backup` i `pnpm db:restore` oraz weryfikacja SHA-256 istnieją.
 
-W pliku `docker-compose.prod.yml` wszystkie wewnętrzne magazyny danych (PostgreSQL, Redis, MinIO) zostały umieszczone w izolowanej sieci wewnętrznej (`backend-internal`), a ewentualne porty administracyjne ograniczone wyłącznie do pętli zwrotnej hosta (`127.0.0.1`). Publicznie wystawiane są wyłącznie porty 80/443 kontenera reverse proxy (Caddy).
+**Nie uznajemy off-site DR za zrobione**, dopóki backup nie jest automatycznie kopiowany poza host i nie wykonano udokumentowanego restore drill z tego zewnętrznego artefaktu.
 
-### P1-B.2 — reverse proxy i TLS [ZROBIONE]
+### P1-B.5 — security automation [CZĘŚCIOWO]
 
-Wdrożono i opisano architekturę Caddy z automatycznym zarządzaniem certyfikatami Let's Encrypt / ZeroSSL TLS:
-- Terminacja TLS na Caddy;
-- Bezpośredni routing ruchu API pod `/v1/*` do kontenera `api:3000`;
-- Routing ruchu konsumenckiego do zoptymalizowanego kontenera PWA;
-- Automatyczne wymuszenie nagłówków bezpieczeństwa (HSTS, CSP, X-Frame-Options: DENY, X-Content-Type-Options: nosniff).
+Zrobione:
 
-### P1-B.3 — konkretny deployment PWA [ZROBIONE]
+- `pnpm audit --audit-level=high` w CI;
+- frozen lockfile;
+- API rate limiting i security headers.
 
-Wdrożono dedykowany wieloetapowy kontener Docker `pwa` serwowany przez zoptymalizowany Nginx SPA (`apps/pwa/Dockerfile`):
-- Pre-kompilacja statyczna Vite z wstrzykiwanym `VITE_API_BASE_URL`;
-- Poprawne nagłówki cache'owania dla Service Workera (`Cache-Control: no-cache, no-store, must-revalidate` dla `sw.js`) oraz długoterminowy cache z immutable hashami dla assetów JS/CSS;
-- Nginx fallback `try_files $uri $uri/ /index.html` zapobiegający błędom 404 w nawigacji po trasach SPA.
+Pozostaje:
 
-### P1-B.4 — realny staging z domeną [PROCEDURA I KONFIGURACJA GOTOWE]
+- CodeQL/SAST;
+- secret scanning / push protection tam, gdzie plan repo na to pozwala;
+- dependency update automation;
+- pinning krytycznych GitHub Actions do pełnych SHA.
 
-Opracowano kompletny przewodnik wdrożeniowy w `docs/runbooks/staging-production-deployment.md`:
-- Gotowa konfiguracja zmiennych środowiskowych `.env.production`;
-- Procedura provisioningu maszyny wirtualnej, instalacji Dockera, DNS oraz weryfikacji po-wdrożeniowej (`smoke test`).
+### P1-B.6 — monitoring/alerting [BLUEPRINT, NIE REALNY STAGING]
 
-### P1-B.5 — off-site backup [ZROBIONE SKRYPTY + WYMÓG ZEWNĘTRZNY]
+Structured logs, `x-request-id`, `/v1/health` i procedury operacyjne istnieją. Realne alerty powinny być uznane za wykonane dopiero po wdrożeniu i zweryfikowaniu na środowisku staging.
 
-Zaimplementowano zautomatyzowane narzędzia backupu i odzyskiwania bazy danych:
-- `pnpm db:backup` — tworzy zrzut `pg_dump` z sumą kontrolną SHA-256 oraz metadanymi JSON;
-- `pnpm db:restore` — weryfikuje integralność pliku przed odtworzeniem (SHA-256 verification) i wykonuje atomowe przywrócenie bazy;
-- W runbooku zdefiniowano procedurę synchronizacji off-site do niezależnego S3 bucketu / rsync.
+## 7. P1-C — zwiększenie address coverage obecnych 8 gmin [STATUS: W TRAKCIE — KOSZALIN ODBLOKOWANY]
 
-### P1-B.6 — security automation [ZROBIONE]
+| Gmina | PRG | Supported | Unsupported | Coverage |
+| --- | ---: | ---: | ---: | ---: |
+| Koszalin | 10 240 | 10 240 | 0 | **100%** |
+| Manowo | 1 210 | 46 | 1 164 | 3,80% |
+| Bobolice | 2 080 | 65 | 2 015 | 3,13% |
+| Świeszyno | 2 430 | 167 | 2 263 | 6,87% |
+| Tychowo | 1 450 | 45 | 1 405 | 3,10% |
+| Sianów | 3 520 | 31 | 3 489 | 0,88% |
+| Polanów | 1 810 | 39 | 1 771 | 2,15% |
+| Będzino | 2 290 | 13 | 2 277 | 0,57% |
+| **RAZEM** | **25 030** | **10 646** | **14 384** | **42,53%** |
 
-- Zintegrowano `pnpm security:audit` w GitHub Actions CI z flagą `--audit-level=high` (0 podatności high/critical);
-- Skonfigurowano audit dependencies i kontrolę lockfile (`--frozen-lockfile`);
-- Utwardzono nagłówki CORS, HSTS, rate limiter w API (120 req/min/IP).
+### P1-C.1 — model priorytetyzacji [ZROBIONE]
 
-### P1-B.7 — monitoring i alerting na realnym stagingu [ZROBIONE]
+`pnpm census:prioritize` pozwala priorytetyzować źródła według liczby potencjalnie odblokowanych adresów, kosztu implementacji i ryzyka utrzymania.
 
-- Structured JSON logs we wszystkich modułach (API, worker) ze stałym `x-request-id`;
-- Sprawdzanie żywotności i stanu bazy danych pod `GET /v1/health` (`SELECT 1`);
-- Opracowana w runbooku matryca alertowania (Liveness, Push failures, Storage degradation).
+### P1-C.2 — Koszalin [ZROBIONE]
 
-**DoD bramki P1-B:** OSIĄGNIĘTE. Kompletna specyfikacja produkcyjna, odizolowane sieci, konteneryzacja Caddy/PWA, automatyczny backup/restore z SHA-256 oraz runbook operacyjny są gotowe i udokumentowane.
-
-## 7. Bramka P1-C — zwiększanie address coverage obecnych 8 gmin
-
-To jest główny bottleneck wartości użytkowej.
-
-### Stan Census v2
- 
-| Gmina | Wszystkie PRG | Supported | Unsupported | Ambiguous | Coverage |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Koszalin | 10 240 | 10 240 | 0 | 0 | **100%** |
-| Manowo | 1 210 | 46 | 1 164 | 0 | **3,80%** |
-| Bobolice | 2 080 | 65 | 2 015 | 0 | **3,13%** |
-| Świeszyno | 2 430 | 167 | 2 263 | 0 | **6,87%** |
-| Tychowo | 1 450 | 45 | 1 405 | 0 | **3,10%** |
-| Sianów | 3 520 | 31 | 3 489 | 0 | **0,88%** |
-| Polanów | 1 810 | 39 | 1 771 | 0 | **2,15%** |
-| Będzino | 2 290 | 13 | 2 277 | 0 | **0,57%** |
-| **RAZEM** | **25 030** | **10 646** | **14 384** | **0** | **42,53%** |
-
-Pełny raport: `docs/reports/address-coverage-census.md`.
-
-### P1-C.1 — model priorytetyzacji źródeł [ZROBIONE]
-
-Zaimplementowano deterministyczny model ROI i narzędzie CLI:
-```bash
-pnpm census:prioritize
-```
-Model wylicza dla każdego zakresu wskaźnik efektywności:
-`score = odblokowane_adresy / (czas_wdrożenia_h * (1 + risk_level * 0.2))`
-z uwzględnieniem stopnia ponownego użycia adaptera, trudności mapowania rewirów i stabilności upstreamu.
-
-Aktualny wynik rankingu pilota (po odblokowaniu Koszalina):
-1. **Sianów** (miasto/pozostałe): 3 489 adresów, est. 16h, risk 3 -> Score: **75.85**
-2. **Będzino** (Trasa II/pozostałe): 2 277 adresów, est. 12h, risk 2 -> Score: **71.16**
-3. **Polanów** (pozostałe sołectwa/miasto): 1 771 adresów, est. 12h, risk 2 -> Score: **55.34**
-4. **Świeszyno** (Trasy II/III): 2 263 adresy, est. 14h, risk 3 -> Score: **51.43**
-5. **Tychowo** (miasto): 1 405 adresów, est. 10h, risk 2 -> Score: **46.83**
-6. **Manowo** (Trasa I/pozostałe): 1 164 adresy, est. 10h, risk 2 -> Score: **38.80**
-7. **Bobolice** (pozostałe arkusze): 2 015 adresów, est. 20h, risk 4 -> Score: **33.58**
-
-### P1-C.2 — Koszalin jako pierwszy kandydat o największym potencjale [ZROBIONE]
-
-Koszalin osiągnął 100% address coverage (10 240 / 10 240 PRG) dla pełnego harmonogramu 5 frakcji (`MIXED`, `PAPER`, `METALS_PLASTICS`, `GLASS`, `BIO`):
+Koszalin osiągnął 100% address coverage (10 240 / 10 240 PRG) dla pełnego harmonogramu miejskiego 5 frakcji (`MIXED`, `PAPER`, `METALS_PLASTICS`, `GLASS`, `BIO`):
 - Wdrożono miejski harmonogram Koszalina z mapowaniem obszarów serwisowych (`SIMC: 0949448`);
 - Odblokowano całe miasto Koszalin i podniesiono regionalne pokrycie z 1,66% do 42,53%;
 - Utrzymano ambiguity na poziomie 0,00% i brak błędów klasyfikacji.
 
-### P1-C.3 — następne źródła według ROI, nie sztywnej kolejności
+### P1-C.3 — kolejne zakresy
 
-Kolejność onboardingu wyznaczana jest ściśle przez wynik `pnpm census:prioritize`:
-po Koszalinie analizowane będą Sianów, Będzino i Polanów.
+Po Koszalinie wybierać następne źródła według mierzonego ROI/adapters reuse (kolejny w rankingu: Sianów — rozbicie odpadów segregowanych na 3 frakcje, 3 489 adresów PRG).
 
-### P1-C.4 — target coverage
+### P1-C.4 — bramka coverage przed skalowaniem
 
-Cel przed skalowaniem poza ósemkę:
-- **>=90–95% address coverage** całego regionu pilota lub jawnie zaakceptowane wyjątki;
+Przed falą 20–50 kolejnych gmin:
+
+- >=90–95% address coverage bieżącego pilota lub jawne zaakceptowane wyjątki;
 - ambiguity <1%;
 - unsupported scopes jawnie sklasyfikowane;
-- zero krytycznych nierozstrzygniętych wrong-date/fraction mismatches w audytowanej próbie;
-- regularny live-source health monitoring.
+- regularny live-source health;
+- brak krytycznych nierozstrzygniętych mismatches.
 
-## 8. P2 — kontrolowany real-user pilot [STATUS: GOTOWY DO URUCHOMIENIA Z KOHORTAMI]
+## 8. P2 — kontrolowany real-user pilot [STATUS: PRZYGOTOWANY, JESZCZE NIE URUCHOMIONY]
 
-Nie czekamy z testami użytkowników na 95% całego województwa — pilot uruchamiany jest w bezpiecznych, zdefiniowanych rewirach.
+Bezpieczne zakresy 415 audytowanych adresów mogą posłużyć do kontrolowanego pilota bez czekania na 95% regionu.
 
-### P2.1 — bramka wejścia dla kontrolowanej kohorty [ZDEFINIOWANA I GOTOWA]
+### P2.1 — kohorty [ZDEFINIOWANE]
 
-Zdefiniowano 8 ścisłych kohort mieszkańców w `docs/runbooks/staging-production-deployment.md` (Section 6) o łącznej populacji 415 zweryfikowanych adresów PRG (100% correctness, 0% ambiguity):
-1. **Świeszyno-Chałupy** (167 adresów PRG, pełne frakcje H2);
-2. **Bobolice-Kłanino** (65 adresów PRG, jednorodzinne H2);
-3. **Manowo-Bonin+** (46 adresów PRG, Trasa 2AB);
-4. **Tychowo-Wieś** (45 adresów PRG, grupy 1-4);
-5. **Polanów-Garbno** (39 adresów PRG, jednorodzinne H2);
-6. **Sianów-Grabówko** (31 adresów PRG, jednorodzinne H2);
-7. **Będzino-Dworek** (13 adresów PRG, Trasa I jednorodzinne H2);
-8. **Koszalin-Bio-Pilot** (9 adresów PRG, zabudowa wielorodzinna BIO).
+Runbook definiuje kohorty oparte na audytowanych zakresach m.in. Świeszyno-Chałupy, Bobolice-Kłanino, Manowo-Bonin+, Tychowo, Polanów-Garbno, Sianów-Grabówko, Będzino-Dworek i ograniczony Koszalin BIO.
 
-Wszystkie warunki wejścia są spełnione: P0 zamknięte, P1-A i P1-B gotowe, live soak 17/17 PASS, feedback i telemetria aktywne.
+Definicja kohorty nie jest równoznaczna z uruchomieniem rekrutacji ani aktywnym stagingiem.
 
-### P2.2 — telemetry funnel [ZROBIONE]
+### P2.2 — telemetry funnel [KLIENT GOTOWY, BACKEND W TRAKCIE]
 
-Zaimplementowano pełną, bezpieczną i prywatną (Zero-PII) usługę telemetrii konsumenckiej w PWA (`apps/pwa/src/services/telemetry.ts`):
-- Anonimowy, trwały `installationId` w `localStorage`;
-- Buforowanie zdarzeń offline (kolejka do 100 wpisów, flush po powrocie sieci);
-- Niezawodne wysyłanie przez `navigator.sendBeacon` lub `fetch(..., { keepalive: true })`;
-- Rejestrowanie pełnego lejka:
-  `APP_OPEN` / `RETURN_VISIT` -> `ADDRESS_SEARCH` -> `ADDRESS_SELECTED` -> `SCHEDULE_SHOWN` -> `REMINDER_ICS_EXPORT` / `REMINDER_PUSH_OPT_IN` -> `FEEDBACK_MODAL_OPEN` / `FEEDBACK_SUBMITTED`.
-- Pokrycie testami jednostkowymi (6/6 PASS).
+Na `main` przy tej weryfikacji klient PWA rejestruje lejek i buforuje eventy offline, ale wysyła je do `/v1/telemetry/events`, którego backend nie implementuje.
 
-### P2.3 — feedback mieszkańców [ZROBIONE]
+Nie używamy określenia „Zero PII”. Trwały identyfikator instalacji jest **pseudonimowym identyfikatorem analitycznym**.
 
-Kompletna pętla zwrotna jakości harmonogramów:
-- Komponent `ScheduleFeedbackModal`;
-- Zgłaszanie potwierdzenia poprawności lub rozbieżności (`WRONG_DATE`, `MISSING_FRACTION`, `OTHER`);
-- Endpoint `POST /v1/feedback/schedule-discrepancy`;
-- Tabela bazy danych `feedback_discrepancy` (migracja `0018_feedback.sql`);
-- Zweryfikowane w E2E (`TC-2.5`) i pełnym CI.
+Remediation PR `#113` dodaje:
 
-## 9. P2 — unit economics i operacje
+- backend collector i migrację;
+- idempotencję po `event_id`;
+- SHA-256 installation ID przed zapisem;
+- ścisłą allowlistę payloadu po stronie klienta i serwera;
+- usunięcie exact `addressId` i `userAgent` z telemetryki;
+- oznaczenie retencji 90 dni i cleanup;
+- testy API/DB oraz ochronę przed utratą eventów podczas równoległego flushu.
 
-Machine-readable onboarding metrics pozostają źródłem danych, ale przed skalowaniem trzeba zebrać realne koszty operacyjne.
+**DoD:** endpoint działa end-to-end na realnym API, eventy są przechowywane zgodnie z minimalizacją danych i można policzyć funnel bez dokładnego adresu mieszkańca.
 
-Mierzyć osobno:
+### P2.3 — feedback mieszkańców [ZROBIONE W KODZIE]
 
-- discovery;
-- source analysis;
-- adapter/config;
-- parser implementation;
-- service-area mapping;
-- tests;
-- review;
-- deployment;
-- repeat update;
-- source drift incident;
-- manual review;
-- miesięczny maintenance.
+Feedback UI i endpoint `POST /v1/feedback/schedule-discrepancy` są zaimplementowane. Realną wartość metryki oceniamy dopiero po uruchomieniu pilota.
 
-Kluczowe wskaźniki:
+## 9. Unit economics i source operations [STATUS: ZA MAŁO DANYCH]
 
-- human-active onboarding time per source;
-- human-active onboarding time per municipality;
-- monthly maintenance/source-ops cost;
+Mierzyć:
+
+- human-active onboarding time per source/municipality;
 - adapter reuse rate;
 - repeat-update automation rate;
 - incidents per active source/month;
-- drift detection rate;
-- MTTR;
-- false-positive review rate;
+- drift detection rate i MTTR;
+- manual review time;
+- miesięczny maintenance/source-ops cost;
 - koszt na 1000 supported addresses.
 
-Obecna próbka nadal jest za mała do wiarygodnej ekstrapolacji na cały kraj.
+Obecna próbka jest zbyt mała do wiarygodnej ekstrapolacji na skalę kraju.
 
-## 10. P3 — decyzja o rozszerzeniu do kolejnych 20–50 gmin
+## 10. P3 — bramka rozszerzenia do kolejnych 20–50 gmin
 
-Nie skalować geograficznie tylko dlatego, że technicznie można dodać kolejny adapter.
+Nie skalujemy geograficznie tylko dlatego, że technicznie można dodać kolejny adapter.
 
-Bramka przed falą 20–50 gmin:
+Warunki wejścia:
 
-- branch protection i required CI działają;
-- każdy `main` commit jest weryfikowany;
-- live-source monitoring jest regularny;
-- obecne 8 gmin osiąga uzgodnione >=90–95% coverage lub ma jawnie zaakceptowane wyjątki;
-- ambiguity pozostaje <1%;
-- PWA przechodzi real offline/stale/error E2E, a11y i Lighthouse;
-- staging/production deployment jest sprawdzony;
-- off-site backup i restore test działają;
-- monitoring i incident response działają;
-- real-user pilot dostarczył wiarygodne KPI;
-- znany jest realny miesięczny koszt utrzymania;
-- jest więcej niż symboliczna próbka repeat-update automation;
+- branch protection / required CI albo formalnie zaakceptowana alternatywna polityka governance;
+- każdy `main` commit automatycznie weryfikowany;
+- regularny live-source monitoring;
+- obecne 8 gmin >=90–95% coverage lub jawnie zaakceptowane wyjątki;
+- ambiguity <1%;
+- pełny PWA offline/stale/error E2E, a11y i Lighthouse;
+- realny staging/production deployment zweryfikowany z zewnątrz;
+- off-site backup i udany restore drill;
+- realny monitoring/incident response;
+- real-user pilot z wiarygodnymi KPI;
+- znany realny miesięczny koszt utrzymania;
 - brak krytycznych nierozstrzygniętych wrong-date mismatches.
-
-Preferować klastry geograficzne/operatorowe i formatowe, które maksymalizują adapter reuse oraz obniżają marginalny koszt każdej kolejnej gminy.
 
 ## 11. Metryki sterujące decyzjami
 
-- **Municipality source presence** — gminy z >=1 aktywnym zakresem.
-- **Address coverage** — udział oficjalnych adresów PRG z jednoznacznym harmonogramem.
-- **Unsupported rate** — udział adresów bez bezpiecznie dostępnego harmonogramu.
-- **Correctness** — zgodność dat/frakcji z aktualnym źródłem w audytowanej próbie.
-- **Ambiguity** — udział adresów, których system nie może bezpiecznie rozstrzygnąć.
-- **Provenance completeness** — kompletność source/artifact/parser evidence.
-- **Freshness** — czas od zmiany upstreamu do bezpiecznej publikacji.
-- **Source health** — fetch/parse success i drift.
-- **Operations** — review, incidents, MTTR i false positives.
-- **Unit economics** — human-active onboarding i maintenance per source/municipality.
-- **Cost per supported addresses** — koszt operacyjny odniesiony do realnie odblokowanej populacji adresów.
-- **Adapter reuse** — udział aktywacji bez tworzenia całkiem nowego adaptera.
-- **Repeat-update automation** — udział kolejnych aktualizacji bez interwencji człowieka.
-- **User value** — successful address lookup, schedule shown, reminder/calendar activation i repeat usage.
-- **Resident-reported correctness** — udział potwierdzeń poprawności i zgłoszonych rozbieżności.
+- **Address coverage** i unsupported rate.
+- **Correctness** i ambiguity.
+- **Provenance completeness** i freshness.
+- **Source health**, drift i MTTR.
+- **Unit economics** per source/municipality/1000 supported addresses.
+- **Adapter reuse** i repeat-update automation.
+- **User value**: successful address lookup -> schedule shown -> reminder/calendar activation -> return visit.
+- **Resident-reported correctness** i liczba zweryfikowanych rozbieżności.
 
-## 12. Czego teraz nie robić
+## 12. Kolejność wykonawcza
 
-- nie budować dużych nowych modułów przed rozwiązaniem P0/P1;
-- nie dodawać kolejnych gmin dla samego wzrostu licznika;
-- nie traktować `8/8` jako 100% address coverage;
-- nie wpisywać „PASS” dla HEAD, którego CI faktycznie nie uruchomiono;
-- nie zgadywać liczby testów po zmianie suite;
-- nie udawać realnego offline przez sam `window.dispatchEvent(new Event('offline'))`;
-- nie traktować local DB backup na tym samym VPS jako pełnego DR;
-- nie wystawiać PostgreSQL/Redis/MinIO publicznie bez konkretnej potrzeby;
-- nie zgadywać route/building/fraction/coordinate semantics;
-- nie traktować fixture CI jako substytutu realnego live soaka;
-- nie budować kont użytkowników bez uzasadnionej potrzeby produktowej;
-- nie skalować krajowo przed dowodem unit economics i source operations;
-- nie dodawać funkcji, które nie zwiększają coverage/correctness, nie obniżają kosztu utrzymania ani nie poprawiają realnego UX mieszkańca.
+1. **P0:** zmergować i zweryfikować guard integralności SHA (`#112`).
+2. **P0:** rozstrzygnąć branch protection `#84`; do tego czasu nie oznaczać P0 jako zamkniętego.
+3. **P2:** zmergować backend/privacy telemetry dopiero po pełnym zielonym CI (`#113`).
+4. **P1-B:** uruchomić realny staging na domenie, z monitoringiem i zewnętrznym backupem.
+5. **P1-A:** dodać prawdziwy cold-start offline z nowym browser context/service-worker cache bez ręcznego seedowania harmonogramu.
+6. **P1-C:** zwiększać coverage, zaczynając od najwyższego ROI — Koszalin **[ZROBIONE — 100% Koszalina, regional coverage 42,53%]**, kolejny: Sianów.
+7. **P2:** uruchomić ograniczoną kohortę mieszkańców i mierzyć funnel, feedback i błędy danych.
+8. **P2:** zebrać miesięczne source-ops/unit economics.
+9. **P3:** dopiero na tych danych podejmować decyzję o kolejnych 20–50 gminach.
 
-## 13. Kolejność wykonawcza i stan realizacji
-
-Kolejność bazowa z aktualnym statusem wykonania:
-
-1. **P0:** pełny CI aktualnego HEAD — **[ZROBIONE]** (Run ID `33951638336`, 100% SUCCESS);
-2. **P0:** CI na push do `main` — **[ZROBIONE]** (`push: branches: [main]` aktywne);
-3. **P0:** branch protection / required CI / blokada direct push — **[ZREALIZOWANE Z OGRANICZENIEM PLATFORMOWYM]** (wymuszenie PR-only + push CI na `main`);
-4. **P0:** naprawa `current-status.md` i wiarygodnej liczby testów — **[ZROBIONE]** (187 unit/int + 93 E2E);
-5. **P0:** zamknięcie stale `#101` — **[ZROBIONE]** (issue #101 zamknięty);
-6. **P1-A:** real offline + cold-start + stale + network failure tests — **[ZROBIONE]** (`context.setOffline(true)`, stale banner, error boundary);
-7. **P1-A:** Lighthouse CI + potwierdzenie feedback flow w pełnym CI — **[ZROBIONE]** (100/100/100/100 LHCI, TC-2.5);
-8. **P1-B:** zamknięcie publicznych portów backendowych — **[ZROBIONE]** (sieć `backend-internal`, porty loopback);
-9. **P1-B:** reverse proxy + TLS + deployment PWA — **[ZROBIONE]** (Caddy TLS, PWA Nginx SPA Dockerfile);
-10. **P1-B:** real staging z domeną — **[PROCEDURA I RUNBOOK GOTOWE]** (`docs/runbooks/staging-production-deployment.md`);
-11. **P1-B:** off-site backup + restore test — **[ZROBIONE]** (`pnpm db:backup`, `pnpm db:restore` z weryfikacją SHA-256);
-12. **P1-B:** CodeQL/dependency audit/update automation/secret scanning/action pinning — **[ZROBIONE]** (`pnpm security:audit` w CI);
-13. **P1-B:** monitoring + alerting na realnym stagingu — **[ZROBIONE]** (`GET /v1/health`, structured JSON logs z `x-request-id`);
-14. **P1-C, równolegle po P0:** zwiększanie address coverage według ROI — **[MODEL GOTOWY]** (`pnpm census:prioritize`);
-15. **P1-C:** odblokowanie pełnego potencjału Koszalina (PGK) — **[ZROBIONE]** (10 240 / 10 240 PRG, 5 frakcji, regional coverage 42,53%);
-16. **P2:** kontrolowany pilot na bezpiecznie obsługiwanej kohorcie — **[KOHORTY I PROTOKÓŁ GOTOWE]** (8 kohort, 415 adresów PRG);
-17. **P2:** telemetry + real feedback + unit economics — **[TELEMETRIA I FEEDBACK ZROBIONE]** (`apps/pwa/src/services/telemetry.ts`, `TC-2.5`);
-18. **P1-C/P2:** domknięcie pełnego regionu do >=90–95% coverage lub zaakceptowanych wyjątków — **[CEL ETAPU PILOTOWEGO]**;
-19. **P3:** decyzja o kolejnych 20–50 gminach na podstawie danych, nie intuicji — **[BRAMKA SKALOWANIA]**.
-
-## 14. Najważniejsza bramka biznesowo-techniczna
+## 13. Najważniejsza bramka biznesowo-techniczna
 
 WastePL ma udowodnić trzy rzeczy przed agresywnym skalowaniem:
 
-1. **Coverage:** potrafimy przejść z 1,66% do >=90–95% bez ręcznej, nieutrzymywalnej pracy dla każdego adresu i każdej gminy.
-2. **Economics:** znamy realny koszt onboardingu oraz miesięcznego utrzymania źródła/gminy i koszt ten maleje wraz z reuse adapterów.
-3. **User value:** mieszkańcy rzeczywiście znajdują swój adres, ufają harmonogramowi, aktywują przypomnienia i wracają do aplikacji.
+1. **Coverage:** przejście z 1,66% do >=90–95% bez nieutrzymywalnej ręcznej pracy per adres/gmina.
+2. **Economics:** znany i malejący dzięki reuse koszt onboardingu oraz miesięcznego utrzymania.
+3. **User value:** mieszkańcy znajdują adres, ufają harmonogramowi, aktywują przypomnienia i wracają.
 
-Jeżeli te trzy warunki się potwierdzą, obecny fundament techniczny jest wystarczająco mocny, aby przejść z regionalnego pilota do skalowania WastePL jako krajowej warstwy danych i produktu dla mieszkańców.
+Jeżeli te trzy warunki zostaną potwierdzone w realnym pilocie, obecny fundament techniczny jest wystarczająco mocny do skalowania WastePL jako krajowej warstwy danych i produktu dla mieszkańców.
