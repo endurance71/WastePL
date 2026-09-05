@@ -152,20 +152,20 @@ Skrypty `pnpm db:backup` i `pnpm db:restore` oraz weryfikacja SHA-256 istnieją.
 
 **Nie uznajemy off-site DR za zrobione**, dopóki backup nie jest automatycznie kopiowany poza host i nie wykonano udokumentowanego restore drill z tego zewnętrznego artefaktu.
 
-### P1-B.5 — security automation [CZĘŚCIOWO]
+### P1-B.5 — security automation [CZĘŚCIOWO — PINNING ACTIONS WDROŻONY]
 
 Zrobione:
 
 - `pnpm audit --audit-level=high` w CI;
 - frozen lockfile;
-- API rate limiting i security headers.
+- API rate limiting i security headers;
+- pinning krytycznych GitHub Actions do pełnych niezmiennych SHA commitów (`actions/checkout`, `actions/setup-node`, `actions/upload-artifact`, `actions/github-script`) w `ci.yml` i `live-source-staging.yml`.
 
 Pozostaje:
 
 - CodeQL/SAST;
 - secret scanning / push protection tam, gdzie plan repo na to pozwala;
-- dependency update automation;
-- pinning krytycznych GitHub Actions do pełnych SHA.
+- dependency update automation.
 
 ### P1-B.6 — monitoring/alerting [BLUEPRINT, NIE REALNY STAGING]
 
