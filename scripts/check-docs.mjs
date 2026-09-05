@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -53,6 +54,27 @@ async function checkLocalLink(file, target, line) {
     await access(resolved);
   } catch {
     errors.push(`${relative(file)}:${line}: broken local link: ${target}`);
+  }
+}
+
+function verifyCommitExistsAndIsReachable(sha) {
+  const exists = spawnSync('git', ['cat-file', '-e', `${sha}^{commit}`], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+
+  if (exists.status !== 0) {
+    errors.push(`docs/current-status.md: verification commit does not exist locally: ${sha}`);
+    return;
+  }
+
+  const reachable = spawnSync('git', ['merge-base', '--is-ancestor', sha, 'HEAD'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+
+  if (reachable.status !== 0) {
+    errors.push(`docs/current-status.md: verification commit is not reachable from HEAD: ${sha}`);
   }
 }
 
@@ -116,8 +138,11 @@ if (driveEntries.length !== 1 || driveEntries[0] !== 'README.md') {
 }
 
 const currentStatus = await readFile(path.join(docsRoot, 'current-status.md'), 'utf8');
-if (!/> Zweryfikowano: \d{4}-\d{2}-\d{2}, commit `[0-9a-f]{40}`/.test(currentStatus)) {
+const verificationMatch = currentStatus.match(/> Zweryfikowano: \d{4}-\d{2}-\d{2}, commit `([0-9a-f]{40})`/);
+if (!verificationMatch) {
   errors.push('docs/current-status.md: missing verification date and full commit SHA');
+} else {
+  verifyCommitExistsAndIsReachable(verificationMatch[1]);
 }
 
 if (errors.length > 0) {
