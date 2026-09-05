@@ -1,14 +1,14 @@
 /**
  * Resident Funnel Telemetry Service for WastePL PWA.
  *
- * Implements privacy-friendly event tracking specified in Roadmap P2.2:
+ * Implements privacy-preserving event tracking specified in Roadmap P2.2:
  * `app open -> address search -> address selected -> schedule shown -> reminder/calendar enabled -> return visit`
  *
  * Design Principles:
- * 1. Zero PII: No exact personal details, IP addresses or persistent cross-site identifiers.
- * 2. Privacy-first: Uses existing anonymous installation ID generated for Web Push notifications.
- * 3. Offline-resilient: Buffers events locally in localStorage (FIFO capped at 100 entries).
- * 4. Non-blocking: Uses beacon/fetch with keepalive, never blocking UI or user interactions.
+ * 1. Data minimization: no exact address text, address UUID or user-agent fingerprinting in telemetry payloads.
+ * 2. Pseudonymous analytics: a local installation ID is sent only to WastePL API and is SHA-256 hashed before persistence.
+ * 3. Offline-resilient: buffers events locally in localStorage (FIFO capped at 100 entries).
+ * 4. Non-blocking: uses fetch with keepalive, never blocking UI or user interactions.
  */
 
 export type TelemetryEventType =
@@ -79,7 +79,6 @@ export function saveQueuedEvents(events: TelemetryEvent[]): void {
   const storage = getStorage();
   if (!storage) return;
   try {
-    // Keep max queue entries to prevent storage bloat
     const trimmed = events.slice(-MAX_QUEUE_SIZE);
     storage.setItem(STORAGE_KEY_TELEMETRY_QUEUE, JSON.stringify(trimmed));
   } catch {
@@ -97,9 +96,6 @@ export function clearQueuedEvents(): void {
   }
 }
 
-/**
- * Track a resident funnel event.
- */
 export function trackEvent(
   eventType: TelemetryEventType,
   payload?: Record<string, string | number | boolean | null>,
@@ -120,7 +116,6 @@ export function trackEvent(
   queue.push(event);
   saveQueuedEvents(queue);
 
-  // Attempt non-blocking flush if online
   if (typeof navigator !== 'undefined' && navigator.onLine) {
     flushTelemetryQueue().catch(() => {
       // Fire-and-forget: silently retains queue on error
@@ -130,9 +125,6 @@ export function trackEvent(
   return event;
 }
 
-/**
- * Flushes the telemetry buffer to the backend when available.
- */
 export async function flushTelemetryQueue(): Promise<boolean> {
   const queue = getQueuedEvents();
   if (queue.length === 0) return true;
@@ -153,14 +145,13 @@ export async function flushTelemetryQueue(): Promise<boolean> {
     }
     return false;
   } catch {
-    // Network failure or offline: keep buffered events
     return false;
   }
 }
 
 /**
  * Analyzes session start and determines whether to emit APP_OPEN or RETURN_VISIT.
- * Return visit threshold: > 2 hours since last active session.
+ * Return visit threshold: >= 2 hours since last active session.
  */
 export function recordSessionStart(): TelemetryEvent {
   const storage = getStorage();
@@ -183,7 +174,5 @@ export function recordSessionStart(): TelemetryEvent {
     }
   }
 
-  return trackEvent(isReturnVisit ? 'RETURN_VISIT' : 'APP_OPEN', {
-    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 80) : 'unknown',
-  });
+  return trackEvent(isReturnVisit ? 'RETURN_VISIT' : 'APP_OPEN');
 }
