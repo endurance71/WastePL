@@ -68,6 +68,15 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 4173,
+    proxy: {
+      '/v1': {
+        target: 'http://127.0.0.1:3000',
+        changeOrigin: true,
+      },
+    },
+  },
   // @ts-ignore
   test: {
     exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],

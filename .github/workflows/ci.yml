@@ -87,12 +87,16 @@ jobs:
         run: pnpm --filter @wastepl/pwa exec playwright install --with-deps chromium webkit
       - name: Run Playwright E2E & WCAG 2.2 AA a11y tests
         run: pnpm --filter @wastepl/pwa test:e2e
+      - name: Run Playwright Service Worker cold-start offline tests
+        run: pnpm --filter @wastepl/pwa test:e2e:offline
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: playwright-report
-          path: apps/pwa/test-results/playwright-report.json
+          path: |
+            apps/pwa/test-results/playwright-report.json
+            apps/pwa/test-results/playwright-offline-report.json
           if-no-files-found: warn
       - name: Upload pilot readiness reports
         if: always()
