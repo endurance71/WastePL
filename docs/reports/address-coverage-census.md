@@ -17,10 +17,10 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Bobolice | 2080 | 65 | 2015 | 0 | **3.13%** |
 | Świeszyno | 2430 | 167 | 2263 | 0 | **6.87%** |
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
-| Sianów | 3520 | 121 | 3399 | 0 | **3.44%** |
+| Sianów | 3520 | 214 | 3306 | 0 | **6.08%** |
 | Polanów | 1810 | 39 | 1771 | 0 | **2.15%** |
 | Będzino | 2290 | 13 | 2277 | 0 | **0.57%** |
-| **RAZEM (Region)** | **25 030** | **10 736** | **14 294** | **0** | **42.89%** |
+| **RAZEM (Region)** | **25 030** | **10 829** | **14 201** | **0** | **43.26%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -67,9 +67,9 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Miasto Tychowo (centrum i zabudowa miejska)
 - Miejscowości i posesje hard-to-reach
 
-### Sianów (Pokrycie: 3.44%)
+### Sianów (Pokrycie: 6.08%)
 - **Aktywny rewir:** Miejscowości Dąbrowa i Grabówko oraz trasa wiejska Borowiec (7 miejscowości)
-- **Obsługiwane adresy PRG:** 121 / 3520
+- **Obsługiwane adresy PRG:** 214 / 3520
 - **Kluczowy backlog do odblokowania mieszkańców:**
 - Miasto Sianów i trasy wiejskie o utrudnionym dojeździe
 
@@ -92,7 +92,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 42.89%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 43.26%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).

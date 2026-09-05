@@ -13,6 +13,7 @@ import { loadPolanowGarbnoReferenceSnapshot } from '../readiness/polanow-garbno-
 import { loadBedzinoDworekReferenceSnapshot } from '../readiness/bedzino-dworek-reference.js';
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
 import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowiec-reference.js';
+import { loadSianowDabrowaReferenceSnapshot } from '../readiness/sianow-dabrowa-reference.js';
 import { loadSwieszynoChalupyReferenceSnapshot } from '../readiness/swieszyno-chalupy-reference.js';
 import { loadBoboliceKlaninoReferenceSnapshot } from '../readiness/bobolice-klanino-reference.js';
 
@@ -173,12 +174,13 @@ export function evaluateAddressResolution(
  * Evaluates resolution pipeline and computes actual coverage metrics.
  */
 export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusReport> {
-  const [realGolden, polanow, bedzino, sianowGrabowko, sianowBorowiec, swieszyno, bobolice] = await Promise.all([
+  const [realGolden, polanow, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, swieszyno, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
     loadBedzinoDworekReferenceSnapshot(),
     loadSianowGrabowkoReferenceSnapshot(),
     loadSianowBorowiecReferenceSnapshot(),
+    loadSianowDabrowaReferenceSnapshot(),
     loadSwieszynoChalupyReferenceSnapshot(),
     loadBoboliceKlaninoReferenceSnapshot(),
   ]);
@@ -190,7 +192,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     'Tychowo': realGolden.selection.perMunicipality.Tychowo ?? 45,
     'Polanów': polanow.selection.total,
     'Będzino': bedzino.selection.total,
-    'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total,
+    'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total + sianowDabrowa.selection.total,
     'Świeszyno': swieszyno.selection.total,
     'Bobolice': bobolice.selection.total,
   };

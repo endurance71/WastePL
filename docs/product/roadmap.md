@@ -26,11 +26,11 @@ Wniosek strategiczny: **nie dokładamy dużych nowych modułów. Utrzymujemy wia
 | Gminy z ACTIVE PSZOK | 8/8 |
 | ACTIVE source identities | 17 (9 collection + 8 PSZOK) |
 | Oficjalne adresy PRG w pilocie | 25 030 |
-| Supported | 10 646 |
-| Unsupported | 14 384 |
+| Supported | 10 829 |
+| Unsupported | 14 201 |
 | Ambiguous | 0 |
-| Address coverage | **42,53%** |
-| Audytowane adresy w bezpiecznych zakresach | 10 646 / 10 646 PASS |
+| Address coverage | **43,26%** |
+| Audytowane adresy w bezpiecznych zakresach | 10 829 / 10 829 PASS |
 | Manual live-source soak | 17/17 PASS (`33882827565`) |
 | Playwright na ostatnim zweryfikowanym zestawie | 93/93 PASS |
 | Lighthouse CI na ostatnim zweryfikowanym zestawie | 100/100/100/100 |
