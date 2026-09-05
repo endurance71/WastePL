@@ -189,19 +189,25 @@ export function trackEvent(
 }
 
 export async function flushTelemetryQueue(): Promise<boolean> {
-  const queue = getQueuedEvents();
-  if (queue.length === 0) return true;
+  const batch = getQueuedEvents();
+  if (batch.length === 0) return true;
+  const sentIds = new Set(batch.map((event) => event.id));
 
   try {
     const response = await fetch('/v1/telemetry/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ events: queue }),
+      body: JSON.stringify({ events: batch }),
       keepalive: true,
     });
 
     if (response.ok) {
-      clearQueuedEvents();
+      const remaining = getQueuedEvents().filter((event) => !sentIds.has(event.id));
+      if (remaining.length > 0) {
+        saveQueuedEvents(remaining);
+      } else {
+        clearQueuedEvents();
+      }
       return true;
     }
     return false;
