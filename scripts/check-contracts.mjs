@@ -57,7 +57,17 @@ if (sourceManifestSchemaV01.properties?.schemaVersion?.const !== '0.1.0') {
 if (openApi.openapi !== '3.1.0') {
   throw new Error('WastePL OpenAPI document must use OpenAPI 3.1.0');
 }
-for (const path of ['/v1/health', '/v1/addresses/resolve', '/v1/collection', '/v1/facilities']) {
+for (const path of [
+  '/v1/health',
+  '/v1/addresses/resolve',
+  '/v1/collection',
+  '/v1/facilities',
+  '/v1/notifications/vapid-public-key',
+  '/v1/notifications/subscribe',
+  '/v1/notifications/unsubscribe',
+  '/v1/feedback/schedule-discrepancy',
+  '/v1/telemetry/events',
+]) {
   if (!openApi.paths?.[path]) {
     throw new Error(`OpenAPI is missing required path: ${path}`);
   }
