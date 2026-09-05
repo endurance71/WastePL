@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-04, commit `604ff976378e907106c57f975eb1f24d32e92ec4`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-05, commit `9a3db5634ebe37563a9bd799e722c74758605652`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
@@ -50,6 +50,7 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
 | Automated DB restore | **GOTOWY** | `pnpm db:restore` — weryfikacja SHA-256, dry-run i atomic psql restore. |
 | Source Prioritization | **GOTOWE** | `pnpm census:prioritize` — model ROI (odblokowane adresy / (czas + ryzyko)). |
+| Resident Telemetry Funnel | **GOTOWE** | Zero-PII client-side telemetry service (P2.2) z buforem offline i rejestracją pełnego lejka mieszkańców. |
 | Lighthouse CI | **100/100/100/100 PASS** | `pnpm pwa:lhci` — Performance 100, Accessibility 100, Best Practices 100, SEO 100 w GitHub Actions CI. |
 | Security Audit & SAST | **GOTOWE** | `pnpm security:audit` w CI (`--audit-level=high`), zero high/critical vulnerabilities. |
 | Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
