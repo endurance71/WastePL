@@ -1,6 +1,6 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-05, commit `af6b990a927d1802a9fe0e7b764e89d500b250a2`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-09-05, commit `cb7d92f0e7b5f413c9f6a86248ce83f590f12994`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
@@ -10,7 +10,7 @@ Najważniejsze nierozstrzygnięte obszary to:
 
 1. rozszerzenie address coverage w pozostałych 7 gminach pilota (obecnie 42.53% całego regionu, odblokowane 100% Koszalina, cel >=90-95%);
 2. wdrożenie produkcyjne i uruchomienie pilota z realnymi użytkownikami (P2);
-3. włączenie branch protection na `main` (wymaga zmiany repozytorium na publiczne lub planu GitHub Pro w GitHub Free);
+3. włączenie branch protection na `main` (wymaga zmiany repozytorium na publiczne lub planu GitHub Pro w GitHub Free; kompensowane przez CI na push/PR);
 4. zebranie pełnych danych unit economics z realnego utrzymania.
 
 ## Jak czytać coverage
@@ -43,18 +43,18 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
 | Aktualny live-source soak 17/17 | **17/17 PASS (8 HEALTHY, 9 CHANGED/OK, 0 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33882827565`). Wszystkie 17 aktywnych źródeł pobiera się i parsuje poprawnie w izolowanym środowisku. |
 | Consumer PWA | **DZIAŁA / PRE-PRODUCTION** | React 19 + Vite + service worker, address flow, harmonogram, provenance, PSZOK i mapa. |
-| Playwright E2E | **93/93 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA, feedback flow oraz testy offline/stale-cache/error. |
+| Playwright E2E | **94/94 PASS** | Pełny multi-device suite (Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA, feedback flow, testy offline/stale-cache oraz true cold-start SW offline test. |
 | PWA installability assets | **KOMPLETNE** | PWA ikony 192/512, maskable 512, apple-touch 180, favicon svg/ico wgrane do `apps/pwa/public`. |
 | Powiadomienia | **KOMPLETNE** | VAPID/Web Push: backend subscription storage, scheduled push worker, service worker delivery. Alarmy `.ics` zachowane jako alternatywa. |
-| Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile`. |
+| Branch protection `main` | **WYŁĄCZONE** | `main` w prywatnym repozytorium GitHub Free; CI zabezpieczone przez `--frozen-lockfile` i push/PR CI. |
 | Production blueprint | **GOTOWY** | `docker-compose.prod.yml`, Caddy reverse proxy z TLS, PWA Nginx SPA container, pętla zwrotna dla DB/Redis/MinIO. |
 | Automated DB backup | **GOTOWY** | `pnpm db:backup` — pg_dump via docker, SHA-256 checksum, metadata JSON. |
 | Automated DB restore | **GOTOWY** | `pnpm db:restore` — weryfikacja SHA-256, dry-run i atomic psql restore. |
 | Source Prioritization | **GOTOWE** | `pnpm census:prioritize` — model ROI (odblokowane adresy / (czas + ryzyko)). |
 | Resident Telemetry Funnel | **GOTOWE** | Pseudonimowy serwis telemetrii mieszkańców (P2.2) z buforem offline, haszowaniem SHA-256 identyfikatora instalacji i brakiem surowych adresów/User-Agent. |
 | Lighthouse CI | **100/100/100/100 PASS** | `pnpm pwa:lhci` — Performance 100, Accessibility 100, Best Practices 100, SEO 100 w GitHub Actions CI. |
-| Dependency Security Audit | **GOTOWE** | `pnpm security:audit` w CI (`--audit-level=high`), zero podatności high/critical. CodeQL/SAST w trakcie konfiguracji. |
-| Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR. |
+| Dependency Security Audit & SAST | **GOTOWE** | `pnpm security:audit` w CI (`--audit-level=high`) + GitHub CodeQL SAST (`security-extended,security-and-quality`) z eksportem SARIF, zero podatności. |
+| Deployment runbook | **GOTOWY** | `docs/runbooks/staging-production-deployment.md` — pełna procedura deploy/DR i mechanizmy kompensacyjne. |
 | Observability | **GOTOWE** | Structured JSON logs, `x-request-id`, health check z DB ping (`SELECT 1`). |
 | Security hardening | **GOTOWE** | Rate limiter (120 req/min/IP), HSTS, `nosniff`, `X-Frame-Options: DENY`, CORS. |
 | Feedback API | **GOTOWE** | `POST /v1/feedback/schedule-discrepancy`, migracja `0018_feedback.sql`. |
@@ -126,15 +126,16 @@ Obecne możliwości:
 - PSZOK i mapa Leaflet/OpenStreetMap dla trusted location;
 - local storage wybranego adresu;
 - service worker i cache runtime;
+- true cold-start offline z izolowanego service workera i Cache Storage (`pwa-cold-start-offline.spec.ts`);
 - eksport kalendarza `.ics`;
 - scheduled Web Push notifications (VAPID, backend subscription, push worker, SW delivery);
 - Web Notifications API do permission/test notification;
 - komplet ikon installability (192/512, maskable 512, apple-touch 180, favicon svg/ico);
-- Playwright E2E (93/93 PASS, Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA, resident feedback flow oraz testy offline/stale/error.
+- Playwright E2E (94/94 PASS, Desktop Chrome, Pixel 5, iPhone 14) + audyt a11y WCAG 2.2 AA, resident feedback flow oraz testy offline/stale/error.
 
 Pozostałe zadania przed publicznym pilotem:
 
-- wdrożenie CodeQL / SAST w workflow CI;
+- wdrożenie CodeQL / SAST w workflow CI — **✅ zrobione** (`.github/workflows/codeql.yml`, upload SARIF artifact);
 - produkcyjny staging pod dedykowaną domeną i zbieranie telemetrii.
 
 ## Powiadomienia — obowiązująca semantyka
@@ -192,7 +193,7 @@ Dodatkowe hardening backlog:
 - security headers (HSTS, nosniff, X-Frame-Options, XSS) — **✅ zrobione** (`main.ts`);
 - dependency security audit w CI (`pnpm security:audit`) — **✅ zrobione**;
 - pinning krytycznych GitHub Actions do pełnych SHA — **✅ zrobione** (PR #124);
-- CodeQL/SAST — w trakcie wdrażania;
+- CodeQL/SAST — **✅ zrobione** (`.github/workflows/codeql.yml`, PR #129);
 - dependency update automation.
 
 ## Najbliższa kolejność prac

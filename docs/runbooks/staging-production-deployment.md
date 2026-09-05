@@ -154,3 +154,30 @@ Kontrolowany pilot z realnymi użytkownikami uruchamiany jest zgodnie z bramką 
    - Zgłoszenia trafiają do tabeli `feedback_discrepancy` z identyfikatorem `installationId` i znacznikiem czasu klienta.
    - Każde zgłoszenie o rozbieżności wstrzymuje automatyczne potwierdzanie źródła i kieruje rewizję do manualnego przeglądu (`REVIEW_REQUIRED`).
 
+---
+
+## 7. Ochrona Gałęzi `main` i Zabezpieczenia CI (Bramka P0.3 / Issue #84)
+
+### Status Konfiguracji GitHub Repository
+
+Gałąź `main` repozytorium `endurance71/WastePL` jest objęta procesem merge opartym wyłącznie o Pull Requesty i zielony status CI.
+
+Zgodnie ze specyfikacją GitHub API dla prywatnych repozytoriów na planie GitHub Free:
+- Wywołanie endpointu `GET /repos/{owner}/{repo}/branches/main/protection` zwraca HTTP 403 z komunikatem: `"Upgrade to GitHub Pro or make this repository public to enable this feature."`
+- Natywna ochrona gałęzi (Branch Protection Rules oraz Repository Rulesets wymagające status checków) w prywatnych repozytoriach wymaga planu GitHub Pro/Team/Enterprise lub upublicznienia repozytorium.
+
+### Wdrożone mechanizmy kompensacyjne (Compensating Controls)
+
+W celu zagwarantowania integralności kodu na gałęzi `main` przy obecnym planie wdrożono zestaw kontroli kompensacyjnych:
+1. **Pełna weryfikacja CI na każdy Pull Request oraz na każdy push do `main`**:
+   - Workflow `.github/workflows/ci.yml` jest uruchamiany zarówno dla zdarzeń `pull_request`, jak i `push` do gałęzi `main`.
+   - Nawet w przypadku ominięcia procedury PR, bezpośredni push na `main` natychmiast uruchamia pełny pipeline (docs, contracts, migracje, testy, pilot gates, E2E, a11y, SAST, audit).
+2. **Deterministyczna instalacja zależności**:
+   - CI wymusza flagę `--frozen-lockfile` w `pnpm install`, uniemożliwiając wstrzyknięcie niezsynchronizowanych pakietów.
+3. **Pinning akcji GitHub do pełnych 40-znakowych sum SHA**:
+   - Wszystkie akcje w workflowach CI oraz CodeQL są przypięte do niezmiennych sum kontrolnych SHA commitów (`actions/checkout`, `actions/setup-node`, `actions/upload-artifact`, `github/codeql-action/*`).
+4. **Weryfikacja integralności historii dokumentacji (`pnpm docs:check`)**:
+   - Skrypt `scripts/check-docs.mjs` weryfikuje osiągalność SHA opisanego w `docs/current-status.md` z bieżącego commitu `HEAD`.
+5. **Procedura operacyjna zespołu**:
+   - Wszelkie zmiany do repozytorium są wdrażane wyłącznie poprzez Pull Requesty ze squash-merge po uzyskaniu zielonego statusu weryfikacji CI i CodeQL SAST.
+
