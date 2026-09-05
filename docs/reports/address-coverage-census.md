@@ -95,5 +95,5 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 1. **Rzeczywiste pokrycie regionu wynosi obecnie 42.53%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
-   - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).
+   - **Najwyższy priorytet**: Będzino (Trasa II bez osłon, +2 277 adresów), miasto Sianów i trasy wiejskie (+3 489 adresów) oraz kolejne bezpieczne trasy Świeszyna (+2 263 adresy) i Polanowa (+1 771 adresów). (Koszalin pełnofrakcyjny oraz Sianów Dąbrowa/Grabówko podział 3 frakcji zostały już zrealizowane w P1-C).
    - **Cel Etapu 3**: Osiągnięcie $\ge 90{-}95\%$ adresów supported przy zachowaniu $<1\%$ ambiguous w pilotażowej ósemce.
