@@ -9,7 +9,7 @@ const integrationDescribe = databaseUrl ? describe : describe.skip;
 
 integrationDescribe('Resident telemetry API', () => {
   let app: NestFastifyApplication;
-  let pool: pg.Pool;
+  let pool: InstanceType<typeof Pool>;
 
   beforeEach(async () => {
     app = await createApp();
