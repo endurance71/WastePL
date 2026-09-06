@@ -1,7 +1,7 @@
-import type { WasteFractionCode } from '@wastepl/domain';
 import {
   parsePolanowGarbnoH2,
   POLANOW_GARBNO_H2_SOURCE_KEY,
+  POLANOW_RURAL_SET_A_H2_SOURCE_KEY,
   supportsPolanowGarbnoH2,
 } from './polanow-garbno-profile.js';
 import {
@@ -34,6 +34,7 @@ import {
   type NormalizedServiceArea,
   type PdfTextArtifactInput,
 } from './types.js';
+import type { WasteFractionCode } from '@wastepl/domain';
 
 const TYCHOWO_STANDARD_SOURCE_KEY = 'tychowo-collection-standard-2026';
 const TYCHOWO_DIFFICULT_SOURCE_KEY = 'tychowo-collection-difficult-2026';
@@ -446,7 +447,10 @@ export class MunicipalCollectionPdfTextAdapter {
         'MISSING_METADATA',
       );
     }
-    if (input.sourceKey === POLANOW_GARBNO_H2_SOURCE_KEY) {
+    if (
+      input.sourceKey === POLANOW_GARBNO_H2_SOURCE_KEY ||
+      input.sourceKey === POLANOW_RURAL_SET_A_H2_SOURCE_KEY
+    ) {
       return parsePolanowGarbnoH2(input, this.context, this.parserKey, this.parserVersion);
     }
     if (input.sourceKey === BEDZINO_TRASA_1_SAFE_H2_SOURCE_KEY) {

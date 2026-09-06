@@ -185,9 +185,9 @@ Structured logs, `x-request-id`, `/v1/health` i procedury operacyjne istnieją. 
 | Świeszyno | 2 430 | 167 | 2 263 | 6,87% |
 | Tychowo | 1 450 | 45 | 1 405 | 3,10% |
 | Sianów | 3 520 | 214 | 3 306 | 6,08% |
-| Polanów | 1 810 | 39 | 1 771 | 2,15% |
+| Polanów | 1 810 | 430 | 1 380 | 23,76% |
 | Będzino | 2 290 | 487 | 1 803 | 21,27% |
-| **RAZEM** | **25 030** | **11 303** | **13 727** | **45,16%** |
+| **RAZEM** | **25 030** | **11 694** | **13 336** | **46,72%** |
 
 ### P1-C.1 — model priorytetyzacji [ZROBIONE]
 

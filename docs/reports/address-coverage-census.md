@@ -1,6 +1,6 @@
 # Address Coverage Census — Raport Pokrycia Adresowego Pilota WastePL
 
-> Data wygenerowania: 2026-09-05. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
+> Data wygenerowania: 2026-09-06. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
 
 ## Cel i interpretacja
 
@@ -18,9 +18,9 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Świeszyno | 2430 | 167 | 2263 | 0 | **6.87%** |
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
 | Sianów | 3520 | 214 | 3306 | 0 | **6.08%** |
-| Polanów | 1810 | 39 | 1771 | 0 | **2.15%** |
+| Polanów | 1810 | 430 | 1380 | 0 | **23.76%** |
 | Będzino | 2290 | 487 | 1803 | 0 | **21.27%** |
-| **RAZEM (Region)** | **25 030** | **11 303** | **13 727** | **0** | **45.16%** |
+| **RAZEM (Region)** | **25 030** | **11 694** | **13 336** | **0** | **46.72%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -73,9 +73,9 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - **Kluczowy backlog do odblokowania mieszkańców:**
 - Miasto Sianów i trasy wiejskie o utrudnionym dojeździe
 
-### Polanów (Pokrycie: 2.15%)
-- **Aktywny rewir:** Miejscowość Garbno (zabudowa jednorodzinna)
-- **Obsługiwane adresy PRG:** 39 / 1810
+### Polanów (Pokrycie: 23.76%)
+- **Aktywny rewir:** Miejscowość Garbno oraz rejon wiejski A (18 miejscowości łącznie)
+- **Obsługiwane adresy PRG:** 430 / 1810
 - **Kluczowy backlog do odblokowania mieszkańców:**
 - Pozostałe sołectwa wiejskie H2
 - Miasto Polanów
@@ -92,7 +92,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 45.16%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 46.72%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).

@@ -147,4 +147,75 @@ describe('Polanów Garbno H2 municipal PDF profile', () => {
     const adapter = new MunicipalCollectionPdfTextAdapter(context());
     expect(adapter.supports(GARBNO_TEXT.replace('Zabudowa jednorodzinna miejscowości GARBNO', 'Miasto Polanów'))).toBe(false);
   });
+
+  it('publishes Rural Set A (17 localities) with source-safe fractions and events', async () => {
+    const setAFixturePath = fileURLToPath(
+      new URL('../../../test/fixtures/pdf-text/polanow-rural-set-a-h2-2026.txt', import.meta.url),
+    );
+    const setAText = readFileSync(setAFixturePath, 'utf8');
+
+    const setAContext: MunicipalCollectionReferenceContext = {
+      municipality: {
+        terc: '3209063',
+        name: 'Polanów',
+        municipalityType: 'URBAN_RURAL',
+      },
+      localities: [
+        { name: 'Bukowo', simc: '0309192' },
+        { name: 'Dadzewo', simc: '0308904' },
+        { name: 'Domachowo', simc: '0309200' },
+        { name: 'Jacinki', simc: '0308896' },
+        { name: 'Krytno', simc: '0309000' },
+        { name: 'Karsina', simc: '0308933' },
+        { name: 'Karsinka', simc: '0308910' },
+        { name: 'Nacław', simc: '0309080' },
+        { name: 'Nadbór', simc: '0309097' },
+        { name: 'Osetno', simc: '0309105' },
+        { name: 'Powidz', simc: '0309051' },
+        { name: 'Puławy', simc: '0309230' },
+        { name: 'Rekowo', simc: '0309074' },
+        { name: 'Rzyszczewko', simc: '0309170' },
+        { name: 'Sowinko', simc: '0309269' },
+        { name: 'Stołpie', simc: '0309068' },
+        { name: 'Świerczyna', simc: '0309246' },
+      ],
+    };
+
+    const setAInput: PdfTextArtifactInput = {
+      text: setAText,
+      sourceKey: 'polanow-collection-rural-set-a-h2-2026',
+      url: 'https://bip.polanow.pl/upload/zal/2026/2026-06-24/1782289185_Polanow-3.pdf',
+      sha256: sha256Hex(Buffer.from(setAText)),
+      retrievedAt: '2026-09-06T10:00:00.000Z',
+      storageUri: 's3://test/polanow-rural-set-a-h2',
+      ownerType: 'MUNICIPALITY',
+    };
+
+    const adapter = new MunicipalCollectionPdfTextAdapter(setAContext);
+    const dataset = adapter.parse(setAInput);
+
+    expect(dataset.serviceAreas).toEqual([
+      {
+        key: 'polanow-rural-set-a-single-family',
+        name: 'Gmina Polanów — Rejon wiejski A (17 miejscowości), zabudowa jednorodzinna',
+        buildingType: 'SINGLE_FAMILY',
+        coverage: expect.arrayContaining([
+          { type: 'LOCALITY', priority: 50, simc: '0309192' },
+          { type: 'LOCALITY', priority: 50, simc: '0308904' },
+          { type: 'LOCALITY', priority: 50, simc: '0309246' },
+        ]),
+      },
+    ]);
+    expect(dataset.serviceAreas[0]?.coverage).toHaveLength(17);
+
+    expect(new Set(dataset.collectionEvents.map((e) => e.fraction))).toEqual(
+      new Set(['MIXED', 'BIO', 'OTHER', 'BULKY']),
+    );
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'MIXED')).toHaveLength(13);
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'BIO')).toHaveLength(11);
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'OTHER')).toHaveLength(6);
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'BULKY')).toHaveLength(1);
+
+    await expect(validateWastePlDataset(dataset)).resolves.toBeUndefined();
+  });
 });

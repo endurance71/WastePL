@@ -10,6 +10,7 @@ import {
 } from '@wastepl/domain';
 import { loadRealGoldenReferenceSnapshot } from '../readiness/real-golden-reference.js';
 import { loadPolanowGarbnoReferenceSnapshot } from '../readiness/polanow-garbno-reference.js';
+import { loadPolanowRuralSetAReferenceSnapshot } from '../readiness/polanow-rural-reference.js';
 import { loadBedzinoTrasa1ReferenceSnapshot } from '../readiness/bedzino-trasa-1-reference.js';
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
 import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowiec-reference.js';
@@ -123,7 +124,7 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Polanów',
     terc: '3209063',
     totalPrgAddresses: 1810,
-    activeSubset: 'Miejscowość Garbno (zabudowa jednorodzinna)',
+    activeSubset: 'Miejscowość Garbno oraz rejon wiejski A (18 miejscowości łącznie)',
     backlogBlockers: [
       'Pozostałe sołectwa wiejskie H2',
       'Miasto Polanów',
@@ -174,9 +175,10 @@ export function evaluateAddressResolution(
  * Evaluates resolution pipeline and computes actual coverage metrics.
  */
 export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusReport> {
-  const [realGolden, polanow, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, swieszyno, bobolice] = await Promise.all([
+  const [realGolden, polanowGarbno, polanowRuralSetA, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, swieszyno, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
+    loadPolanowRuralSetAReferenceSnapshot(),
     loadBedzinoTrasa1ReferenceSnapshot(),
     loadSianowGrabowkoReferenceSnapshot(),
     loadSianowBorowiecReferenceSnapshot(),
@@ -190,7 +192,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     'Koszalin': 10240,
     'Manowo': realGolden.selection.perMunicipality.Manowo ?? 46,
     'Tychowo': realGolden.selection.perMunicipality.Tychowo ?? 45,
-    'Polanów': polanow.selection.total,
+    'Polanów': polanowGarbno.selection.total + polanowRuralSetA.selection.total,
     'Będzino': bedzino.selection.total,
     'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total + sianowDabrowa.selection.total,
     'Świeszyno': swieszyno.selection.total,
