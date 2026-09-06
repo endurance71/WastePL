@@ -18,6 +18,7 @@ import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowie
 import { loadSianowDabrowaReferenceSnapshot } from '../readiness/sianow-dabrowa-reference.js';
 import { loadSianowSkwierzynkaReferenceSnapshot } from '../readiness/sianow-skwierzynka-reference.js';
 import { loadSwieszynoChalupyReferenceSnapshot } from '../readiness/swieszyno-chalupy-reference.js';
+import { loadSwieszynoTrasa2ReferenceSnapshot } from '../readiness/swieszyno-trasa-2-reference.js';
 import { loadBoboliceKlaninoReferenceSnapshot } from '../readiness/bobolice-klanino-reference.js';
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -97,10 +98,11 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Świeszyno',
     terc: '3209082',
     totalPrgAddresses: 2430,
-    activeSubset: 'Miejscowość Chałupy (Trasa I)',
+    activeSubset: 'Miejscowość Chałupy (Trasa I) oraz Trasa II (18 miejscowości wiejskich: Czacz, Zegrzyn, Kurozwęcz, Sieranie, Czaple, Kępa Świeszyńska, Olszak, Włoki, Bagno, Chłopska Kępa, Brzeźniki, Golica, Biała Kępa, Krokowo, Jarzyce, Czersk Kosz., Kłokęcin, Węgorki)',
     backlogBlockers: [
-      'Trasy II i III',
-      'Stabilny capture z legacy child host dla załączników PDF',
+      'Pozostałe miejscowości Trasy II z osłonami/ulicami (Świeszyno, Strzekęcino, Niedalino, Zegrze Pomorskie, Dunowo, Bardzlino, Mierzym, Giezkowo)',
+      'Konikowo i Niekłonice (Trasa I)',
+      'Wspólnoty mieszkaniowe Trasy I i II',
     ],
   },
   {
@@ -177,7 +179,7 @@ export function evaluateAddressResolution(
  * Evaluates resolution pipeline and computes actual coverage metrics.
  */
 export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusReport> {
-  const [realGolden, polanowGarbno, polanowRuralSetA, bedzinoTrasa1, bedzinoTrasa2, sianowGrabowko, sianowBorowiec, sianowDabrowa, sianowSkwierzynka, swieszyno, bobolice] = await Promise.all([
+  const [realGolden, polanowGarbno, polanowRuralSetA, bedzinoTrasa1, bedzinoTrasa2, sianowGrabowko, sianowBorowiec, sianowDabrowa, sianowSkwierzynka, swieszynoChalupy, swieszynoTrasa2, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
     loadPolanowRuralSetAReferenceSnapshot(),
@@ -188,6 +190,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     loadSianowDabrowaReferenceSnapshot(),
     loadSianowSkwierzynkaReferenceSnapshot(),
     loadSwieszynoChalupyReferenceSnapshot(),
+    loadSwieszynoTrasa2ReferenceSnapshot(),
     loadBoboliceKlaninoReferenceSnapshot(),
   ]);
 
@@ -199,7 +202,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     'Polanów': polanowGarbno.selection.total + polanowRuralSetA.selection.total,
     'Będzino': bedzinoTrasa1.selection.total + bedzinoTrasa2.selection.total,
     'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total + sianowDabrowa.selection.total + sianowSkwierzynka.safeAddresses.length,
-    'Świeszyno': swieszyno.selection.total,
+    'Świeszyno': swieszynoChalupy.selection.total + swieszynoTrasa2.selection.total,
     'Bobolice': bobolice.selection.total,
   };
 
