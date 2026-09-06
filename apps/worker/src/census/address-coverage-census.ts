@@ -15,6 +15,7 @@ import { loadBedzinoTrasa1ReferenceSnapshot } from '../readiness/bedzino-trasa-1
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
 import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowiec-reference.js';
 import { loadSianowDabrowaReferenceSnapshot } from '../readiness/sianow-dabrowa-reference.js';
+import { loadSianowSkwierzynkaReferenceSnapshot } from '../readiness/sianow-skwierzynka-reference.js';
 import { loadSwieszynoChalupyReferenceSnapshot } from '../readiness/swieszyno-chalupy-reference.js';
 import { loadBoboliceKlaninoReferenceSnapshot } from '../readiness/bobolice-klanino-reference.js';
 
@@ -115,7 +116,7 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Sianów',
     terc: '3209073',
     totalPrgAddresses: 3520,
-    activeSubset: 'Miejscowości Dąbrowa i Grabówko oraz trasa wiejska Borowiec (7 miejscowości)',
+    activeSubset: 'Miejscowości Dąbrowa, Grabówko i Skwierzynka oraz trasa wiejska Borowiec (7 miejscowości)',
     backlogBlockers: [
       'Miasto Sianów i trasy wiejskie o utrudnionym dojeździe',
     ],
@@ -175,7 +176,7 @@ export function evaluateAddressResolution(
  * Evaluates resolution pipeline and computes actual coverage metrics.
  */
 export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusReport> {
-  const [realGolden, polanowGarbno, polanowRuralSetA, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, swieszyno, bobolice] = await Promise.all([
+  const [realGolden, polanowGarbno, polanowRuralSetA, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, sianowSkwierzynka, swieszyno, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
     loadPolanowRuralSetAReferenceSnapshot(),
@@ -183,6 +184,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     loadSianowGrabowkoReferenceSnapshot(),
     loadSianowBorowiecReferenceSnapshot(),
     loadSianowDabrowaReferenceSnapshot(),
+    loadSianowSkwierzynkaReferenceSnapshot(),
     loadSwieszynoChalupyReferenceSnapshot(),
     loadBoboliceKlaninoReferenceSnapshot(),
   ]);
@@ -194,7 +196,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     'Tychowo': realGolden.selection.perMunicipality.Tychowo ?? 45,
     'Polanów': polanowGarbno.selection.total + polanowRuralSetA.selection.total,
     'Będzino': bedzino.selection.total,
-    'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total + sianowDabrowa.selection.total,
+    'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total + sianowDabrowa.selection.total + sianowSkwierzynka.safeAddresses.length,
     'Świeszyno': swieszyno.selection.total,
     'Bobolice': bobolice.selection.total,
   };

@@ -7,6 +7,7 @@ import {
   supportsSianowH2,
   SIANOW_SAFE_H2_SOURCE_KEY,
   SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY,
+  SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY,
   SIANOW_TERC,
 } from './sianow-h2-profile.js';
 import type { MunicipalCollectionReferenceContext } from './municipal-collection-adapter.js';
@@ -19,6 +20,10 @@ const fixturePath = resolve(
 const borowiecFixturePath = resolve(
   repoRoot,
   'apps/worker/test/fixtures/pdf-text/sianow-borowiec-h2-2026.txt',
+);
+const skwierzynkaFixturePath = resolve(
+  repoRoot,
+  'apps/worker/test/fixtures/pdf-text/sianow-skwierzynka-h2-2026.txt',
 );
 
 const MOCK_REFERENCE: MunicipalCollectionReferenceContext = {
@@ -43,6 +48,7 @@ const MOCK_REFERENCE: MunicipalCollectionReferenceContext = {
     { simc: '0311088', name: 'Sowno' },
     { simc: '0311094', name: 'Suszka' },
     { simc: '0311071', name: 'Sowieński Młyn' },
+    { simc: '0311125', name: 'Skwierzynka' },
   ],
 };
 
@@ -61,6 +67,15 @@ const MOCK_BOROWIEC_INPUT = {
   sha256: '9fc868456bbc0dac553d353e8406ac34a1fe2ac3fcff693a8bcb0cbe2cc4eadf',
   retrievedAt: '2026-09-05T12:00:00.000Z',
   storageUri: 'fixture://sianow-borowiec-h2-2026',
+  text: '',
+};
+
+const MOCK_SKWIERZYNKA_INPUT = {
+  sourceKey: SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY,
+  url: 'https://sianow.pl/wp-content/uploads/2026/06/1-Skwierzynka.pdf',
+  sha256: 'a1b2c3d4e5f6',
+  retrievedAt: '2026-09-06T12:00:00.000Z',
+  storageUri: 'fixture://sianow-skwierzynka-h2-2026',
   text: '',
 };
 
@@ -198,5 +213,51 @@ describe('parseSianowH2', () => {
     expect(() => parseSianowH2(input, badRef, 'municipal-collection-pdf-text', '0.2.0')).toThrowError(
       /Sianów profile received unexpected TERC 3209012/,
     );
+  });
+
+  it('supports and parses Sianów Skwierzynka H2 text fixture', async () => {
+    const text = await readFile(skwierzynkaFixturePath, 'utf8');
+    expect(supportsSianowH2(text)).toBe(true);
+
+    const input = { ...MOCK_SKWIERZYNKA_INPUT, text };
+    const result = parseSianowH2(input, MOCK_REFERENCE, 'municipal-collection-pdf-text', '0.2.0');
+
+    expect(result.serviceAreas).toHaveLength(1);
+    const serviceArea = result.serviceAreas[0]!;
+    expect(serviceArea.key).toBe('sianow-skwierzynka-single-family');
+    expect(serviceArea.buildingType).toBe('SINGLE_FAMILY');
+    expect(serviceArea.coverage).toEqual([
+      {
+        type: 'LOCALITY',
+        priority: 50,
+        simc: '0311125',
+      },
+    ]);
+
+    const mixedEvents = result.collectionEvents.filter((e) => e.fraction === 'MIXED');
+    const metalsPlasticsEvents = result.collectionEvents.filter((e) => e.fraction === 'METALS_PLASTICS');
+    const paperEvents = result.collectionEvents.filter((e) => e.fraction === 'PAPER');
+    const glassEvents = result.collectionEvents.filter((e) => e.fraction === 'GLASS');
+    const bioEvents = result.collectionEvents.filter((e) => e.fraction === 'BIO');
+    const bulkyEvents = result.collectionEvents.filter((e) => e.fraction === 'BULKY');
+
+    // 13 MIXED + (13 * 3 = 39) segregated + 11 BIO + 1 BULKY = 64 total
+    expect(mixedEvents).toHaveLength(13);
+    expect(metalsPlasticsEvents).toHaveLength(13);
+    expect(paperEvents).toHaveLength(13);
+    expect(glassEvents).toHaveLength(13);
+    expect(bioEvents).toHaveLength(11);
+    expect(bulkyEvents).toHaveLength(1);
+
+    expect(mixedEvents[0]?.date).toBe('2026-07-14');
+    expect(mixedEvents[mixedEvents.length - 1]?.date).toBe('2026-12-29');
+
+    expect(metalsPlasticsEvents[0]?.date).toBe('2026-07-06');
+    expect(metalsPlasticsEvents[metalsPlasticsEvents.length - 1]?.date).toBe('2026-12-18');
+
+    expect(bioEvents[0]?.date).toBe('2026-07-06');
+    expect(bioEvents[bioEvents.length - 1]?.date).toBe('2026-12-18');
+
+    expect(bulkyEvents[0]?.date).toBe('2026-09-19');
   });
 });

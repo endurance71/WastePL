@@ -184,10 +184,10 @@ Structured logs, `x-request-id`, `/v1/health` i procedury operacyjne istnieją. 
 | Bobolice | 2 080 | 65 | 2 015 | 3,13% |
 | Świeszyno | 2 430 | 167 | 2 263 | 6,87% |
 | Tychowo | 1 450 | 45 | 1 405 | 3,10% |
-| Sianów | 3 520 | 214 | 3 306 | 6,08% |
+| Sianów | 3 520 | 559 | 2 961 | 15,88% |
 | Polanów | 1 810 | 430 | 1 380 | 23,76% |
 | Będzino | 2 290 | 487 | 1 803 | 21,27% |
-| **RAZEM** | **25 030** | **11 694** | **13 336** | **46,72%** |
+| **RAZEM** | **25 030** | **12 039** | **12 991** | **48,10%** |
 
 ### P1-C.1 — model priorytetyzacji [ZROBIONE]
 

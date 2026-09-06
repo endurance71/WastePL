@@ -17,10 +17,10 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Bobolice | 2080 | 65 | 2015 | 0 | **3.13%** |
 | Świeszyno | 2430 | 167 | 2263 | 0 | **6.87%** |
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
-| Sianów | 3520 | 214 | 3306 | 0 | **6.08%** |
+| Sianów | 3520 | 559 | 2961 | 0 | **15.88%** |
 | Polanów | 1810 | 430 | 1380 | 0 | **23.76%** |
 | Będzino | 2290 | 487 | 1803 | 0 | **21.27%** |
-| **RAZEM (Region)** | **25 030** | **11 694** | **13 336** | **0** | **46.72%** |
+| **RAZEM (Region)** | **25 030** | **12 039** | **12 991** | **0** | **48.1%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -67,9 +67,9 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Miasto Tychowo (centrum i zabudowa miejska)
 - Miejscowości i posesje hard-to-reach
 
-### Sianów (Pokrycie: 6.08%)
-- **Aktywny rewir:** Miejscowości Dąbrowa i Grabówko oraz trasa wiejska Borowiec (7 miejscowości)
-- **Obsługiwane adresy PRG:** 214 / 3520
+### Sianów (Pokrycie: 15.88%)
+- **Aktywny rewir:** Miejscowości Dąbrowa, Grabówko i Skwierzynka oraz trasa wiejska Borowiec (7 miejscowości)
+- **Obsługiwane adresy PRG:** 559 / 3520
 - **Kluczowy backlog do odblokowania mieszkańców:**
 - Miasto Sianów i trasy wiejskie o utrudnionym dojeździe
 
@@ -92,7 +92,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 46.72%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 48.1%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).

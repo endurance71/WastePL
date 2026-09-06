@@ -13,6 +13,7 @@ import {
   parseSianowH2,
   SIANOW_SAFE_H2_SOURCE_KEY,
   SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY,
+  SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY,
   supportsSianowH2,
 } from './sianow-h2-profile.js';
 import {
@@ -458,7 +459,8 @@ export class MunicipalCollectionPdfTextAdapter {
     }
     if (
       input.sourceKey === SIANOW_SAFE_H2_SOURCE_KEY ||
-      input.sourceKey === SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY
+      input.sourceKey === SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY ||
+      input.sourceKey === SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY
     ) {
       return parseSianowH2(input, this.context, this.parserKey, this.parserVersion);
     }
