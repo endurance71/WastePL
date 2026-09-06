@@ -19,8 +19,8 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
 | Sianów | 3520 | 214 | 3306 | 0 | **6.08%** |
 | Polanów | 1810 | 39 | 1771 | 0 | **2.15%** |
-| Będzino | 2290 | 13 | 2277 | 0 | **0.57%** |
-| **RAZEM (Region)** | **25 030** | **10 829** | **14 201** | **0** | **43.26%** |
+| Będzino | 2290 | 487 | 1803 | 0 | **21.27%** |
+| **RAZEM (Region)** | **25 030** | **11 303** | **13 727** | **0** | **45.16%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -81,9 +81,9 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Miasto Polanów
 - Trudnodostępne i zabudowa wielorodzinna
 
-### Będzino (Pokrycie: 0.57%)
-- **Aktywny rewir:** Miejscowość Dworek (Trasa I)
-- **Obsługiwane adresy PRG:** 13 / 2290
+### Będzino (Pokrycie: 21.27%)
+- **Aktywny rewir:** Trasa I — 12 miejscowości wiejskich (Dworek, Będzinko, Borkowice, Kiszkowo, Łasin Kosz., Łopienica, Miłogoszcz, Słowienkowo, Smolne, Strachomino, Uliszki, Zagaje)
+- **Obsługiwane adresy PRG:** 487 / 2290
 - **Kluczowy backlog do odblokowania mieszkańców:**
 - Trasa II (operator EKOSAN)
 - Osłony śmietnikowe w 5 miejscowościach (Będzino, Tymień, Dobrzyca, Mścice, Stoisław)
@@ -92,7 +92,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 43.26%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 45.16%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).
