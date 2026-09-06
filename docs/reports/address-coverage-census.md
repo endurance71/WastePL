@@ -15,12 +15,12 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Koszalin | 10 240 | 10 240 | 0 | 0 | **100%** |
 | Manowo | 1210 | 46 | 1164 | 0 | **3.8%** |
 | Bobolice | 2080 | 65 | 2015 | 0 | **3.13%** |
-| Świeszyno | 2430 | 167 | 2263 | 0 | **6.87%** |
+| Świeszyno | 2430 | 646 | 1784 | 0 | **26.58%** |
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
 | Sianów | 3520 | 559 | 2961 | 0 | **15.88%** |
 | Polanów | 1810 | 430 | 1380 | 0 | **23.76%** |
 | Będzino | 2290 | 785 | 1505 | 0 | **34.28%** |
-| **RAZEM (Region)** | **25 030** | **12 337** | **12 693** | **0** | **49.29%** |
+| **RAZEM (Region)** | **25 030** | **12 816** | **12 214** | **0** | **51.2%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -53,12 +53,13 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Parser wieloformatowy (mixed media / images / załączniki)
 - Zabudowa wielorodzinna i osłony śmietnikowe
 
-### Świeszyno (Pokrycie: 6.87%)
-- **Aktywny rewir:** Miejscowość Chałupy (Trasa I)
-- **Obsługiwane adresy PRG:** 167 / 2430
+### Świeszyno (Pokrycie: 26.58%)
+- **Aktywny rewir:** Miejscowość Chałupy (Trasa I) oraz Trasa II (18 miejscowości wiejskich: Czacz, Zegrzyn, Kurozwęcz, Sieranie, Czaple, Kępa Świeszyńska, Olszak, Włoki, Bagno, Chłopska Kępa, Brzeźniki, Golica, Biała Kępa, Krokowo, Jarzyce, Czersk Kosz., Kłokęcin, Węgorki)
+- **Obsługiwane adresy PRG:** 646 / 2430
 - **Kluczowy backlog do odblokowania mieszkańców:**
-- Trasy II i III
-- Stabilny capture z legacy child host dla załączników PDF
+- Pozostałe miejscowości Trasy II z osłonami/ulicami (Świeszyno, Strzekęcino, Niedalino, Zegrze Pomorskie, Dunowo, Bardzlino, Mierzym, Giezkowo)
+- Konikowo i Niekłonice (Trasa I)
+- Wspólnoty mieszkaniowe Trasy I i II
 
 ### Tychowo (Pokrycie: 3.1%)
 - **Aktywny rewir:** Zabudowa jednorodzinna (tereny wiejskie)
@@ -92,7 +93,7 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 49.29%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 51.2%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).

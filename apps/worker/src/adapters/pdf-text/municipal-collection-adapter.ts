@@ -20,6 +20,7 @@ import {
 import {
   parseSwieszynoH2,
   SWIESZYNO_SAFE_H2_SOURCE_KEY,
+  SWIESZYNO_TRASA_2_SAFE_H2_SOURCE_KEY,
   supportsSwieszynoH2,
 } from './swieszyno-h2-profile.js';
 import {
@@ -468,7 +469,10 @@ export class MunicipalCollectionPdfTextAdapter {
     ) {
       return parseSianowH2(input, this.context, this.parserKey, this.parserVersion);
     }
-    if (input.sourceKey === SWIESZYNO_SAFE_H2_SOURCE_KEY) {
+    if (
+      input.sourceKey === SWIESZYNO_SAFE_H2_SOURCE_KEY ||
+      input.sourceKey === SWIESZYNO_TRASA_2_SAFE_H2_SOURCE_KEY
+    ) {
       return parseSwieszynoH2(input, this.context, this.parserKey, this.parserVersion);
     }
     if (input.sourceKey === BOBOLICE_KLANINO_SOURCE_KEY) {

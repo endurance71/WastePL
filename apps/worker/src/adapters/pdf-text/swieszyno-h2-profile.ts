@@ -9,6 +9,7 @@ import {
 import type { MunicipalCollectionReferenceContext } from './municipal-collection-adapter.js';
 
 export const SWIESZYNO_SAFE_H2_SOURCE_KEY = 'swieszyno-collection-trasa-1-safe-h2-2026';
+export const SWIESZYNO_TRASA_2_SAFE_H2_SOURCE_KEY = 'swieszyno-collection-trasa-2-safe-h2-2026';
 
 export const SWIESZYNO_TERC = '3209082';
 
@@ -62,22 +63,28 @@ function isoDate(month: number, day: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-function assertTemplate(text: string): void {
+function assertTemplate(text: string, isTrasa2: boolean): void {
   const norm = normalizedText(text);
 
   if (!norm.includes('gminy świeszyno') && !norm.includes('gminy swieszyno')) {
     throw new PdfTextParseError('Missing Gmina Świeszyno municipal identity', 'UNSUPPORTED_TEMPLATE');
   }
-  if (!norm.includes('trasa i') || !norm.includes('chałupy') || !norm.includes('niekłonice')) {
-    throw new PdfTextParseError('Missing Świeszyno Trasa I locality markers', 'UNSUPPORTED_TEMPLATE');
+  if (isTrasa2) {
+    if (!norm.includes('trasa ii') || !norm.includes('czacz') || !norm.includes('kurozwęcz')) {
+      throw new PdfTextParseError('Missing Świeszyno Trasa II locality markers', 'UNSUPPORTED_TEMPLATE');
+    }
+  } else {
+    if (!norm.includes('trasa i') || !norm.includes('chałupy') || !norm.includes('niekłonice')) {
+      throw new PdfTextParseError('Missing Świeszyno Trasa I locality markers', 'UNSUPPORTED_TEMPLATE');
+    }
   }
   if (!norm.includes('ekosan')) {
     throw new PdfTextParseError('Missing Świeszyno EKOSAN operator marker', 'UNSUPPORTED_TEMPLATE');
   }
 }
 
-function extractH2Rows(text: string): ParsedMonthRow[] {
-  assertTemplate(text);
+function extractH2Rows(text: string, isTrasa2: boolean): ParsedMonthRow[] {
+  assertTemplate(text, isTrasa2);
 
   const lines = text
     .split('\n')
@@ -185,13 +192,14 @@ function quality(input: PdfTextArtifactInput, warnings: string[] = []): Normaliz
 
 function event(
   input: PdfTextArtifactInput,
+  serviceAreaKey: string,
   fraction: WasteFractionCode,
   date: string,
   note: string | null,
   warnings: string[] = [],
 ): NormalizedCollectionEvent {
   return {
-    serviceAreaKey: 'swieszyno-safe-h2-chalupy',
+    serviceAreaKey,
     fraction,
     date,
     status: 'SCHEDULED',
@@ -205,9 +213,7 @@ export function supportsSwieszynoH2(text: string): boolean {
   const norm = normalizedText(text);
   return (
     (norm.includes('gminy świeszyno') || norm.includes('gminy swieszyno')) &&
-    norm.includes('trasa i') &&
-    norm.includes('chałupy') &&
-    norm.includes('niekłonice') &&
+    (norm.includes('trasa i') || norm.includes('trasa ii')) &&
     norm.includes('ekosan')
   );
 }
@@ -218,7 +224,10 @@ export function parseSwieszynoH2(
   parserKey: string,
   parserVersion: string,
 ): NormalizedDataset {
-  if (input.sourceKey !== SWIESZYNO_SAFE_H2_SOURCE_KEY) {
+  const isTrasa1 = input.sourceKey === SWIESZYNO_SAFE_H2_SOURCE_KEY;
+  const isTrasa2 = input.sourceKey === SWIESZYNO_TRASA_2_SAFE_H2_SOURCE_KEY;
+
+  if (!isTrasa1 && !isTrasa2) {
     throw new PdfTextParseError(`Unsupported Świeszyno source ${input.sourceKey}`, 'UNSUPPORTED_TEMPLATE');
   }
   if (context.municipality.terc !== SWIESZYNO_TERC) {
@@ -227,30 +236,40 @@ export function parseSwieszynoH2(
       'MISSING_METADATA',
     );
   }
-  assertTemplate(input.text);
+  assertTemplate(input.text, isTrasa2);
 
-  const chalupyMatches = context.localities.filter(
-    (locality) => locality.name.toLocaleLowerCase('pl-PL') === 'chałupy',
+  const anchorLocalityName = isTrasa2 ? 'czacz' : 'chałupy';
+  const anchorMatches = context.localities.filter(
+    (locality) => locality.name.toLocaleLowerCase('pl-PL') === anchorLocalityName,
   );
-  if (chalupyMatches.length !== 1 || !chalupyMatches[0]) {
+  if (anchorMatches.length !== 1 || !anchorMatches[0]) {
     throw new PdfTextParseError(
-      `Chałupy did not resolve uniquely inside TERC ${context.municipality.terc}`,
+      `${anchorLocalityName} did not resolve uniquely inside TERC ${context.municipality.terc}`,
       'MISSING_METADATA',
-      'Chałupy',
+      anchorLocalityName,
     );
   }
 
-  const rows = extractH2Rows(input.text);
+  const rows = extractH2Rows(input.text, isTrasa2);
   const collectionEvents: NormalizedCollectionEvent[] = [];
+
+  const serviceAreaKey = isTrasa2 ? 'swieszyno-safe-h2-trasa-2' : 'swieszyno-safe-h2-chalupy';
+  const serviceAreaName = isTrasa2
+    ? 'Gmina Świeszyno — Trasa II (18 miejscowości wiejskich)'
+    : 'Gmina Świeszyno — Chałupy (Trasa I)';
+  const reuseBasis = isTrasa2
+    ? 'Świeszyno 2026 Trasa II schedule; 18 verified zero-overlap rural localities'
+    : 'Świeszyno 2026 Trasa I schedule; Chałupy verified safe single-family subset';
 
   for (const row of rows) {
     for (const day of row.mixed) {
-      collectionEvents.push(event(input, 'MIXED', isoDate(row.month, day), null));
+      collectionEvents.push(event(input, serviceAreaKey, 'MIXED', isoDate(row.month, day), null));
     }
     for (const day of row.segregated) {
       collectionEvents.push(
         event(
           input,
+          serviceAreaKey,
           'OTHER',
           isoDate(row.month, day),
           'Źródło: odpady segregowane (papier, tworzywa sztuczne, szkło, bio)',
@@ -261,7 +280,7 @@ export function parseSwieszynoH2(
     if (row.bulky) {
       for (const day of row.bulky) {
         collectionEvents.push(
-          event(input, 'BULKY', isoDate(row.month, day), 'Źródło: wielkogabarytowe, sprzęt AGD RTV'),
+          event(input, serviceAreaKey, 'BULKY', isoDate(row.month, day), 'Źródło: wielkogabarytowe, sprzęt AGD RTV'),
         );
       }
     }
@@ -272,7 +291,8 @@ export function parseSwieszynoH2(
   const otherCount = collectionEvents.filter((e) => e.fraction === 'OTHER').length;
   const bulkyCount = collectionEvents.filter((e) => e.fraction === 'BULKY').length;
 
-  if (mixedCount !== 14 || otherCount !== 14 || bulkyCount !== 1) {
+  const expectedCount = isTrasa2 ? 13 : 14;
+  if (mixedCount !== expectedCount || otherCount !== expectedCount || bulkyCount !== 1) {
     throw new PdfTextParseError(
       `Unexpected Świeszyno event counts: mixed=${mixedCount}, other=${otherCount}, bulky=${bulkyCount}`,
       'INVALID_ROW',
@@ -281,10 +301,32 @@ export function parseSwieszynoH2(
 
   collectionEvents.sort((a, b) => a.date.localeCompare(b.date) || a.fraction.localeCompare(b.fraction));
 
-  const coverage = [{ type: 'LOCALITY' as const, priority: 50, simc: chalupyMatches[0].simc }];
+  const TRASA_1_LOCALITIES = ['chałupy', 'konikowo', 'niekłonice'];
+  const TRASA_2_LOCALITIES = [
+    'czacz',
+    'zegrzyn',
+    'kurozwęcz',
+    'sieranie',
+    'czaple',
+    'kępa świeszyńska',
+    'olszak',
+    'włoki',
+    'bagno',
+    'chłopska kępa',
+    'brzeźniki',
+    'golica',
+    'biała kępa',
+    'krokowo',
+    'jarzyce',
+    'czersk koszaliński',
+    'kłokęcin',
+    'węgorki',
+  ];
 
-  const otherLocalities = ['konikowo', 'niekłonice'];
-  for (const name of otherLocalities) {
+  const targetLocalityNames = isTrasa2 ? TRASA_2_LOCALITIES : TRASA_1_LOCALITIES;
+  const coverage: Array<{ type: 'LOCALITY'; priority: number; simc: string }> = [];
+
+  for (const name of targetLocalityNames) {
     const match = context.localities.find((l) => l.name.toLocaleLowerCase('pl-PL') === name);
     if (match && !coverage.some((c) => c.simc === match.simc)) {
       coverage.push({ type: 'LOCALITY' as const, priority: 50, simc: match.simc });
@@ -296,8 +338,8 @@ export function parseSwieszynoH2(
     municipality: context.municipality,
     serviceAreas: [
       {
-        key: 'swieszyno-safe-h2-chalupy',
-        name: 'Gmina Świeszyno — Chałupy (Trasa I)',
+        key: serviceAreaKey,
+        name: serviceAreaName,
         buildingType: 'SINGLE_FAMILY',
         coverage,
       },
@@ -311,7 +353,7 @@ export function parseSwieszynoH2(
         url: input.url,
         ownerType: input.ownerType ?? 'MUNICIPALITY',
         format: 'PDF_TEXT',
-        reuseBasis: 'Świeszyno 2026 Trasa I schedule; Chałupy verified safe single-family subset',
+        reuseBasis,
         artifact: {
           sha256: input.sha256,
           retrievedAt: input.retrievedAt,

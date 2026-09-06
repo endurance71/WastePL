@@ -31,14 +31,14 @@ Od tego dokumentu obowiązują trzy rozdzielone pojęcia:
 | Gminy z >=1 ACTIVE collection scope | **8/8** | Municipality source presence = 100%. Nie jest to pełne pokrycie adresów. |
 | Gminy z ACTIVE PSZOK | **8/8** | Każda gmina pilota ma aktywny stacjonarny punkt PSZOK. |
 | ACTIVE source identities | **17** | 9 źródeł collection + 8 PSZOK. |
-| Pełne address coverage pilota | **49,29% (12 337 / 25 030)** | Wynik Address Coverage Census v2 (zob. [raport Census](reports/address-coverage-census.md)). |
+| Pełne address coverage pilota | **51,20% (12 816 / 25 030)** | Wynik Address Coverage Census v2 (zob. [raport Census](reports/address-coverage-census.md)). |
 | Koszalin address coverage | **100% (10 240 / 10 240)** | Pełny harmonogram miejski 5 frakcji (P1-C.2). |
-| Audytowane realne adresy PRG | **12 337 / 12 337 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
+| Audytowane realne adresy PRG | **12 816 / 12 816 PASS** | 100% poprawności w audytowanej próbce; nie denominator całego regionu. |
 | Formalny historyczny real-100 | **100/100 PASS** | Koszalin 9, Manowo 46, Tychowo 45. |
 | Polanów Garbno + rejon wiejski A (18 miejscowości) | **430/430 PASS** | Bezpieczny aktywny subset (Garbno 39 + Bukowo, Dadzewo, Domachowo, Jacinki, Krytno, Karsina, Karsinka, Nacław, Nadbór, Osetno, Powidz, Puławy, Rekowo, Rzyszczewko, Sowinko, Stołpie, Świerczyna 391). |
 | Będzino Trasa I + Trasa II (20 miejscowości) | **785/785 PASS** | Bezpieczny aktywny subset (Trasa I: 12 miejscowości, 487 pkt; Trasa II: Barninek, Dobiesławiec, Dobre, Dobre Małe, Kazimierz Pom., Łekno, Podamirowo, Ziębrze, 298 pkt). |
 | Sianów Grabówko + Borowiec rural + Dąbrowa + Skwierzynka | **559/559 PASS** | Bezpieczny aktywny subset (Grabówko 31 + Borowiec rural 90 + Dąbrowa 93 + Skwierzynka 345). |
-| Świeszyno Chałupy | **167/167 PASS** | Bezpieczny aktywny subset. |
+| Świeszyno Chałupy + Trasa II (19 miejscowości) | **646/646 PASS** | Bezpieczny aktywny subset (Chałupy 167 + 18 miejscowości wiejskich Trasy II: Czacz, Zegrzyn, Kurozwęcz, Sieranie, Czaple, Kępa Świeszyńska, Olszak, Włoki, Bagno, Chłopska Kępa, Brzeźniki, Golica, Biała Kępa, Krokowo, Jarzyce, Czersk Kosz., Kłokęcin, Węgorki 479). |
 | Bobolice Kłanino | **65/65 PASS** | Bezpieczny aktywny subset. |
 | Trusted PSZOK geocoding | **8/8** | Punkty mają zweryfikowane współrzędne w warstwie referencyjnej PRG/GUGiK. |
 | Aktualny live-source soak 17/17 | **17/17 PASS (8 HEALTHY, 9 CHANGED/OK, 0 FAIL)** | Ręczny soak z `workflow_dispatch` (Run ID `33882827565`). Wszystkie 17 aktywnych źródeł pobiera się i parsuje poprawnie w izolowanym środowisku. |
