@@ -10,6 +10,7 @@ import type { MunicipalCollectionReferenceContext } from './municipal-collection
 
 export const SIANOW_SAFE_H2_SOURCE_KEY = 'sianow-collection-dabrowa-grabowko-safe-h2-2026';
 export const SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY = 'sianow-collection-borowiec-safe-h2-2026';
+export const SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY = 'sianow-collection-skwierzynka-safe-h2-2026';
 
 export const SIANOW_TERC = '3209073';
 
@@ -156,7 +157,9 @@ export function supportsSianowH2(text: string): boolean {
 
   return (
     isPgkSianow &&
-    (normalized.includes('dąbrowa i grabówko') || normalized.includes('borowiec'))
+    (normalized.includes('dąbrowa i grabówko') ||
+      normalized.includes('borowiec') ||
+      normalized.includes('skwierzynka'))
   );
 }
 
@@ -168,7 +171,8 @@ export function parseSianowH2(
 ): NormalizedDataset {
   if (
     input.sourceKey !== SIANOW_SAFE_H2_SOURCE_KEY &&
-    input.sourceKey !== SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY
+    input.sourceKey !== SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY &&
+    input.sourceKey !== SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY
   ) {
     throw new PdfTextParseError(`Unsupported Sianów source ${input.sourceKey}`, 'UNSUPPORTED_TEMPLATE');
   }
@@ -185,10 +189,15 @@ export function parseSianowH2(
   }
 
   const isBorowiec = input.sourceKey === SIANOW_BOROWIEC_SAFE_H2_SOURCE_KEY;
+  const isSkwierzynka = input.sourceKey === SIANOW_SKWIERZYNKA_SAFE_H2_SOURCE_KEY;
 
   if (isBorowiec) {
     if (!norm.includes('borowiec')) {
       throw new PdfTextParseError('Missing expected Sianów Borowiec locality markers', 'UNSUPPORTED_TEMPLATE');
+    }
+  } else if (isSkwierzynka) {
+    if (!norm.includes('skwierzynka')) {
+      throw new PdfTextParseError('Missing expected Sianów Skwierzynka locality markers', 'UNSUPPORTED_TEMPLATE');
     }
   } else {
     if (!norm.includes('dąbrowa i grabówko')) {
@@ -207,7 +216,9 @@ export function parseSianowH2(
 
   const serviceAreaKey = isBorowiec
     ? 'sianow-safe-h2-borowiec-rural'
-    : 'sianow-safe-h2-grabowko';
+    : isSkwierzynka
+      ? 'sianow-skwierzynka-single-family'
+      : 'sianow-safe-h2-grabowko';
 
   for (const row of rows) {
     for (const day of row.mixed) {
@@ -277,6 +288,58 @@ export function parseSianowH2(
           ownerType: input.ownerType ?? 'MUNICIPALITY',
           format: 'PDF_TEXT',
           reuseBasis: 'Sianów H2 2026 PGK Borowiec schedule; clean rural safe subset',
+          artifact: {
+            sha256: input.sha256,
+            retrievedAt: input.retrievedAt,
+            parserKey,
+            parserVersion,
+            extractionConfidence: 0.99,
+            storageUri: input.storageUri,
+          },
+        },
+      ],
+    };
+  }
+
+  if (isSkwierzynka) {
+    const skwierzynkaMatches = context.localities.filter(
+      (locality) => locality.name.toLocaleLowerCase('pl-PL') === 'skwierzynka',
+    );
+    if (skwierzynkaMatches.length !== 1 || !skwierzynkaMatches[0]) {
+      throw new PdfTextParseError(
+        `Skwierzynka did not resolve uniquely inside TERC ${context.municipality.terc}`,
+        'MISSING_METADATA',
+        'Skwierzynka',
+      );
+    }
+
+    return {
+      schemaVersion: '0.1.0',
+      municipality: context.municipality,
+      serviceAreas: [
+        {
+          key: serviceAreaKey,
+          name: 'Gmina Sianów — Skwierzynka (zabudowa jednorodzinna safe subset)',
+          buildingType: 'SINGLE_FAMILY',
+          coverage: [
+            {
+              type: 'LOCALITY',
+              priority: 50,
+              simc: skwierzynkaMatches[0].simc,
+            },
+          ],
+        },
+      ],
+      collectionEvents,
+      facilities: [],
+      alerts: [],
+      sources: [
+        {
+          sourceKey: input.sourceKey,
+          url: input.url,
+          ownerType: input.ownerType ?? 'MUNICIPALITY',
+          format: 'PDF_TEXT',
+          reuseBasis: 'Sianów H2 2026 PGK Skwierzynka schedule; standard single-family verified safe subset',
           artifact: {
             sha256: input.sha256,
             retrievedAt: input.retrievedAt,
