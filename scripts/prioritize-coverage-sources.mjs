@@ -66,7 +66,7 @@ const CANDIDATES = [
     key: 'polanow-h2-rural-and-town',
     municipality: 'Polanów',
     terc: '3209063',
-    unblockedAddresses: 1771,
+    unblockedAddresses: 1380,
     estimatedHours: 12,
     maintenanceRisk: 2,
     adapterReuse: 'EXTENDED_EXISTING',
