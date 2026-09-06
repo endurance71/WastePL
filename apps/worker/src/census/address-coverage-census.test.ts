@@ -130,11 +130,11 @@ describe('Address Coverage Census v2', () => {
 
     expect(report.censusEngineVersion).toBe('2.0.0');
     expect(report.totalPilotAddresses).toBe(25030);
-    expect(report.totalSupported).toBe(12039);
-    expect(report.totalUnsupported).toBe(12991);
+    expect(report.totalSupported).toBe(12337);
+    expect(report.totalUnsupported).toBe(12693);
     expect(report.totalAmbiguous).toBe(0);
     expect(report.totalErrors).toBe(0);
-    expect(report.overallCoveragePercent).toBe(48.1);
+    expect(report.overallCoveragePercent).toBe(49.29);
 
     expect(report.municipalities).toHaveLength(8);
     for (const item of report.municipalities) {
@@ -147,7 +147,7 @@ describe('Address Coverage Census v2', () => {
 
     const markdown = formatCensusMarkdown(report);
     expect(markdown).toContain('Address Coverage Census — Raport Pokrycia Adresowego');
-    expect(markdown).toContain('48.1%');
+    expect(markdown).toContain('49.29%');
     expect(markdown).toContain('Koszalin');
     expect(markdown).toContain('Polanów');
   });

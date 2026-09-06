@@ -19,8 +19,8 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 | Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
 | Sianów | 3520 | 559 | 2961 | 0 | **15.88%** |
 | Polanów | 1810 | 430 | 1380 | 0 | **23.76%** |
-| Będzino | 2290 | 487 | 1803 | 0 | **21.27%** |
-| **RAZEM (Region)** | **25 030** | **12 039** | **12 991** | **0** | **48.1%** |
+| Będzino | 2290 | 785 | 1505 | 0 | **34.28%** |
+| **RAZEM (Region)** | **25 030** | **12 337** | **12 693** | **0** | **49.29%** |
 
 ## Jakość i bezpieczeństwo reguł
 
@@ -81,18 +81,18 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Miasto Polanów
 - Trudnodostępne i zabudowa wielorodzinna
 
-### Będzino (Pokrycie: 21.27%)
-- **Aktywny rewir:** Trasa I — 12 miejscowości wiejskich (Dworek, Będzinko, Borkowice, Kiszkowo, Łasin Kosz., Łopienica, Miłogoszcz, Słowienkowo, Smolne, Strachomino, Uliszki, Zagaje)
-- **Obsługiwane adresy PRG:** 487 / 2290
+### Będzino (Pokrycie: 34.28%)
+- **Aktywny rewir:** Trasa I (12 miejscowości) oraz Trasa II (8 miejscowości wiejskich: Barninek, Dobiesławiec, Dobre, Dobre Małe, Kazimierz Pom., Łekno, Podamirowo, Ziębrze)
+- **Obsługiwane adresy PRG:** 785 / 2290
 - **Kluczowy backlog do odblokowania mieszkańców:**
-- Trasa II (operator EKOSAN)
+- Pozostałe miejscowości Trasy II (Będzino, Dobrzyca, Mścice, Pakosław, Popowo, Przybyradz, Stoisław, Strzeżenice, Wierzchomino)
 - Osłony śmietnikowe w 5 miejscowościach (Będzino, Tymień, Dobrzyca, Mścice, Stoisław)
 - Wykaz 44 posesji trudnodostępnych
 
 
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 48.1%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 49.29%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
    - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).

@@ -12,6 +12,7 @@ import { loadRealGoldenReferenceSnapshot } from '../readiness/real-golden-refere
 import { loadPolanowGarbnoReferenceSnapshot } from '../readiness/polanow-garbno-reference.js';
 import { loadPolanowRuralSetAReferenceSnapshot } from '../readiness/polanow-rural-reference.js';
 import { loadBedzinoTrasa1ReferenceSnapshot } from '../readiness/bedzino-trasa-1-reference.js';
+import { loadBedzinoTrasa2ReferenceSnapshot } from '../readiness/bedzino-trasa-2-reference.js';
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
 import { loadSianowBorowiecReferenceSnapshot } from '../readiness/sianow-borowiec-reference.js';
 import { loadSianowDabrowaReferenceSnapshot } from '../readiness/sianow-dabrowa-reference.js';
@@ -136,9 +137,9 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Będzino',
     terc: '3209012',
     totalPrgAddresses: 2290,
-    activeSubset: 'Trasa I — 12 miejscowości wiejskich (Dworek, Będzinko, Borkowice, Kiszkowo, Łasin Kosz., Łopienica, Miłogoszcz, Słowienkowo, Smolne, Strachomino, Uliszki, Zagaje)',
+    activeSubset: 'Trasa I (12 miejscowości) oraz Trasa II (8 miejscowości wiejskich: Barninek, Dobiesławiec, Dobre, Dobre Małe, Kazimierz Pom., Łekno, Podamirowo, Ziębrze)',
     backlogBlockers: [
-      'Trasa II (operator EKOSAN)',
+      'Pozostałe miejscowości Trasy II (Będzino, Dobrzyca, Mścice, Pakosław, Popowo, Przybyradz, Stoisław, Strzeżenice, Wierzchomino)',
       'Osłony śmietnikowe w 5 miejscowościach (Będzino, Tymień, Dobrzyca, Mścice, Stoisław)',
       'Wykaz 44 posesji trudnodostępnych',
     ],
@@ -176,11 +177,12 @@ export function evaluateAddressResolution(
  * Evaluates resolution pipeline and computes actual coverage metrics.
  */
 export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusReport> {
-  const [realGolden, polanowGarbno, polanowRuralSetA, bedzino, sianowGrabowko, sianowBorowiec, sianowDabrowa, sianowSkwierzynka, swieszyno, bobolice] = await Promise.all([
+  const [realGolden, polanowGarbno, polanowRuralSetA, bedzinoTrasa1, bedzinoTrasa2, sianowGrabowko, sianowBorowiec, sianowDabrowa, sianowSkwierzynka, swieszyno, bobolice] = await Promise.all([
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
     loadPolanowRuralSetAReferenceSnapshot(),
     loadBedzinoTrasa1ReferenceSnapshot(),
+    loadBedzinoTrasa2ReferenceSnapshot(),
     loadSianowGrabowkoReferenceSnapshot(),
     loadSianowBorowiecReferenceSnapshot(),
     loadSianowDabrowaReferenceSnapshot(),
@@ -195,7 +197,7 @@ export async function runAddressCoverageCensus(pool?: Pool): Promise<CensusRepor
     'Manowo': realGolden.selection.perMunicipality.Manowo ?? 46,
     'Tychowo': realGolden.selection.perMunicipality.Tychowo ?? 45,
     'Polanów': polanowGarbno.selection.total + polanowRuralSetA.selection.total,
-    'Będzino': bedzino.selection.total,
+    'Będzino': bedzinoTrasa1.selection.total + bedzinoTrasa2.selection.total,
     'Sianów': sianowGrabowko.selection.total + sianowBorowiec.selection.total + sianowDabrowa.selection.total + sianowSkwierzynka.safeAddresses.length,
     'Świeszyno': swieszyno.selection.total,
     'Bobolice': bobolice.selection.total,

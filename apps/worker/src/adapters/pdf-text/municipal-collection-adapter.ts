@@ -7,6 +7,7 @@ import {
 import {
   parseBedzinoH2,
   BEDZINO_TRASA_1_SAFE_H2_SOURCE_KEY,
+  BEDZINO_TRASA_2_SAFE_H2_SOURCE_KEY,
   supportsBedzinoH2,
 } from './bedzino-h2-profile.js';
 import {
@@ -454,7 +455,10 @@ export class MunicipalCollectionPdfTextAdapter {
     ) {
       return parsePolanowGarbnoH2(input, this.context, this.parserKey, this.parserVersion);
     }
-    if (input.sourceKey === BEDZINO_TRASA_1_SAFE_H2_SOURCE_KEY) {
+    if (
+      input.sourceKey === BEDZINO_TRASA_1_SAFE_H2_SOURCE_KEY ||
+      input.sourceKey === BEDZINO_TRASA_2_SAFE_H2_SOURCE_KEY
+    ) {
       return parseBedzinoH2(input, this.context, this.parserKey, this.parserVersion);
     }
     if (
