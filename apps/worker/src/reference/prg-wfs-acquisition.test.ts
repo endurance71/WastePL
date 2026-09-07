@@ -105,6 +105,22 @@ describe('PRG full-population WFS acquisition', () => {
     });
   });
 
+  it('accepts live KINA http next metadata for the exact canonical endpoint', () => {
+    const xml = page(3, 0, 2).replace(
+      'https://mapy.geoportal.gov.pl/',
+      'http://mapy.geoportal.gov.pl/',
+    );
+    expect(prgWfsCollectionCounts(xml).nextStartIndex).toBe(2);
+  });
+
+  it('rejects next metadata that escapes the canonical GUGiK endpoint', () => {
+    const xml = page(3, 0, 2).replace(
+      'https://mapy.geoportal.gov.pl/',
+      'https://example.invalid/',
+    );
+    expect(() => prgWfsCollectionCounts(xml)).toThrow('escaped official endpoint');
+  });
+
   it('still validates numeric numberMatched when an upstream provides it', () => {
     expect(prgWfsCollectionCounts(page(3, 0, 2, { numberMatchedRaw: '3' }))).toEqual({
       numberMatched: 3,
