@@ -1,6 +1,8 @@
 # Address Coverage Census — Raport Pokrycia Adresowego Pilota WastePL
 
 > Data wygenerowania: 2026-09-06. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
+>
+> Aktualizacja interpretacji: 2026-09-07 po PR #140. Metryki coverage nie zmieniły się; skorygowano priorytety i opis semantyki Sianowa.
 
 ## Cel i interpretacja
 
@@ -71,8 +73,12 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 ### Sianów (Pokrycie: 15.88%)
 - **Aktywny rewir:** Miejscowości Dąbrowa, Grabówko i Skwierzynka oraz trasa wiejska Borowiec (7 miejscowości)
 - **Obsługiwane adresy PRG:** 559 / 3520
+- **Semantyka po PR #140:** źródłowa kolumna `odpady segregowane` pozostaje kategorią zbiorczą i jest mapowana na `OTHER`; WastePL nie inferuje `PAPER`, `GLASS` ani `METALS_PLASTICS` bez jawnego dowodu źródłowego.
 - **Kluczowy backlog do odblokowania mieszkańców:**
-- Miasto Sianów i trasy wiejskie o utrudnionym dojeździe
+- Route 13 H2 2026: Karnieszewice, Kołzin i Płonka — kandydat o wysokim ROI, obecnie zablokowany do czasu zamrożenia dokładnego aktualnego artefaktu H2 i snapshotów PRG (issue #141)
+- Pozostałe bezpieczne trasy wiejskie po zero-overlap proof
+- Miasto Sianów — wymaga mapowania ulicowego i obsługi zabudowy wielorodzinnej
+- Posesje z `15-utrudnione` — wyłącznie po dokładnym address-level mapping
 
 ### Polanów (Pokrycie: 23.76%)
 - **Aktywny rewir:** Miejscowość Garbno oraz rejon wiejski A (18 miejscowości łącznie)
@@ -90,11 +96,15 @@ Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie
 - Osłony śmietnikowe w 5 miejscowościach (Będzino, Tymień, Dobrzyca, Mścice, Stoisław)
 - Wykaz 44 posesji trudnodostępnych
 
-
 ## Wnioski i rekomendacje (Etap 3)
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 51.2%** w bezpiecznych podzbiorach, co gwarantuje 100% poprawności (zero fałszywych harmonogramów).
+1. **Rzeczywiste pokrycie regionu wynosi obecnie 51.2%** w bezpiecznych podzbiorach, co zachowuje 0 ambiguity, 0 conflicts i 0 engine errors.
 2. **Kolejność wdrażania nowych źródeł (ROI)**:
    $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
-   - **Najwyższy priorytet**: Koszalin (odblokowanie pozostałych frakcji dla istniejących rejonów), Sianów (rozbicie odpadów segregowanych na 3 frakcje) oraz Będzino (Trasa II bez osłon).
-   - **Cel Etapu 3**: Osiągnięcie $\ge 90{-}95\%$ adresów supported przy zachowaniu $<1\%$ ambiguous w pilotażowej ósemce.
+   - **Sianów Route 13 (#141):** wysoki ROI i dobre zero-overlap evidence, ale aktywacja jest zablokowana do czasu zamrożenia aktualnego H2 PDF. Nie wolno zastępować go starszym pełnorocznym harmonogramem.
+   - **Będzino:** kontynuować Trasa II wyłącznie dla podzbiorów bez osłon i bez overlapu z 44 posesjami trudnodostępnymi.
+   - **Świeszyno:** rozszerzać tylko miejscowości/ulice, dla których da się udowodnić rozłączność z osłonami i wspólnotami.
+   - **Manowo:** Trasa 1 może mieć bardzo dobry ROI, jeżeli oficjalny harmonogram pozwala na jednoznaczne locality-level mapping.
+   - **Bobolice/Tychowo/Polanów:** kontynuować po partiach z deterministycznym artifact + PRG + post-gates; nie aktywować szerokich rejonów na podstawie samej nazwy trasy.
+3. **Zakaz regresji semantycznej:** szczegółowość frakcji nie może być większa niż szczegółowość źródła. `odpady segregowane` nie oznacza automatycznie trzech osobnych frakcji.
+4. **Cel Etapu 3:** osiągnięcie $\ge 90{-}95\%$ adresów supported przy zachowaniu 0 ambiguity/conflicts/errors jako preferowanego standardu; wzrost coverage nie może obniżać jakości mapowania.
