@@ -105,17 +105,17 @@ describe('Address Coverage Audit v2.1', () => {
     expect(markdown).not.toContain('rozbicie odpadów segregowanych na 3 frakcje');
   });
 
-  it('preserves all 8 pilot municipalities with official TERC codes', () => {
+  it('preserves all 8 pilot municipalities with authoritative current TERC codes', () => {
     expect(PILOT_MUNICIPALITIES).toHaveLength(8);
     expect(PILOT_MUNICIPALITIES.map((municipality) => municipality.terc)).toEqual([
-      '3261011',
-      '3209052',
-      '3209033',
-      '3209082',
-      '3201053',
-      '3209073',
-      '3209063',
-      '3209012',
+      '3261011', // Koszalin
+      '3209042', // Manowo
+      '3209033', // Bobolice
+      '3209082', // Świeszyno
+      '3201043', // Tychowo (gmina miejsko-wiejska)
+      '3209073', // Sianów
+      '3209063', // Polanów
+      '3209012', // Będzino
     ]);
   });
 });
