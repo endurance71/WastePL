@@ -93,7 +93,7 @@ describe('Address Coverage Audit v2.1', () => {
 
     expect(markdown).toContain('Address Coverage Audit');
     expect(markdown).toContain('AUDITED_REFERENCE_PACKS');
-    expect(markdown).toContain('Full-population resolution verified: `false`');
+    expect(markdown).toContain('**Full-population resolution verified:** `false`');
     expect(markdown).toContain('P0 #144');
     expect(markdown).toContain('12 816');
     expect(markdown).toContain('51.2%');
