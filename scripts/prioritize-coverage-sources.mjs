@@ -64,7 +64,7 @@ const CANDIDATES = [
   {
     key: 'tychowo-town-and-dense',
     municipality: 'Tychowo',
-    terc: '3201053',
+    terc: '3201043',
     potentialAddresses: 1405,
     estimatedHours: 10,
     maintenanceRisk: 2,
@@ -88,7 +88,7 @@ const CANDIDATES = [
   {
     key: 'manowo-current-route-migration-and-expansion',
     municipality: 'Manowo',
-    terc: '3209052',
+    terc: '3209042',
     potentialAddresses: 1164,
     estimatedHours: 14,
     maintenanceRisk: 3,
