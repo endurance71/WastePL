@@ -111,9 +111,9 @@ function nextStartIndexFromLink(nextLink: string | null): number | null {
 }
 
 /**
- * GUGiK KINA currently returns WFS 2.0 with `numberMatched="unknown"` while
- * exposing an authoritative `next` link and numeric `numberReturned`.
- * Numeric numberMatched is still supported when the upstream provides it.
+ * GUGiK KINA returns WFS 2.0 with numeric `numberReturned` and server `next` pagination.
+ * In the observed live contract intermediate pages can expose `numberMatched="unknown"`
+ * while the final partial page switches to the authoritative numeric total.
  */
 export function prgWfsCollectionCounts(xml: string): PrgWfsCollectionCounts {
   const numberMatchedRaw = rootAttribute(xml, 'numberMatched');
@@ -320,6 +320,10 @@ export async function acquirePrgMunicipality(input: {
     const counts = prgWfsCollectionCounts(xml);
 
     if (expectedTotal === undefined) {
+      expectedTotal = counts.numberMatched;
+    } else if (expectedTotal === null && counts.numberMatched !== null) {
+      // Live KINA can reveal the authoritative numeric total only on the final partial page.
+      // Once learned, the total becomes sticky and all subsequent pagination must agree with it.
       expectedTotal = counts.numberMatched;
     } else if (counts.numberMatched !== expectedTotal) {
       throw new Error(
