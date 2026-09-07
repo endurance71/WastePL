@@ -46,4 +46,5 @@ export * from './deposit-source-policy.js';
 export * from './facility-geocoding.js';
 export * from './facility-reconciliation.js';
 export * from './facility.js';
+export * from './service-area-database-resolver.js';
 export * from './service-area.js';
