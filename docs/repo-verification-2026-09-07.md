@@ -45,32 +45,35 @@ Najnowszy zweryfikowany run:
 
 Ten run był zielony, ale nie obejmuje obecnego HEAD `a13b66c`, ponieważ po nim zostały zmergowane kolejne rozszerzenia coverage. Dlatego aktualny `main` powinien zostać ponownie przepuszczony przez `live-source-staging` przy najbliższej możliwości (scheduled run lub ręczny `workflow_dispatch`).
 
-## Branch protection — otwarta luka P0
+## Branch protection — otwarta luka P0 ograniczona planem GitHub
 
 Na dzień 2026-09-07 GitHub raportuje dla `main`:
 
 - `protected: false`;
 - required status checks: `off`.
 
-Oznacza to, że obecne CI działa i jest zielone, ale GitHub nie wymusza jeszcze procesu PR + required CI na poziomie konfiguracji brancha. Problem jest śledzony w issue `#84` (`P0 Enforce main branch protection and required CI`).
+Issue `#84` dokumentuje dodatkowo zweryfikowane ograniczenie platformy: dla obecnego **prywatnego repozytorium na GitHub Free** natywne Branch Protection Rules / wymagane status checks nie mogą zostać włączone bez zmiany warunków konta/repozytorium. Weryfikacja API zwracała komunikat: `Upgrade to GitHub Pro or make this repository public to enable this feature.`
 
-Docelowo należy wymusić co najmniej:
+Oznacza to, że obecne CI działa i jest zielone, ale GitHub nie wymusza procesu PR + required CI na poziomie konfiguracji brancha. Do czasu zmiany planu lub widoczności repo obowiązują opisane w runbooku kontrole kompensacyjne: CI i CodeQL na PR oraz push do `main`, `--frozen-lockfile`, akcje przypięte do pełnych SHA i proces squash-merge po zielonych checkach.
 
-1. pull request dla zwykłych zmian;
-2. wymagany check `ci` przed merge;
-3. blokadę merge dla pending/failed CI;
-4. blokadę zwykłych direct push do `main`;
-5. opcjonalnie wymagany CodeQL po ustabilizowaniu nazwy/check contextu.
+Docelowe opcje rozwiązania #84:
+
+1. przejść na plan umożliwiający ochronę prywatnego repozytorium; albo
+2. zmienić repozytorium na publiczne, jeśli będzie to zgodne ze strategią projektu i polityką ujawniania kodu; następnie
+3. wymusić pull request dla zwykłych zmian;
+4. wymagać checku `ci` przed merge;
+5. blokować merge dla pending/failed CI oraz zwykłe direct push do `main`;
+6. opcjonalnie wymagać również CodeQL po ustabilizowaniu check contextu.
 
 ## Ocena stanu
 
-Repozytorium jest technicznie zdrowe: aktualny `main` ma zielone CI i CodeQL, a zwiększanie coverage nie wprowadziło konfliktów ani ambiguity. Najważniejszym ograniczeniem produktowym pozostaje głębokość pokrycia adresowego (51,20%), a najważniejszym ograniczeniem operacyjnym — brak branch protection.
+Repozytorium jest technicznie zdrowe: aktualny `main` ma zielone CI i CodeQL, a zwiększanie coverage nie wprowadziło konfliktów ani ambiguity. Najważniejszym ograniczeniem produktowym pozostaje głębokość pokrycia adresowego (51,20%), a najważniejszym ograniczeniem operacyjnym — brak wymuszanej przez platformę ochrony `main` przy obecnym planie i widoczności repozytorium.
 
 ## Następne działania
 
 Priorytet działań po tej weryfikacji:
 
 1. uruchomić/zweryfikować `live-source-staging` na HEAD `a13b66c`;
-2. domknąć issue `#84` przez włączenie branch protection/ruleset i required CI;
+2. utrzymać kontrole kompensacyjne dla #84 i zdecydować, czy branch protection ma zostać odblokowane przez GitHub Pro czy ewentualną zmianę widoczności repo;
 3. kontynuować zwiększanie address coverage bez luzowania kryteriów jednoznaczności;
 4. okresowo synchronizować `docs/current-status.md` i roadmapę z aktualnym Census oraz Actions.
