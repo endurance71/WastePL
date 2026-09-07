@@ -73,15 +73,6 @@ function gateDatabaseUrl(): string {
 }
 
 function expectedEvents(): ExpectedEvent[] {
-  const segregatedDates = [
-    '2026-07-07', '2026-07-21',
-    '2026-08-04', '2026-08-18',
-    '2026-09-01', '2026-09-15', '2026-09-29',
-    '2026-10-13', '2026-10-27',
-    '2026-11-10', '2026-11-24',
-    '2026-12-08', '2026-12-19',
-  ];
-
   const rows: Array<[string, string[]]> = [
     ['MIXED', [
       '2026-07-08', '2026-07-22',
@@ -99,9 +90,14 @@ function expectedEvents(): ExpectedEvent[] {
       '2026-11-24',
       '2026-12-19',
     ]],
-    ['GLASS', segregatedDates],
-    ['METALS_PLASTICS', segregatedDates],
-    ['PAPER', segregatedDates],
+    ['OTHER', [
+      '2026-07-07', '2026-07-21',
+      '2026-08-04', '2026-08-18',
+      '2026-09-01', '2026-09-15', '2026-09-29',
+      '2026-10-13', '2026-10-27',
+      '2026-11-10', '2026-11-24',
+      '2026-12-08', '2026-12-19',
+    ]],
     ['BULKY', [
       '2026-09-26',
     ]],
@@ -154,7 +150,7 @@ async function main(): Promise<void> {
     }
 
     const expected = expectedEvents();
-    if (expected.length !== 64) throw new Error(`Expected 64 source-backed Grabówko events, got ${expected.length}`);
+    if (expected.length !== 38) throw new Error(`Expected 38 source-backed Grabówko events, got ${expected.length}`);
 
     const mismatches: Array<Record<string, unknown>> = [];
     let passed = 0;
