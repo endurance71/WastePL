@@ -91,7 +91,7 @@ export const PILOT_MUNICIPALITIES: Array<{
   },
   {
     name: 'Manowo',
-    terc: '3209052',
+    terc: '3209042',
     totalPrgAddresses: 1210,
     activeSubset: 'Trasa 2AB (Bonin, Dęborogi, Policko, Wyszebórz)',
     backlogBlockers: [
@@ -124,7 +124,7 @@ export const PILOT_MUNICIPALITIES: Array<{
   },
   {
     name: 'Tychowo',
-    terc: '3201053',
+    terc: '3201043',
     totalPrgAddresses: 1450,
     activeSubset: 'Zabudowa jednorodzinna (tereny wiejskie)',
     backlogBlockers: [
