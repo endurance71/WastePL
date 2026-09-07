@@ -1,0 +1,320 @@
+{
+  "schemaVersion": "1.0.0",
+  "snapshotId": "pilot-kina-prg-2026-09-07T10-37-13-698Z",
+  "dataset": "GUGiK Krajowa Integracja Numeracji Adresowej WFS — complete WastePL pilot snapshot",
+  "source": "https://mapy.geoportal.gov.pl/wss/ext/KrajowaIntegracjaNumeracjiAdresowej",
+  "retrievedAt": "2026-09-07T10:37:13.698Z",
+  "storage": {
+    "format": "gzip-compressed NDJSON",
+    "compression": "gzip level 9, deterministic mtime=0",
+    "rowEncoding": "UTF-8 JSON object per line",
+    "ordering": "rows sorted by canonical prgId within municipality; municipalities ordered as manifest"
+  },
+  "acquisition": {
+    "workflowRunId": 34112367730,
+    "workflowHeadSha": "81157a3d86204eb8066421fde9986e40f77170d4",
+    "sourceCodeMainSha": "f0fbecd592597956632a3f7e12d28b309e715138",
+    "artifactId": 10014966351,
+    "artifactSha256": "85d20eade6a49ef67a8f8937caea57f6bfc1152a3ac60282eda3be9706350835",
+    "aggregateSha256": "aa2553ab7cd3a2a9420b01a98463f3b6d85e52523b87f7d0fb464a20783ce3ed"
+  },
+  "totalMunicipalities": 8,
+  "totalRows": 29519,
+  "previousBaselineRows": 25030,
+  "baselineDelta": 4489,
+  "normalizedRowsSha256": "830313f4460a9768cb2f9945031ad11e428439f871536b79012b9fc20998b959",
+  "municipalities": [
+    {
+      "name": "Koszalin",
+      "terc": "3261011",
+      "kinaTeryt": "326101",
+      "totalRows": 14283,
+      "pages": 8,
+      "acquisitionAggregateSha256": "5f5234ddfeba4238433c7923d73be17df35be9a478d32153fdbdfeba5d638f06",
+      "normalizedRowsSha256": "46a1c4c0146c3cd1b419346b3a108d0cc141d344a9b026d6e14ac838a0298c64",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3261011.ndjson.gz",
+      "storageSha256": "a1445e3eb088c2f180dd3c5a18bf11c3a425efb98447cc195fb068d311a531d6",
+      "storageBytes": 282423,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 2000,
+          "parsedRows": 2000,
+          "sha256": "65bae73789fa42ecaad254f5d9a0c5ef9bde9e9cd0d0964d476c126fce6eb1fe"
+        },
+        {
+          "startIndex": 2000,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 4000,
+          "parsedRows": 2000,
+          "sha256": "6d05cc8ee31007693b3a6732320351ed0877e68f8ef1ad80583d27bf6bbe7b44"
+        },
+        {
+          "startIndex": 4000,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 6000,
+          "parsedRows": 2000,
+          "sha256": "997befe684d283b65614345eb8a0cb87f948a5e1fd27536dedd42341343946f1"
+        },
+        {
+          "startIndex": 6000,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 8000,
+          "parsedRows": 2000,
+          "sha256": "c9c37efb99f0678f749cf0abfa50ede11ba66c7b074a1184dcc24f3e442052e1"
+        },
+        {
+          "startIndex": 8000,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 10000,
+          "parsedRows": 2000,
+          "sha256": "b3cf68e519d9cd21807483bdf7441a5cd238da2238cae4dfa60606498777ca2a"
+        },
+        {
+          "startIndex": 10000,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 12000,
+          "parsedRows": 2000,
+          "sha256": "27d42facbf3a9cee04d0157d8f6dfc1fb08c16879d7233ba8725dc48d2769668"
+        },
+        {
+          "startIndex": 12000,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 14000,
+          "parsedRows": 2000,
+          "sha256": "9fcb27bc0f39b9a92e8c2d896e8e82c120be753e4d3ef9318f3c1d46e1a5b623"
+        },
+        {
+          "startIndex": 14000,
+          "requestedCount": 2000,
+          "numberMatched": 14283,
+          "numberMatchedRaw": "14283",
+          "numberReturned": 283,
+          "nextStartIndex": null,
+          "parsedRows": 283,
+          "sha256": "effa1b87b8ac4448259c348ebe9ca8232ec89e4bdcf58b78d8e705556a5727cc"
+        }
+      ]
+    },
+    {
+      "name": "Manowo",
+      "terc": "3209042",
+      "kinaTeryt": "320904",
+      "totalRows": 1276,
+      "pages": 1,
+      "acquisitionAggregateSha256": "3958ef7b30a6d78f09bd58bdee656fd68cebb2ab5050bdc553bb499b6d5698ab",
+      "normalizedRowsSha256": "5f9fb30ff2693f3c3633382366b7df3c0ee7a32bdff6703372af18a684d5c908",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3209042.ndjson.gz",
+      "storageSha256": "a429d4069039e78ce01b03599f8f76d1e87fdbc48a4aed79e8e947f3095af4c2",
+      "storageBytes": 22505,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": 1276,
+          "numberMatchedRaw": "1276",
+          "numberReturned": 1276,
+          "nextStartIndex": null,
+          "parsedRows": 1276,
+          "sha256": "30c99b3a56ef320dc0f98a1c0babf726a4b9a9157361ea1207439f0b74c3d0b8"
+        }
+      ]
+    },
+    {
+      "name": "Bobolice",
+      "terc": "3209033",
+      "kinaTeryt": "320903",
+      "totalRows": 1989,
+      "pages": 1,
+      "acquisitionAggregateSha256": "a50211f8db55448d666f8ffe407e42add81f1ec8978fdc49bd0650b110793279",
+      "normalizedRowsSha256": "45400154d2510abfd8ed25110546fe4debb91f2007099ed461bc02e9973a2072",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3209033.ndjson.gz",
+      "storageSha256": "1a02c7361965f0d5562961dd881f1d64e73d879defc2fcb8166d24e6fe8b558c",
+      "storageBytes": 34128,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": 1989,
+          "numberMatchedRaw": "1989",
+          "numberReturned": 1989,
+          "nextStartIndex": null,
+          "parsedRows": 1989,
+          "sha256": "129a9633cc9bca0ff3870ffae13ba81553fd14f22481fe2c6e0762da68b4f32f"
+        }
+      ]
+    },
+    {
+      "name": "Świeszyno",
+      "terc": "3209082",
+      "kinaTeryt": "320908",
+      "totalRows": 2803,
+      "pages": 2,
+      "acquisitionAggregateSha256": "438992577083632f2dbc54ac828045aa5b08eedec991f2db4098d3ba06fdd9fa",
+      "normalizedRowsSha256": "4a1546d9f670191b9a5481b45a04e1558c1f6d386c8d553686fb510bd1c8ea9d",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3209082.ndjson.gz",
+      "storageSha256": "e91f2ccd27500d7d762cee74965427d436fbf0fe0db4ee01df18744c047bd3c6",
+      "storageBytes": 49315,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 2000,
+          "parsedRows": 2000,
+          "sha256": "9ac3d8a6283b063073a3e1c24c7fc0fe940cf0ee5345852126e62c28e533ae59"
+        },
+        {
+          "startIndex": 2000,
+          "requestedCount": 2000,
+          "numberMatched": 2803,
+          "numberMatchedRaw": "2803",
+          "numberReturned": 803,
+          "nextStartIndex": null,
+          "parsedRows": 803,
+          "sha256": "25b7da5af85bb28b6787d0d3fa499d3017479f1fa46a5b59d8aee253348638ab"
+        }
+      ]
+    },
+    {
+      "name": "Tychowo",
+      "terc": "3201043",
+      "kinaTeryt": "320104",
+      "totalRows": 1381,
+      "pages": 1,
+      "acquisitionAggregateSha256": "db29a96b5c1ec8bc3efee71e0b4591cbd8d42634eeadb56f5a6340603503a0a7",
+      "normalizedRowsSha256": "b0666d7c1f1287c60a2cdbe53e7d4e87cd111e7f7be69f2990d5f1d61093cafc",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3201043.ndjson.gz",
+      "storageSha256": "23058465cb6f349d77ba192ab23136c8a7f52ccc29c5d65dd2ea62e094bf0522",
+      "storageBytes": 23733,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": 1381,
+          "numberMatchedRaw": "1381",
+          "numberReturned": 1381,
+          "nextStartIndex": null,
+          "parsedRows": 1381,
+          "sha256": "fa5be113ee1bbd139fcdb1077b3eb4838a2a1a6c847a301479166566a48c3878"
+        }
+      ]
+    },
+    {
+      "name": "Sianów",
+      "terc": "3209073",
+      "kinaTeryt": "320907",
+      "totalRows": 3477,
+      "pages": 2,
+      "acquisitionAggregateSha256": "562e317b46707883afa14a81ea0d2936fc3ece9648427ef1b746efb593988704",
+      "normalizedRowsSha256": "7727b4311ac6c821a100b2e996301455e3f90aae14b77942e8646bd95627b694",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3209073.ndjson.gz",
+      "storageSha256": "324bdb30867481b8f4f5b0c3ca31012fdfa148cb06972ead25c0cfc52d1149ea",
+      "storageBytes": 66531,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 2000,
+          "parsedRows": 2000,
+          "sha256": "059d7cd6cc76a3082915e06d98ab2c4fe72e7163f4083f59da69c6bc6f4c5ccd"
+        },
+        {
+          "startIndex": 2000,
+          "requestedCount": 2000,
+          "numberMatched": 3477,
+          "numberMatchedRaw": "3477",
+          "numberReturned": 1477,
+          "nextStartIndex": null,
+          "parsedRows": 1477,
+          "sha256": "f167a259c2434312c74053ec7181871bfbd1b352e08af8a8263622ebb2679614"
+        }
+      ]
+    },
+    {
+      "name": "Polanów",
+      "terc": "3209063",
+      "kinaTeryt": "320906",
+      "totalRows": 1674,
+      "pages": 1,
+      "acquisitionAggregateSha256": "c1221042d95ef4d4b7cd2275aa63f3c46f395d35d33b62db5fff4e742a499197",
+      "normalizedRowsSha256": "eb0da0f90cba19da438e1e4424de1799b824dfce3b26f812560d016bd510e025",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3209063.ndjson.gz",
+      "storageSha256": "68ba9506eafad38a233404f553766520e84c40479fc10b6f99364d596923c3d0",
+      "storageBytes": 29201,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": 1674,
+          "numberMatchedRaw": "1674",
+          "numberReturned": 1674,
+          "nextStartIndex": null,
+          "parsedRows": 1674,
+          "sha256": "f39455dbbe3d066b0a9495ebb1411d53d057484d22639a93f4358ffa19e1d0b6"
+        }
+      ]
+    },
+    {
+      "name": "Będzino",
+      "terc": "3209012",
+      "kinaTeryt": "320901",
+      "totalRows": 2636,
+      "pages": 2,
+      "acquisitionAggregateSha256": "1ccbb99caa68bd4b629cc95fda7d7755420c8331158e61045495bdaa8fe42eec",
+      "normalizedRowsSha256": "1fba1c3974e4671ea541200d1ee8162bcdefcd63593d5b6b4d99791ecab093b9",
+      "storagePath": "data/reference/prg/pilot-2026-09-07/3209012.ndjson.gz",
+      "storageSha256": "897a5a85f096340fd36ce7a12fe56f39e89b3d5ce4c84d2997e4c08e202b52f4",
+      "storageBytes": 46460,
+      "pageEvidence": [
+        {
+          "startIndex": 0,
+          "requestedCount": 2000,
+          "numberMatched": null,
+          "numberMatchedRaw": "unknown",
+          "numberReturned": 2000,
+          "nextStartIndex": 2000,
+          "parsedRows": 2000,
+          "sha256": "7d86f3873208482655839099083b992bb9b289171d2631abc685c031fd839c55"
+        },
+        {
+          "startIndex": 2000,
+          "requestedCount": 2000,
+          "numberMatched": 2636,
+          "numberMatchedRaw": "2636",
+          "numberReturned": 636,
+          "nextStartIndex": null,
+          "parsedRows": 636,
+          "sha256": "d019c02eabae58e2605c6df78b078d759ff19a01ce1630397796054538771028"
+        }
+      ]
+    }
+  ]
+}
