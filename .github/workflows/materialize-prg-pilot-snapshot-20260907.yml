@@ -1,0 +1,159 @@
+name: materialize-prg-pilot-snapshot-20260907
+
+on:
+  push:
+    branches:
+      - data/prg-pilot-snapshot-2026-09-07
+    paths:
+      - .github/workflows/materialize-prg-pilot-snapshot-20260907.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: data/prg-pilot-snapshot-2026-09-07
+      - name: Download exact successful v4 artifact
+        run: |
+          mkdir -p tmp/prg-v4
+          gh run download 34112367730 \
+            --repo endurance71/WastePL \
+            --name prg-full-pilot-acquisition-v4-34112367730 \
+            --dir tmp/prg-v4
+      - name: Verify and materialize deterministic repository snapshot
+        run: |
+          python3 - <<'PY'
+          import gzip
+          import hashlib
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          src = Path('tmp/prg-v4')
+          dest = Path('data/reference/prg/pilot-2026-09-07')
+          dest.mkdir(parents=True, exist_ok=True)
+
+          expected = {
+              '3261011': {'name': 'Koszalin', 'rows': 14283, 'sha': '5f5234ddfeba4238433c7923d73be17df35be9a478d32153fdbdfeba5d638f06', 'storage': 'a1445e3eb088c2f180dd3c5a18bf11c3a425efb98447cc195fb068d311a531d6'},
+              '3209042': {'name': 'Manowo', 'rows': 1276, 'sha': '3958ef7b30a6d78f09bd58bdee656fd68cebb2ab5050bdc553bb499b6d5698ab', 'storage': 'a429d4069039e78ce01b03599f8f76d1e87fdbc48a4aed79e8e947f3095af4c2'},
+              '3209033': {'name': 'Bobolice', 'rows': 1989, 'sha': 'a50211f8db55448d666f8ffe407e42add81f1ec8978fdc49bd0650b110793279', 'storage': '1a02c7361965f0d5562961dd881f1d64e73d879defc2fcb8166d24e6fe8b558c'},
+              '3209082': {'name': 'Świeszyno', 'rows': 2803, 'sha': '438992577083632f2dbc54ac828045aa5b08eedec991f2db4098d3ba06fdd9fa', 'storage': 'e91f2ccd27500d7d762cee74965427d436fbf0fe0db4ee01df18744c047bd3c6'},
+              '3201043': {'name': 'Tychowo', 'rows': 1381, 'sha': 'db29a96b5c1ec8bc3efee71e0b4591cbd8d42634eeadb56f5a6340603503a0a7', 'storage': '23058465cb6f349d77ba192ab23136c8a7f52ccc29c5d65dd2ea62e094bf0522'},
+              '3209073': {'name': 'Sianów', 'rows': 3477, 'sha': '562e317b46707883afa14a81ea0d2936fc3ece9648427ef1b746efb593988704', 'storage': '324bdb30867481b8f4f5b0c3ca31012fdfa148cb06972ead25c0cfc52d1149ea'},
+              '3209063': {'name': 'Polanów', 'rows': 1674, 'sha': 'c1221042d95ef4d4b7cd2275aa63f3c46f395d35d33b62db5fff4e742a499197', 'storage': '68ba9506eafad38a233404f553766520e84c40479fc10b6f99364d596923c3d0'},
+              '3209012': {'name': 'Będzino', 'rows': 2636, 'sha': '1ccbb99caa68bd4b629cc95fda7d7755420c8331158e61045495bdaa8fe42eec', 'storage': '897a5a85f096340fd36ce7a12fe56f39e89b3d5ce4c84d2997e4c08e202b52f4'},
+          }
+          order = ['3261011', '3209042', '3209033', '3209082', '3201043', '3209073', '3209063', '3209012']
+          summary = json.loads((src / 'summary.json').read_text(encoding='utf-8'))
+          assert summary['retrievedAt'] == '2026-09-07T10:37:13.698Z'
+          assert summary['totalMunicipalities'] == 8
+          assert summary['totalRows'] == 29519
+          assert summary['aggregateSha256'] == 'aa2553ab7cd3a2a9420b01a98463f3b6d85e52523b87f7d0fb464a20783ce3ed'
+
+          by_summary = {item['terc']: item for item in summary['municipalities']}
+          global_ids = set()
+          global_rows_hash = hashlib.sha256()
+          manifest_municipalities = []
+          total = 0
+
+          for terc in order:
+              meta = expected[terc]
+              candidates = list(src.glob(f'{terc}-*.json'))
+              assert len(candidates) == 1, (terc, candidates)
+              payload = json.loads(candidates[0].read_text(encoding='utf-8'))
+              rows = payload['rows']
+              assert len(rows) == meta['rows'] == by_summary[terc]['totalRows']
+              assert by_summary[terc]['aggregateSha256'] == meta['sha']
+
+              municipality_hash = hashlib.sha256()
+              ndjson = bytearray()
+              for row in rows:
+                  prg_id = row['prgId']
+                  assert re.fullmatch(r'prg-adresy\.\d+', prg_id, re.I)
+                  assert row['municipalityTerc'] == terc
+                  assert prg_id not in global_ids
+                  global_ids.add(prg_id)
+                  line = (json.dumps(row, ensure_ascii=False, separators=(',', ':')) + '\n').encode('utf-8')
+                  ndjson.extend(line)
+                  municipality_hash.update(line)
+                  global_rows_hash.update(line)
+
+              out_path = dest / f'{terc}.ndjson.gz'
+              with out_path.open('wb') as raw:
+                  with gzip.GzipFile(filename='', mode='wb', fileobj=raw, compresslevel=9, mtime=0) as gz:
+                      gz.write(ndjson)
+              storage_bytes = out_path.read_bytes()
+              storage_sha = hashlib.sha256(storage_bytes).hexdigest()
+              assert storage_sha == meta['storage'], (terc, storage_sha, meta['storage'])
+
+              manifest_municipalities.append({
+                  'name': meta['name'],
+                  'terc': terc,
+                  'kinaTeryt': by_summary[terc]['kinaTeryt'],
+                  'totalRows': len(rows),
+                  'pages': by_summary[terc]['pages'],
+                  'acquisitionAggregateSha256': meta['sha'],
+                  'normalizedRowsSha256': municipality_hash.hexdigest(),
+                  'storagePath': f'data/reference/prg/pilot-2026-09-07/{terc}.ndjson.gz',
+                  'storageSha256': storage_sha,
+                  'storageBytes': len(storage_bytes),
+                  'pageEvidence': payload['pages'],
+              })
+              total += len(rows)
+
+          assert total == 29519
+          assert len(global_ids) == 29519
+          assert global_rows_hash.hexdigest() == '830313f4460a9768cb2f9945031ad11e428439f871536b79012b9fc20998b959'
+
+          manifest = {
+              'schemaVersion': '1.0.0',
+              'snapshotId': 'pilot-kina-prg-2026-09-07T10-37-13-698Z',
+              'dataset': 'GUGiK Krajowa Integracja Numeracji Adresowej WFS — complete WastePL pilot snapshot',
+              'source': 'https://mapy.geoportal.gov.pl/wss/ext/KrajowaIntegracjaNumeracjiAdresowej',
+              'retrievedAt': summary['retrievedAt'],
+              'storage': {
+                  'format': 'gzip-compressed NDJSON',
+                  'compression': 'gzip level 9, deterministic mtime=0',
+                  'rowEncoding': 'UTF-8 JSON object per line',
+                  'ordering': 'rows sorted by canonical prgId within municipality; municipalities ordered as manifest',
+              },
+              'acquisition': {
+                  'workflowRunId': 34112367730,
+                  'workflowHeadSha': '81157a3d86204eb8066421fde9986e40f77170d4',
+                  'sourceCodeMainSha': 'f0fbecd592597956632a3f7e12d28b309e715138',
+                  'artifactId': 10014966351,
+                  'artifactSha256': '85d20eade6a49ef67a8f8937caea57f6bfc1152a3ac60282eda3be9706350835',
+                  'aggregateSha256': summary['aggregateSha256'],
+              },
+              'totalMunicipalities': 8,
+              'totalRows': 29519,
+              'previousBaselineRows': 25030,
+              'baselineDelta': 4489,
+              'normalizedRowsSha256': global_rows_hash.hexdigest(),
+              'municipalities': manifest_municipalities,
+          }
+          (dest / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps({
+              'totalRows': total,
+              'uniquePrgIds': len(global_ids),
+              'normalizedRowsSha256': global_rows_hash.hexdigest(),
+              'files': [str(dest / f'{terc}.ndjson.gz') for terc in order],
+          }, indent=2))
+          PY
+      - name: Commit immutable snapshot to snapshot branch
+        run: |
+          git config user.name "WastePL Data Bot"
+          git config user.email "80155144+endurance71@users.noreply.github.com"
+          git add data/reference/prg/pilot-2026-09-07
+          git diff --cached --stat
+          git commit -m "data(reference): freeze full 8-municipality PRG snapshot"
+          git push origin HEAD:data/prg-pilot-snapshot-2026-09-07
