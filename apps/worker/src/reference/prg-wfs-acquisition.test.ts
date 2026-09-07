@@ -116,12 +116,12 @@ describe('PRG full-population WFS acquisition', () => {
       .toThrow('invalid numberMatched');
   });
 
-  it('parses the real KINA feature shape and swaps EPSG:2180 northing/easting into x/y', () => {
+  it('parses the real KINA feature shape, preserves canonical prg-adresy id, and swaps EPSG:2180 axes', () => {
     const parsed = parseKinaPrgAddressGml(page(1, 0, 1), '3261011');
     expect(parsed.rejected).toEqual([]);
     expect(parsed.rows).toHaveLength(1);
     expect(parsed.rows[0]).toMatchObject({
-      prgId: '5700001',
+      prgId: 'prg-adresy.5700001',
       municipalityTerc: '3261011',
       simc: '0949448',
       ulic: '00001',
@@ -155,6 +155,7 @@ describe('PRG full-population WFS acquisition', () => {
     expect(acquisition.pages.map((item) => item.numberMatchedRaw)).toEqual(['unknown', 'unknown']);
     expect(acquisition.rows).toHaveLength(2001);
     expect(new Set(acquisition.rows.map((row) => row.prgId)).size).toBe(2001);
+    expect(acquisition.rows.every((row) => row.prgId.startsWith('prg-adresy.'))).toBe(true);
     expect(acquisition.rows.every((row) => row.municipalityTerc === '3261011')).toBe(true);
     expect(acquisition.aggregateSha256).toMatch(/^[a-f0-9]{64}$/);
   });
