@@ -184,8 +184,8 @@ function parseKinaFeature(
 ): PrgAddressRow {
   const opening = /<(?:[A-Za-z_][\w.-]*:)?prg-adresy\b[^>]*>/i.exec(feature)?.[0];
   if (!opening) throw new Error('missing prg-adresy opening tag');
-  const idRaw = /\bgml:id=["']prg-adresy\.([^"']+)["']/i.exec(opening)?.[1];
-  if (!idRaw || !/^\d+$/.test(idRaw)) {
+  const idRaw = /\bgml:id=["'](prg-adresy\.[^"']+)["']/i.exec(opening)?.[1];
+  if (!idRaw || !/^prg-adresy\.\d+$/i.test(idRaw)) {
     throw new Error(`invalid gml:id ${idRaw ?? 'missing'}`);
   }
 
@@ -211,6 +211,7 @@ function parseKinaFeature(
   }
 
   return {
+    // Preserve the canonical KINA feature identifier used by existing audited snapshots and prg_id persistence.
     prgId: idRaw,
     municipalityTerc,
     simc,
