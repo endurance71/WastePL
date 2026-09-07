@@ -62,7 +62,16 @@ async function main(): Promise<void> {
     console.log(`[PRG acquisition] ${municipality.name} (${municipality.terc})`);
     const acquisition = await acquirePrgMunicipality({
       municipalityTerc: municipality.terc,
-      fetchPage: fetchWithRetry,
+      fetchPage: async (url) => {
+        const xml = await fetchWithRetry(url);
+        const request = new URL(url);
+        const startIndex = request.searchParams.get('startIndex') ?? 'unknown';
+        const rawFilename = `_raw-${municipality.terc}-start-${startIndex}.xml`;
+        await writeFile(resolve(outputDir, rawFilename), xml, 'utf8');
+        const openingTag = xml.match(/<[^?][^>]*>/)?.[0] ?? xml.slice(0, 500);
+        console.log(`  raw startIndex=${startIndex}, bytes=${Buffer.byteLength(xml, 'utf8')}, opening=${openingTag.slice(0, 500)}`);
+        return xml;
+      },
       retrievedAt,
     });
 
