@@ -14,31 +14,36 @@ const jsonPath = resolve(
 );
 
 async function main() {
-  console.log('Calculating WastePL Address Coverage Census across 8 pilot municipalities...');
+  console.log('Calculating WastePL audited supported coverage against the 8-municipality PRG denominator...');
   const report = await runAddressCoverageCensus();
   const markdown = formatCensusMarkdown(report);
 
   await writeFile(markdownPath, markdown, 'utf8');
-  await writeFile(jsonPath, JSON.stringify(report, null, 2), 'utf8');
+  await writeFile(jsonPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 
-  console.log('\n--- Address Coverage Census Summary ---');
+  console.log('\n--- Address Coverage Audit Summary ---');
   console.table(
-    report.municipalities.map((m) => ({
-      Gmina: m.name,
-      'Adresy PRG': m.totalPrgAddresses,
-      Supported: m.supportedAddresses,
-      Unsupported: m.unsupportedAddresses,
-      Ambiguous: m.ambiguousAddresses,
-      'Coverage %': `${m.coveragePercent}%`,
+    report.municipalities.map((municipality) => ({
+      Gmina: municipality.name,
+      'Baseline PRG': municipality.totalPrgAddresses,
+      'Audited supported': municipality.supportedAddresses,
+      'Remaining unaudited': municipality.remainingUnauditedAddresses,
+      'Audited ambiguity': municipality.ambiguousAddresses,
+      'Audited coverage %': `${municipality.coveragePercent}%`,
     })),
   );
 
-  console.log(`\nOverall pilot address coverage: ${report.overallCoveragePercent}% (${report.totalSupported} / ${report.totalPilotAddresses} addresses)`);
+  console.log(
+    `\nAudited supported coverage: ${report.overallCoveragePercent}% (${report.totalSupported} / ${report.totalPilotAddresses} addresses)`,
+  );
+  console.log(`Measurement mode: ${report.measurementMode}`);
+  console.log(`Full-population resolver verified: ${report.fullPopulationResolutionVerified}`);
+  console.log('P0 #144 tracks the full 25,030-address resolver audit.');
   console.log(`Saved report: ${markdownPath}`);
   console.log(`Saved JSON: ${jsonPath}`);
 }
 
 main().catch((error) => {
-  console.error('Failed to run address coverage census:', error);
+  console.error('Failed to run address coverage audit:', error);
   process.exit(1);
 });
