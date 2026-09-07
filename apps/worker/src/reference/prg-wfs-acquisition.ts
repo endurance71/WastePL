@@ -83,10 +83,21 @@ function nextStartIndexFromLink(nextLink: string | null): number | null {
   }
 
   const expected = new URL(PRG_KINA_WFS_URL);
-  if (url.origin !== expected.origin || url.pathname !== expected.pathname) {
-    throw new Error(`PRG WFS next URL escaped official endpoint: ${url.origin}${url.pathname}`);
+  const supportedProtocol = url.protocol === 'https:' || url.protocol === 'http:';
+  const canonicalEndpoint =
+    supportedProtocol &&
+    url.hostname === expected.hostname &&
+    url.port === '' &&
+    url.pathname === expected.pathname &&
+    url.username === '' &&
+    url.password === '';
+  if (!canonicalEndpoint) {
+    throw new Error(`PRG WFS next URL escaped official endpoint: ${url.protocol}//${url.host}${url.pathname}`);
   }
 
+  // KINA currently emits an http:// next-link even for an https:// request. We never
+  // follow that URL; we only validate/extract STARTINDEX and rebuild the next request
+  // ourselves with PRG_KINA_WFS_URL (HTTPS), the original municipality filter and page size.
   const entry = [...url.searchParams.entries()].find(([key]) => key.toLocaleLowerCase('en-US') === 'startindex');
   const raw = entry?.[1];
   if (!raw || !/^\d+$/.test(raw)) {
