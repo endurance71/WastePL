@@ -40,10 +40,27 @@ Najnowszy zweryfikowany run:
 - run: `#8` / GitHub Actions run ID `34021554761`;
 - data: 2026-09-06;
 - event: `schedule`;
-- wynik: `success`;
-- head SHA: `04bd1cb13d0e001813e5f7a1c36adce1acfe17bc`.
+- wynik: **PASS / success**;
+- head SHA: `04bd1cb13d0e001813e5f7a1c36adce1acfe17bc`;
+- manifest: `pilot-koszalin-region@2026.13`;
+- tryb: `LIVE_HTTP_ISOLATED_RUNTIME`.
 
-Ten run był zielony, ale nie obejmuje obecnego HEAD `a13b66c`, ponieważ po nim zostały zmergowane kolejne rozszerzenia coverage. Dlatego aktualny `main` powinien zostać ponownie przepuszczony przez `live-source-staging` przy najbliższej możliwości (scheduled run lub ręczny `workflow_dispatch`).
+Zweryfikowany artefakt `live-source-staging-report-34021554761` potwierdza:
+
+- **17/17 ACTIVE sources observed**;
+- **8 HEALTHY**;
+- **9 CHANGED_BUT_PARSEABLE**;
+- **0 REVIEW_REQUIRED**;
+- **0 critical failures**;
+- `canonicalChecks.missingSourceKeys = []`;
+- `canonicalChecks.allExpectedObserved = true`;
+- bundle `koszalin-pszok` kompletny (`main` + `faq`);
+- izolowana baza `wastepl_live_source_gate` i izolowany bucket;
+- `productionMutationAllowed = false`.
+
+Sam job `live-source-gate` wykonał z sukcesem instalację frozen-lockfile, build gate'a, rzeczywisty isolated runtime gate oraz upload raportu.
+
+Ten run był zielony i potwierdza zdrowie pełnych 17 aktywnych upstreamów manifestu, ale nie obejmuje obecnego HEAD `a13b66c`, ponieważ po nim zostały zmergowane kolejne rozszerzenia coverage. Dlatego aktualny `main` powinien zostać ponownie przepuszczony przez `live-source-staging` przy najbliższej możliwości (scheduled run lub ręczny `workflow_dispatch`).
 
 ## Branch protection — otwarta luka P0 ograniczona planem GitHub
 
