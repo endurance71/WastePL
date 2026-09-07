@@ -1,110 +1,92 @@
-# Address Coverage Census — Raport Pokrycia Adresowego Pilota WastePL
+# Address Coverage Audit — audytowane pokrycie adresowe pilota WastePL
 
-> Data wygenerowania: 2026-09-06. Silnik: Census v2.0.0. Census obejmuje całą populację oficjalnych punktów adresowych PRG (GUGiK) dla 8 gmin regionu pilotażowego Koszalin.
->
-> Aktualizacja interpretacji: 2026-09-07 po PR #140. Metryki coverage nie zmieniły się; skorygowano priorytety i opis semantyki Sianowa.
+> Aktualizacja: 2026-09-07. Silnik: v2.1.0. Tryb: `AUDITED_REFERENCE_PACKS`. Pełny audyt resolvera całej populacji: **NIE**.
 
-## Cel i interpretacja
+## Zakres pomiaru
 
-Wskaźnik **Address Coverage** mierzy, jaki procent mieszkańców w danej gminie może wpisać swój adres w WastePL i otrzymać jednoznaczny, zweryfikowany harmonogram wywozu.
+Bieżący raport porównuje liczbę **oficjalnych adresów PRG znajdujących się w audytowanych, deterministycznych paczkach referencyjnych** z terytorialnym denominatorom PRG dla 8 gmin pilota.
 
-Poprzednia metryka („8/8 gmin z aktywnym źródłem”) oznaczała wyłącznie **obecność adaptera** (source presence), a nie realną dostępność usługi dla obywateli. Wdrożony Census ujawnia faktyczny stan pokrycia i tworzy priorytetyzowany backlog dalszych wdrożeń.
+Wynik **nie oznacza**, że wszystkie pozostałe adresy zostały uruchomione przez resolver i sklasyfikowane jako `UNSUPPORTED`. Obecne 12 214 adresów poza audytowanymi paczkami to **remaining unaudited**, a nie wynik pełnej klasyfikacji adres-po-adresie.
 
-## Podsumowanie Address Coverage Census (v2)
+Pełny audyt wszystkich 25 030 adresów jest P0 i jest śledzony w **#144**. Do czasu jego wdrożenia zera ambiguity/errors/conflicts odnoszą się wyłącznie do aktywowanych paczek audytowych oraz ich deterministycznych gate'ów.
 
-| Gmina | Adresy PRG | Supported | Unsupported | Ambiguous | Coverage |
+## Podsumowanie audited supported coverage
+
+| Gmina | Baseline PRG | Audited supported | Remaining unaudited | Audited ambiguity | Audited coverage |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| Koszalin | 10 240 | 10 240 | 0 | 0 | **100%** |
-| Manowo | 1210 | 46 | 1164 | 0 | **3.8%** |
-| Bobolice | 2080 | 65 | 2015 | 0 | **3.13%** |
-| Świeszyno | 2430 | 646 | 1784 | 0 | **26.58%** |
-| Tychowo | 1450 | 45 | 1405 | 0 | **3.1%** |
-| Sianów | 3520 | 559 | 2961 | 0 | **15.88%** |
-| Polanów | 1810 | 430 | 1380 | 0 | **23.76%** |
-| Będzino | 2290 | 785 | 1505 | 0 | **34.28%** |
-| **RAZEM (Region)** | **25 030** | **12 816** | **12 214** | **0** | **51.2%** |
+| Koszalin | 10 240 | 10 240 | 0 | 0 | **100%** |
+| Manowo | 1 210 | 46 | 1 164 | 0 | **3.8%** |
+| Bobolice | 2 080 | 65 | 2 015 | 0 | **3.13%** |
+| Świeszyno | 2 430 | 646 | 1 784 | 0 | **26.58%** |
+| Tychowo | 1 450 | 45 | 1 405 | 0 | **3.1%** |
+| Sianów | 3 520 | 559 | 2 961 | 0 | **15.88%** |
+| Polanów | 1 810 | 430 | 1 380 | 0 | **23.76%** |
+| Będzino | 2 290 | 785 | 1 505 | 0 | **34.28%** |
+| **RAZEM (Region)** | **25 030** | **12 816** | **12 214** | **0*** | **51.2%** |
 
-## Jakość i bezpieczeństwo reguł
+\* `0` ambiguity jest wynikiem audytowanych paczek/gate'ów, a nie pełnej klasyfikacji wszystkich 25 030 adresów.
 
-- **Service area conflicts:** 0 (brak konfliktów — aktywowane rewiry są w 100% rozłączne)
-- **Overlapping rules:** 0 (brak nakładających się reguł o niejednoznacznym priorytecie)
-- **Brakujące obszary (unsupported):** 8 / 8 gmin wymaga zmapowania kolejnych rewirów i tras
-- **Ambiguity rate:** 0,00% (wszystkie obsługiwane adresy mają jednoznaczny harmonogram)
-- **Engine error rate:** 0,00% (0 błędów)
+## Jakość i bezpieczeństwo — zakres audytowany
 
-## Backlog wdrożeniowy według gmin (ROI-driven)
+- **Measurement mode:** `AUDITED_REFERENCE_PACKS`
+- **Quality scope:** `AUDITED_REFERENCE_PACKS_ONLY`
+- **Full-population resolution verified:** `false`
+- **Audytowane adresy:** 12 816 / 25 030
+- **Known service-area conflicts w aktywowanych paczkach:** 0
+- **Known overlapping rules w aktywowanych paczkach:** 0
+- **Known ambiguity w aktywowanych paczkach:** 0
+- **Known engine errors w aktywowanych paczkach:** 0
+- **Nieaudytowany adres-po-adresie remainder:** 12 214
 
-### Koszalin (Pokrycie: 100%)
-- **Aktywny rewir:** Miasto Koszalin — pełny harmonogram miejski pełnofrakcyjny
-- **Obsługiwane adresy PRG:** 10240 / 10240
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Brak blokerów miejskich — pełne 5 frakcji (zmieszane, bio, papier, tworzywa, szkło) obsłużone dla 100% adresów PRG miasta
+## Backlog wdrożeniowy
 
-### Manowo (Pokrycie: 3.8%)
-- **Aktywny rewir:** Trasa 2AB (Bonin, Dęborogi, Policko, Wyszebórz)
-- **Obsługiwane adresy PRG:** 46 / 1210
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Trasa 1 (pozostałe sołectwa gminy)
-- Zabudowa letniskowa i trudnodostępna
+### Koszalin — 100%
+- Audytowany subset: pełne miasto, 5 frakcji.
+- Audytowane: **10 240 / 10 240**.
 
-### Bobolice (Pokrycie: 3.13%)
-- **Aktywny rewir:** Miejscowość Kłanino (zabudowa jednorodzinna)
-- **Obsługiwane adresy PRG:** 65 / 2080
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Pozostałe arkusze H2 operatora
-- Parser wieloformatowy (mixed media / images / załączniki)
-- Zabudowa wielorodzinna i osłony śmietnikowe
+### Manowo — 3.8%
+- Audytowany subset: legacy Trasa 2AB — Bonin, Dęborogi, Policko, Wyszebórz.
+- Audytowane: **46 / 1 210**.
+- Dzisiejszy live-source staging potwierdza, że `2AB.pdf` jest nadal HEALTHY i parsowalny.
+- Bieżący indeks PGK rozdziela jednak harmonogram na `manowo3/*`; #143 prowadzi kontrolowaną migrację kanoniczności bez utraty 46/46 obecnych adresów.
+- Kolejne trasy dopiero po zamrożeniu aktualnych artefaktów i paczek PRG.
 
-### Świeszyno (Pokrycie: 26.58%)
-- **Aktywny rewir:** Miejscowość Chałupy (Trasa I) oraz Trasa II (18 miejscowości wiejskich: Czacz, Zegrzyn, Kurozwęcz, Sieranie, Czaple, Kępa Świeszyńska, Olszak, Włoki, Bagno, Chłopska Kępa, Brzeźniki, Golica, Biała Kępa, Krokowo, Jarzyce, Czersk Kosz., Kłokęcin, Węgorki)
-- **Obsługiwane adresy PRG:** 646 / 2430
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Pozostałe miejscowości Trasy II z osłonami/ulicami (Świeszyno, Strzekęcino, Niedalino, Zegrze Pomorskie, Dunowo, Bardzlino, Mierzym, Giezkowo)
-- Konikowo i Niekłonice (Trasa I)
-- Wspólnoty mieszkaniowe Trasy I i II
+### Bobolice — 3.13%
+- Audytowany subset: Kłanino.
+- Audytowane: **65 / 2 080**.
+- Backlog: pozostałe H2, mixed media, zabudowa wielorodzinna/osłony.
 
-### Tychowo (Pokrycie: 3.1%)
-- **Aktywny rewir:** Zabudowa jednorodzinna (tereny wiejskie)
-- **Obsługiwane adresy PRG:** 45 / 1450
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Miasto Tychowo (centrum i zabudowa miejska)
-- Miejscowości i posesje hard-to-reach
+### Świeszyno — 26.58%
+- Audytowany subset: Chałupy + 18 czystych miejscowości Trasy II.
+- Audytowane: **646 / 2 430**.
+- Kolejne kandydaty: Konikowo i Niekłonice oraz pozostałe zakresy Trasy II, ale wymagają nowych paczek PRG i zero-overlap proof względem osłon/wspólnot.
 
-### Sianów (Pokrycie: 15.88%)
-- **Aktywny rewir:** Miejscowości Dąbrowa, Grabówko i Skwierzynka oraz trasa wiejska Borowiec (7 miejscowości)
-- **Obsługiwane adresy PRG:** 559 / 3520
-- **Semantyka po PR #140:** źródłowa kolumna `odpady segregowane` pozostaje kategorią zbiorczą i jest mapowana na `OTHER`; WastePL nie inferuje `PAPER`, `GLASS` ani `METALS_PLASTICS` bez jawnego dowodu źródłowego.
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Route 13 H2 2026: Karnieszewice, Kołzin i Płonka — kandydat o wysokim ROI, obecnie zablokowany do czasu zamrożenia dokładnego aktualnego artefaktu H2 i snapshotów PRG (issue #141)
-- Pozostałe bezpieczne trasy wiejskie po zero-overlap proof
-- Miasto Sianów — wymaga mapowania ulicowego i obsługi zabudowy wielorodzinnej
-- Posesje z `15-utrudnione` — wyłącznie po dokładnym address-level mapping
+### Tychowo — 3.1%
+- Audytowane: **45 / 1 450**.
+- Backlog: miasto Tychowo, obszary gęste i hard-to-reach.
 
-### Polanów (Pokrycie: 23.76%)
-- **Aktywny rewir:** Miejscowość Garbno oraz rejon wiejski A (18 miejscowości łącznie)
-- **Obsługiwane adresy PRG:** 430 / 1810
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Pozostałe sołectwa wiejskie H2
-- Miasto Polanów
-- Trudnodostępne i zabudowa wielorodzinna
+### Sianów — 15.88%
+- Audytowany subset: Dąbrowa, Grabówko, Skwierzynka i bezpieczny rural subset Borowiec.
+- Audytowane: **559 / 3 520**.
+- Po #140 źródłowa kategoria `odpady segregowane` pozostaje `OTHER`; WastePL nie inferuje `PAPER`, `GLASS` ani `METALS_PLASTICS` bez jawnego źródła.
+- Route 13 — Karnieszewice, Kołzin i Płonka — jest kandydatem #141 po zamrożeniu aktualnego H2 artefaktu i paczek PRG.
+- Miasto i `15-utrudnione` wymagają mapowania adresowego.
 
-### Będzino (Pokrycie: 34.28%)
-- **Aktywny rewir:** Trasa I (12 miejscowości) oraz Trasa II (8 miejscowości wiejskich: Barninek, Dobiesławiec, Dobre, Dobre Małe, Kazimierz Pom., Łekno, Podamirowo, Ziębrze)
-- **Obsługiwane adresy PRG:** 785 / 2290
-- **Kluczowy backlog do odblokowania mieszkańców:**
-- Pozostałe miejscowości Trasy II (Będzino, Dobrzyca, Mścice, Pakosław, Popowo, Przybyradz, Stoisław, Strzeżenice, Wierzchomino)
-- Osłony śmietnikowe w 5 miejscowościach (Będzino, Tymień, Dobrzyca, Mścice, Stoisław)
-- Wykaz 44 posesji trudnodostępnych
+### Polanów — 23.76%
+- Audytowany subset: Garbno + rejon wiejski A.
+- Audytowane: **430 / 1 810**.
+- Backlog: pozostałe H2, miasto i trudnodostępne/wielorodzinne.
 
-## Wnioski i rekomendacje (Etap 3)
+### Będzino — 34.28%
+- Audytowany subset: Trasa I + 8 czystych miejscowości Trasy II.
+- Audytowane: **785 / 2 290**.
+- Backlog: pozostałe miejscowości Trasy II, osłony oraz 44 posesje trudnodostępne.
 
-1. **Rzeczywiste pokrycie regionu wynosi obecnie 51.2%** w bezpiecznych podzbiorach, co zachowuje 0 ambiguity, 0 conflicts i 0 engine errors.
-2. **Kolejność wdrażania nowych źródeł (ROI)**:
-   $$\text{Priorytet} = \frac{\text{odblokowane adresy}}{\text{czas wdrożenia} + \text{maintenance risk}}$$
-   - **Sianów Route 13 (#141):** wysoki ROI i dobre zero-overlap evidence, ale aktywacja jest zablokowana do czasu zamrożenia aktualnego H2 PDF. Nie wolno zastępować go starszym pełnorocznym harmonogramem.
-   - **Będzino:** kontynuować Trasa II wyłącznie dla podzbiorów bez osłon i bez overlapu z 44 posesjami trudnodostępnymi.
-   - **Świeszyno:** rozszerzać tylko miejscowości/ulice, dla których da się udowodnić rozłączność z osłonami i wspólnotami.
-   - **Manowo:** Trasa 1 może mieć bardzo dobry ROI, jeżeli oficjalny harmonogram pozwala na jednoznaczne locality-level mapping.
-   - **Bobolice/Tychowo/Polanów:** kontynuować po partiach z deterministycznym artifact + PRG + post-gates; nie aktywować szerokich rejonów na podstawie samej nazwy trasy.
-3. **Zakaz regresji semantycznej:** szczegółowość frakcji nie może być większa niż szczegółowość źródła. `odpady segregowane` nie oznacza automatycznie trzech osobnych frakcji.
-4. **Cel Etapu 3:** osiągnięcie $\ge 90{-}95\%$ adresów supported przy zachowaniu 0 ambiguity/conflicts/errors jako preferowanego standardu; wzrost coverage nie może obniżać jakości mapowania.
+## Wnioski i rekomendacje
+
+1. **Audytowane supported coverage wynosi 51.2% (12 816 / 25 030).** To konserwatywny licznik adresów z deterministycznym dowodem, a nie pełny wynik klasyfikacji resolvera całej populacji.
+2. **P0 #144:** zbudować pełny, wersjonowany zbiór 25 030 punktów PRG i sklasyfikować każdy adres przez runtime resolver przed publikowaniem globalnych wskaźników ambiguity/error/conflict.
+3. **Sianów:** nie wracać do sztucznego splitu frakcji; kontynuować #141 wyłącznie source-backed.
+4. **Manowo:** `2AB.pdf` jest nadal HEALTHY, więc nie ma outage'u; #143 jest migracją kanoniczności do aktualnego układu źródeł.
+5. **Będzino/Świeszyno:** kolejne partie wymagają nowych paczek PRG i zero-overlap proof.
+6. Szczegółowość danych WastePL nie może przekraczać szczegółowości oficjalnego źródła.
