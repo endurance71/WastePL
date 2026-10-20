@@ -105,6 +105,18 @@ function requireText(text: string, pattern: RegExp, message: string): void {
   if (!pattern.test(text)) throw new Error(`PGK PSZOK adapter: ${message}`);
 }
 
+const COORDINATE_PAIR = String.raw`(-?\d{2}\.\d{4,})\s*,\s*(-?\d{2}\.\d{4,})`;
+
+// The live page publishes the Komunalna 5 pin only inside its Google Maps embed
+// (title/aria-label attributes), which textFromHtml strips with the tag.
+function publishedCoordinates(html: string, text: string): RegExpExecArray | null {
+  const inText = new RegExp(COORDINATE_PAIR).exec(text);
+  if (inText) return inText;
+  const embed = /<iframe\b[^>]*\bsrc="https:\/\/maps\.google\.com\/maps\?[^"]*"[^>]*>/i.exec(html);
+  if (!embed) return null;
+  return new RegExp(String.raw`\btitle="${COORDINATE_PAIR}"`).exec(embed[0]);
+}
+
 function latestRetrievedAt(...values: string[]): string {
   return values
     .map((value) => new Date(value))
@@ -112,16 +124,63 @@ function latestRetrievedAt(...values: string[]): string {
     .toISOString();
 }
 
-function openingHours(sourceKey: string): NormalizedFacilityV02['openingHours'] {
+interface HoursInterval {
+  opens: string;
+  closes: string;
+}
+
+interface PublishedWeeklyHours {
+  weekdays: HoursInterval;
+  wednesday: HoursInterval;
+  saturday: HoursInterval;
+}
+
+// PGK publishes times as "8:00", "8.00" and occasionally "8 :00", so whitespace
+// around the separator is tolerated.
+const TIME = String.raw`(\d{1,2})\s*[:.]\s*(\d{2})`;
+const TIME_RANGE = String.raw`${TIME}\s*[–—-]\s*${TIME}`;
+
+function clockTime(hours: string, minutes: string, message: string): string {
+  const h = Number(hours);
+  const m = Number(minutes);
+  if (h > 23 || m > 59) throw new Error(`PGK PSZOK adapter: ${message}`);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function publishedInterval(text: string, label: string, message: string): HoursInterval {
+  const match = new RegExp(`${label}\\s*:\\s*${TIME_RANGE}`, 'iu').exec(text);
+  if (!match) throw new Error(`PGK PSZOK adapter: ${message}`);
+  const opens = clockTime(match[1]!, match[2]!, message);
+  const closes = clockTime(match[3]!, match[4]!, message);
+  if (opens >= closes) throw new Error(`PGK PSZOK adapter: ${message}`);
+  return { opens, closes };
+}
+
+function publishedWeeklyHours(mainText: string): PublishedWeeklyHours {
+  return {
+    weekdays: publishedInterval(
+      mainText,
+      String.raw`Poniedziałek\s*,\s*wtorek\s*,\s*czwartek\s*,\s*piątek`,
+      'weekday hours missing',
+    ),
+    wednesday: publishedInterval(mainText, 'Środa', 'Wednesday hours missing'),
+    saturday: publishedInterval(mainText, 'Sobota', 'Saturday hours missing'),
+  };
+}
+
+function openingHours(
+  hours: PublishedWeeklyHours,
+  sourceKey: string,
+): NormalizedFacilityV02['openingHours'] {
   return {
     timezone: 'Europe/Warsaw',
     weekly: [
-      { day: 'MONDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-      { day: 'TUESDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-      { day: 'WEDNESDAY', intervals: [{ opens: '10:00', closes: '18:00' }] },
-      { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-      { day: 'FRIDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-      { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '13:00' }] },
+      { day: 'MONDAY', intervals: [{ ...hours.weekdays }] },
+      { day: 'TUESDAY', intervals: [{ ...hours.weekdays }] },
+      { day: 'WEDNESDAY', intervals: [{ ...hours.wednesday }] },
+      { day: 'THURSDAY', intervals: [{ ...hours.weekdays }] },
+      { day: 'FRIDAY', intervals: [{ ...hours.weekdays }] },
+      { day: 'SATURDAY', intervals: [{ ...hours.saturday }] },
       { day: 'SUNDAY', intervals: [] },
     ],
     exceptions: [],
@@ -171,7 +230,7 @@ function unknownOperationalStatus(): NormalizedFacilityV02['operationalStatus'] 
 
 export class PgkKoszalinPszokHtmlAdapter {
   readonly parserKey = 'pgk-koszalin-pszok-html';
-  readonly parserVersion = '1.1.0';
+  readonly parserVersion = '1.2.0';
 
   parse(input: PgkKoszalinPszokInput): NormalizedFacilityV02 {
     return this.parseAll(input)[0]!;
@@ -183,14 +242,13 @@ export class PgkKoszalinPszokHtmlAdapter {
 
     requireText(mainText, /PSZOK\s*[–—-]\s*ul\.\s*Komunalna\s*5/i, 'Komunalna 5 location missing');
     requireText(mainText, /PSZOK\s*[–—-]\s*ul\.\s*Na\s*Skwierzynkę\s*2/i, 'Na Skwierzynkę 2 location missing');
-    requireText(mainText, /Poniedziałek.*wtorek.*czwartek.*piątek.*8[:.]?00.*16[:.]?00/i, 'weekday hours missing');
-    requireText(mainText, /Środa.*10[:.]?00.*18[:.]?00/i, 'Wednesday hours missing');
-    requireText(mainText, /Sobota.*8[:.]?00.*13[:.]?00/i, 'Saturday hours missing');
+    // ADR-0007: the main page owns opening hours; the FAQ only contributes materials and limits.
+    const hours = publishedWeeklyHours(mainText);
     requireText(mainText, /potwierdzenie.*opłat|dokument.*zamieszkan/i, 'resident proof rule missing');
     requireText(faqText, /8\s*sztuk.*rocznie.*gospodarstwo/i, 'tyre limit missing');
     requireText(faqText, /100\s*kg.*rocznie.*gospodarstwo/i, 'construction limit missing');
 
-    const coordinates = /(-?\d{2}\.\d{4,})\s*,\s*(-?\d{2}\.\d{4,})/.exec(mainText);
+    const coordinates = publishedCoordinates(input.main.html, mainText);
     const location = coordinates
       ? { lat: Number(coordinates[1]), lon: Number(coordinates[2]) }
       : null;
@@ -216,7 +274,7 @@ export class PgkKoszalinPszokHtmlAdapter {
       externalIds: [],
       acceptedMaterials,
       acceptedContainers: [],
-      openingHours: openingHours(input.main.sourceKey),
+      openingHours: openingHours(hours, input.main.sourceKey),
       access: accessRules(input.main.sourceKey, input.faq.sourceKey, true),
       operationalStatus: unknownOperationalStatus(),
       operatorName,
@@ -241,7 +299,7 @@ export class PgkKoszalinPszokHtmlAdapter {
       externalIds: [],
       acceptedMaterials: [],
       acceptedContainers: [],
-      openingHours: openingHours(input.main.sourceKey),
+      openingHours: openingHours(hours, input.main.sourceKey),
       access: accessRules(input.main.sourceKey, input.faq.sourceKey, false),
       operationalStatus: unknownOperationalStatus(),
       operatorName,

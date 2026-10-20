@@ -168,7 +168,7 @@ integrationDescribe('official facility ingestion -> canonical API', () => {
     });
     expect(item.provenance.primary.artifactId).toBe(mainArtifact.id);
     expect(item.provenance.primary.parserKey).toBe('pgk-koszalin-pszok-html');
-    expect(item.provenance.primary.parserVersion).toBe('1.1.0');
+    expect(item.provenance.primary.parserVersion).toBe('1.2.0');
     expect(item.provenance.assertions).toHaveLength(2);
     expect(item.provenance.assertions.map((assertion: { sourceKey: string }) => assertion.sourceKey).sort())
       .toEqual([FAQ_KEY, MAIN_KEY].sort());
@@ -251,7 +251,7 @@ integrationDescribe('official facility ingestion -> canonical API', () => {
     );
     expect(artifacts.rows).toHaveLength(2);
     for (const artifact of artifacts.rows) {
-      expect(artifact.parser_version).toBe('1.1.0');
+      expect(artifact.parser_version).toBe('1.2.0');
       expect(artifact.status).toBe('PUBLISHED');
       expect(artifact.parse_report).toHaveProperty('facilityIngestion');
     }

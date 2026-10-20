@@ -41,7 +41,7 @@ describe('PgkKoszalinPszokHtmlAdapter', () => {
 
     await expect(validateFacilityV02(facility)).resolves.toBeUndefined();
     expect(adapter.parserKey).toBe('pgk-koszalin-pszok-html');
-    expect(adapter.parserVersion).toBe('1.1.0');
+    expect(adapter.parserVersion).toBe('1.2.0');
     expect(facility).toMatchObject({
       schemaVersion: '0.2.0',
       key: 'pl-3261011-pszok-komunalna-5',
@@ -59,8 +59,20 @@ describe('PgkKoszalinPszokHtmlAdapter', () => {
         'RUBBLE', 'HAZARDOUS',
       ]),
     );
-    expect(facility.openingHours.weekly.find((item) => item.day === 'WEDNESDAY')?.intervals)
-      .toEqual([{ opens: '10:00', closes: '18:00' }]);
+    expect(facility.openingHours).toEqual({
+      timezone: 'Europe/Warsaw',
+      weekly: [
+        { day: 'MONDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+        { day: 'TUESDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+        { day: 'WEDNESDAY', intervals: [{ opens: '08:00', closes: '18:00' }] },
+        { day: 'THURSDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+        { day: 'FRIDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
+        { day: 'SATURDAY', intervals: [{ opens: '08:00', closes: '13:00' }] },
+        { day: 'SUNDAY', intervals: [] },
+      ],
+      exceptions: [],
+      sourceKey: 'pgk-koszalin-pszok-main',
+    });
     expect(facility.access).toMatchObject({
       scope: 'MUNICIPALITY_RESIDENTS',
       requiresProof: true,
@@ -105,17 +117,51 @@ describe('PgkKoszalinPszokHtmlAdapter', () => {
     });
   });
 
+  it('takes opening hours from the main page even when the FAQ still publishes older hours', () => {
+    // ADR-0007: the main page owns opening-hours claims; the FAQ owns materials and limits.
+    expect(faqHtml).toContain('Środa: 10:00 – 18:00');
+    const adapter = new PgkKoszalinPszokHtmlAdapter();
+
+    for (const facility of adapter.parseAll(input())) {
+      expect(facility.openingHours.sourceKey).toBe('pgk-koszalin-pszok-main');
+      expect(facility.openingHours.weekly.find((item) => item.day === 'WEDNESDAY')?.intervals)
+        .toEqual([{ opens: '08:00', closes: '18:00' }]);
+    }
+  });
+
+  it('follows the hours the main page publishes instead of fixed values', () => {
+    const adapter = new PgkKoszalinPszokHtmlAdapter();
+    const changed = input();
+    changed.main.html = `<p>Środa: 10.00 – 19.30</p>${changed.main.html.replace(/Środa:/g, 'Inne:')}`;
+
+    const facility = adapter.parse(changed);
+    expect(facility.openingHours.weekly.find((item) => item.day === 'WEDNESDAY')?.intervals)
+      .toEqual([{ opens: '10:00', closes: '19:30' }]);
+  });
+
+  it('fails visibly when the Wednesday hours disappear or become implausible', () => {
+    const adapter = new PgkKoszalinPszokHtmlAdapter();
+    const missing = input();
+    missing.main.html = missing.main.html.replace(/Środa:/g, 'Inne:');
+    expect(() => adapter.parse(missing)).toThrow('Wednesday hours missing');
+
+    const reversed = input();
+    reversed.main.html = `<p>Środa: 18:00 – 8:00</p>${reversed.main.html}`;
+    expect(() => adapter.parse(reversed)).toThrow('Wednesday hours missing');
+  });
+
   it('fails visibly when an official limit disappears from the expected template', () => {
     const adapter = new PgkKoszalinPszokHtmlAdapter();
     const broken = input();
-    broken.faq.html = broken.faq.html.replace('100 kg rocznie', 'limit nieopublikowany');
+    broken.faq.html = broken.faq.html.replaceAll('100 kg rocznie', 'limit nieopublikowany');
     expect(() => adapter.parse(broken)).toThrow('construction limit missing');
   });
 
   it('normalizes Komunalna 5 with location: null when coordinates are not published in main HTML', async () => {
     const adapter = new PgkKoszalinPszokHtmlAdapter();
     const noCoords = input();
-    noCoords.main.html = noCoords.main.html.replace('54.212266, 16.183616', '');
+    noCoords.main.html = noCoords.main.html.replace(/<iframe\b[\s\S]*?<\/iframe>/gi, '');
+    expect(noCoords.main.html).not.toContain('54.212266');
     const facility = adapter.parse(noCoords);
 
     await expect(validateFacilityV02(facility)).resolves.toBeUndefined();

@@ -1,7 +1,7 @@
 {
-  "version": "facilities-pilot-2026.1",
+  "version": "facilities-pilot-2026.2",
   "threshold": 0.99,
-  "researchCheckpoint": "2026-08-27",
+  "researchCheckpoint": "2026-10-20",
   "coverage": {
     "realPszokEntities": 2,
     "publishableRealPins": 1,
@@ -14,13 +14,13 @@
       "url": "https://www.pgkkoszalin.pl/punkty-zbiorki-odpadow/punkt-zbiorki-odpadow-koszalin/",
       "fixture": "../../../worker/test/fixtures/pgk-koszalin-pszok-main.html",
       "parserKey": "pgk-koszalin-pszok-html",
-      "parserVersion": "1.1.0"
+      "parserVersion": "1.2.0"
     },
     "pgkFaq": {
       "url": "https://www.pgkkoszalin.pl/najczesciej-zadawane-pytania-f-a-q/",
       "fixture": "../../../worker/test/fixtures/pgk-koszalin-pszok-faq.html",
       "parserKey": "pgk-koszalin-pszok-html",
-      "parserVersion": "1.1.0"
+      "parserVersion": "1.2.0"
     }
   },
   "entities": [
@@ -41,7 +41,7 @@
           "weekly": [
             { "day": "MONDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
             { "day": "TUESDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
-            { "day": "WEDNESDAY", "intervals": [{ "opens": "10:00", "closes": "18:00" }] },
+            { "day": "WEDNESDAY", "intervals": [{ "opens": "08:00", "closes": "18:00" }] },
             { "day": "THURSDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
             { "day": "FRIDAY", "intervals": [{ "opens": "08:00", "closes": "16:00" }] },
             { "day": "SATURDAY", "intervals": [{ "opens": "08:00", "closes": "13:00" }] },

@@ -66,7 +66,7 @@ integrationDescribe('GET /v1/facilities', () => {
       timezone: 'Europe/Warsaw',
       weekly: [
         { day: 'MONDAY', intervals: [{ opens: '08:00', closes: '16:00' }] },
-        { day: 'WEDNESDAY', intervals: [{ opens: '10:00', closes: '18:00' }] },
+        { day: 'WEDNESDAY', intervals: [{ opens: '08:00', closes: '18:00' }] },
       ],
       exceptions: [],
     });
