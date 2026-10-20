@@ -42,7 +42,10 @@ services:
       - wastepl-backend
 
   minio:
-    image: minio/minio:RELEASE.2024-08-17T01-24-54Z
+    # minio/minio images were removed from Docker Hub and quay.io; Chainguard builds MinIO from source.
+    # The free tier only publishes floating tags, so the multi-arch index is pinned by digest.
+    # latest-dev (MinIO RELEASE.2026-09-22T19-25-18Z) ships wget for the healthcheck.
+    image: cgr.dev/chainguard/minio:latest-dev@sha256:9044eb78c8519301ccc99f35fa752bebd1c61519fd6a4e056b8005391f624eae
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -55,7 +58,7 @@ services:
     volumes:
       - minio_prod_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
