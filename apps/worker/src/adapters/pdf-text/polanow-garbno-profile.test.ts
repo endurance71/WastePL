@@ -218,4 +218,66 @@ describe('Polanów Garbno H2 municipal PDF profile', () => {
 
     await expect(validateWastePlDataset(dataset)).resolves.toBeUndefined();
   });
+
+  it('publishes Rural Set B (8 safe localities) with source-safe fractions and events', async () => {
+    const setBFixturePath = fileURLToPath(
+      new URL('../../../test/fixtures/pdf-text/polanow-rural-set-b-h2-2026.txt', import.meta.url),
+    );
+    const setBText = readFileSync(setBFixturePath, 'utf8');
+
+    const setBContext: MunicipalCollectionReferenceContext = {
+      municipality: {
+        terc: '3209063',
+        name: 'Polanów',
+        municipalityType: 'URBAN_RURAL',
+      },
+      localities: [
+        { name: 'Bożenice', simc: '0309186' },
+        { name: 'Buszyno', simc: '0308710' },
+        { name: 'Doły', simc: '0308991' },
+        { name: 'Komorowo', simc: '0309223' },
+        { name: 'Rochowo', simc: '0309111' },
+        { name: 'Rzeczyca Mała', simc: '0309134' },
+        { name: 'Warblewo', simc: '0309306' },
+        { name: 'Wielin', simc: '0309312' },
+      ],
+    };
+
+    const setBInput: PdfTextArtifactInput = {
+      text: setBText,
+      sourceKey: 'polanow-collection-rural-set-b-h2-2026',
+      url: 'https://bip.polanow.pl/pobierz.php?d=zal&id=9a984d281708c4c9d9fe024fac0a9239',
+      sha256: sha256Hex(Buffer.from(setBText)),
+      retrievedAt: '2026-09-06T10:00:00.000Z',
+      storageUri: 's3://test/polanow-rural-set-b-h2',
+      ownerType: 'MUNICIPALITY',
+    };
+
+    const adapter = new MunicipalCollectionPdfTextAdapter(setBContext);
+    const dataset = adapter.parse(setBInput);
+
+    expect(dataset.serviceAreas).toEqual([
+      {
+        key: 'polanow-rural-set-b-single-family',
+        name: 'Gmina Polanów — Rejon wiejski B (8 miejscowości), zabudowa jednorodzinna',
+        buildingType: 'SINGLE_FAMILY',
+        coverage: expect.arrayContaining([
+          { type: 'LOCALITY', priority: 50, simc: '0309186' },
+          { type: 'LOCALITY', priority: 50, simc: '0308710' },
+          { type: 'LOCALITY', priority: 50, simc: '0309312' },
+        ]),
+      },
+    ]);
+    expect(dataset.serviceAreas[0]?.coverage).toHaveLength(8);
+
+    expect(new Set(dataset.collectionEvents.map((e) => e.fraction))).toEqual(
+      new Set(['MIXED', 'BIO', 'OTHER', 'BULKY']),
+    );
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'MIXED')).toHaveLength(14);
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'BIO')).toHaveLength(11);
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'OTHER')).toHaveLength(7);
+    expect(dataset.collectionEvents.filter((e) => e.fraction === 'BULKY')).toHaveLength(1);
+
+    await expect(validateWastePlDataset(dataset)).resolves.toBeUndefined();
+  });
 });

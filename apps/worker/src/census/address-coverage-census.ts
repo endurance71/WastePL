@@ -8,6 +8,7 @@ import {
 import { loadRealGoldenReferenceSnapshot } from '../readiness/real-golden-reference.js';
 import { loadPolanowGarbnoReferenceSnapshot } from '../readiness/polanow-garbno-reference.js';
 import { loadPolanowRuralSetAReferenceSnapshot } from '../readiness/polanow-rural-reference.js';
+import { loadPolanowRuralSetBReferenceSnapshot } from '../readiness/polanow-rural-set-b-reference.js';
 import { loadBedzinoTrasa1ReferenceSnapshot } from '../readiness/bedzino-trasa-1-reference.js';
 import { loadBedzinoTrasa2ReferenceSnapshot } from '../readiness/bedzino-trasa-2-reference.js';
 import { loadSianowGrabowkoReferenceSnapshot } from '../readiness/sianow-grabowko-reference.js';
@@ -147,7 +148,7 @@ export const PILOT_MUNICIPALITIES: Array<{
     name: 'Polanów',
     terc: '3209063',
     totalPrgAddresses: 1810,
-    activeSubset: 'Miejscowość Garbno oraz rejon wiejski A (18 miejscowości łącznie)',
+    activeSubset: 'Miejscowość Garbno, rejon wiejski A (17 miejscowości) oraz rejon wiejski B (8 miejscowości: Bożenice, Buszyno, Doły, Komorowo, Rochowo, Rzeczyca Mała, Warblewo, Wielin) — łącznie 26 miejscowości',
     backlogBlockers: [
       'Pozostałe sołectwa wiejskie H2',
       'Miasto Polanów',
@@ -205,6 +206,7 @@ export async function runAddressCoverageCensus(_pool?: Pool): Promise<CensusRepo
     realGolden,
     polanowGarbno,
     polanowRuralSetA,
+    polanowRuralSetB,
     bedzinoTrasa1,
     bedzinoTrasa2,
     sianowGrabowko,
@@ -218,6 +220,7 @@ export async function runAddressCoverageCensus(_pool?: Pool): Promise<CensusRepo
     loadRealGoldenReferenceSnapshot(),
     loadPolanowGarbnoReferenceSnapshot(),
     loadPolanowRuralSetAReferenceSnapshot(),
+    loadPolanowRuralSetBReferenceSnapshot(),
     loadBedzinoTrasa1ReferenceSnapshot(),
     loadBedzinoTrasa2ReferenceSnapshot(),
     loadSianowGrabowkoReferenceSnapshot(),
@@ -233,7 +236,7 @@ export async function runAddressCoverageCensus(_pool?: Pool): Promise<CensusRepo
     Koszalin: 10240,
     Manowo: realGolden.selection.perMunicipality.Manowo ?? 46,
     Tychowo: realGolden.selection.perMunicipality.Tychowo ?? 45,
-    'Polanów': polanowGarbno.selection.total + polanowRuralSetA.selection.total,
+    'Polanów': polanowGarbno.selection.total + polanowRuralSetA.selection.total + polanowRuralSetB.selection.total,
     'Będzino': bedzinoTrasa1.selection.total + bedzinoTrasa2.selection.total,
     'Sianów':
       sianowGrabowko.selection.total +

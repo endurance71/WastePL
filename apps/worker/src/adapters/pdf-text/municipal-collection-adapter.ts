@@ -2,6 +2,7 @@ import {
   parsePolanowGarbnoH2,
   POLANOW_GARBNO_H2_SOURCE_KEY,
   POLANOW_RURAL_SET_A_H2_SOURCE_KEY,
+  POLANOW_RURAL_SET_B_H2_SOURCE_KEY,
   supportsPolanowGarbnoH2,
 } from './polanow-garbno-profile.js';
 import {
@@ -452,7 +453,8 @@ export class MunicipalCollectionPdfTextAdapter {
     }
     if (
       input.sourceKey === POLANOW_GARBNO_H2_SOURCE_KEY ||
-      input.sourceKey === POLANOW_RURAL_SET_A_H2_SOURCE_KEY
+      input.sourceKey === POLANOW_RURAL_SET_A_H2_SOURCE_KEY ||
+      input.sourceKey === POLANOW_RURAL_SET_B_H2_SOURCE_KEY
     ) {
       return parsePolanowGarbnoH2(input, this.context, this.parserKey, this.parserVersion);
     }

@@ -10,6 +10,7 @@ import type { MunicipalCollectionReferenceContext } from './municipal-collection
 
 export const POLANOW_GARBNO_H2_SOURCE_KEY = 'polanow-collection-garbno-h2-2026';
 export const POLANOW_RURAL_SET_A_H2_SOURCE_KEY = 'polanow-collection-rural-set-a-h2-2026';
+export const POLANOW_RURAL_SET_B_H2_SOURCE_KEY = 'polanow-collection-rural-set-b-h2-2026';
 
 export const POLANOW_TERC = '3209063';
 
@@ -31,6 +32,17 @@ export const POLANOW_RURAL_SET_A_LOCALITY_NAMES = [
   'sowinko',
   'stołpie',
   'świerczyna',
+];
+
+export const POLANOW_RURAL_SET_B_LOCALITY_NAMES = [
+  'bożenice',
+  'buszyno',
+  'doły',
+  'komorowo',
+  'rochowo',
+  'rzeczyca mała',
+  'warblewo',
+  'wielin',
 ];
 const MONTHS = [
   ['lipiec', 7],
@@ -144,7 +156,7 @@ function parseRows(text: string): ParsedMonthRow[] {
   });
 }
 
-function assertTemplate(text: string, isSetA: boolean): void {
+function assertTemplate(text: string, subset: 'GARBNO' | 'SET_A' | 'SET_B'): void {
   const normalized = normalizedText(text);
   const requiredMarkers = [
     'harmonogram odbioru odpadów w roku 2026',
@@ -152,8 +164,10 @@ function assertTemplate(text: string, isSetA: boolean): void {
     'przedsiębiorstwo gospodarki komunalnej',
     'zmieszane bio segregacja gabaryty',
   ];
-  if (isSetA) {
+  if (subset === 'SET_A') {
     requiredMarkers.push('zabudowa jednorodzinna miejscowości: bukowo, dadzewo');
+  } else if (subset === 'SET_B') {
+    requiredMarkers.push('zabudowa jednorodzinna miejscowości: bożenice, buszyno');
   } else {
     requiredMarkers.push('zabudowa jednorodzinna miejscowości garbno');
   }
@@ -196,7 +210,8 @@ export function supportsPolanowGarbnoH2(text: string): boolean {
   const normalized = normalizedText(text);
   return (
     (normalized.includes('zabudowa jednorodzinna miejscowości garbno') ||
-      normalized.includes('zabudowa jednorodzinna miejscowości: bukowo, dadzewo')) &&
+      normalized.includes('zabudowa jednorodzinna miejscowości: bukowo, dadzewo') ||
+      normalized.includes('zabudowa jednorodzinna miejscowości: bożenice, buszyno')) &&
     normalized.includes('harmonogram odbioru odpadów w roku 2026') &&
     normalized.includes('zmieszane bio segregacja gabaryty')
   );
@@ -209,7 +224,8 @@ export function parsePolanowGarbnoH2(
   parserVersion: string,
 ): NormalizedDataset {
   const isSetA = input.sourceKey === POLANOW_RURAL_SET_A_H2_SOURCE_KEY;
-  if (input.sourceKey !== POLANOW_GARBNO_H2_SOURCE_KEY && !isSetA) {
+  const isSetB = input.sourceKey === POLANOW_RURAL_SET_B_H2_SOURCE_KEY;
+  if (input.sourceKey !== POLANOW_GARBNO_H2_SOURCE_KEY && !isSetA && !isSetB) {
     throw new PdfTextParseError(`Unsupported Polanów source ${input.sourceKey}`, 'UNSUPPORTED_TEMPLATE');
   }
   if (context.municipality.terc !== POLANOW_TERC) {
@@ -218,18 +234,30 @@ export function parsePolanowGarbnoH2(
       'MISSING_METADATA',
     );
   }
-  assertTemplate(input.text, isSetA);
+  const subset = isSetA ? 'SET_A' : isSetB ? 'SET_B' : 'GARBNO';
+  assertTemplate(input.text, subset);
 
-  const serviceAreaKey = isSetA ? 'polanow-rural-set-a-single-family' : 'polanow-garbno-single-family';
+  const serviceAreaKey = isSetA
+    ? 'polanow-rural-set-a-single-family'
+    : isSetB
+      ? 'polanow-rural-set-b-single-family'
+      : 'polanow-garbno-single-family';
   const serviceAreaName = isSetA
     ? 'Gmina Polanów — Rejon wiejski A (17 miejscowości), zabudowa jednorodzinna'
-    : 'Gmina Polanów — Garbno, zabudowa jednorodzinna';
+    : isSetB
+      ? 'Gmina Polanów — Rejon wiejski B (8 miejscowości), zabudowa jednorodzinna'
+      : 'Gmina Polanów — Garbno, zabudowa jednorodzinna';
 
   let coverage: Array<{ type: 'LOCALITY'; priority: number; simc: string }>;
 
   if (isSetA) {
     const matched = context.localities.filter((loc) =>
       POLANOW_RURAL_SET_A_LOCALITY_NAMES.includes(normalizedName(loc.name)),
+    );
+    coverage = matched.map((loc) => ({ type: 'LOCALITY' as const, priority: 50, simc: loc.simc }));
+  } else if (isSetB) {
+    const matched = context.localities.filter((loc) =>
+      POLANOW_RURAL_SET_B_LOCALITY_NAMES.includes(normalizedName(loc.name)),
     );
     coverage = matched.map((loc) => ({ type: 'LOCALITY' as const, priority: 50, simc: loc.simc }));
   } else {
@@ -288,7 +316,9 @@ export function parsePolanowGarbnoH2(
         format: 'PDF_TEXT',
         reuseBasis: isSetA
           ? 'Polanów H2 2026 single-family locality PDF template; Rural Set A safe subset'
-          : 'Polanów H2 2026 single-family locality PDF template; Garbno safe subset',
+          : isSetB
+            ? 'Polanów H2 2026 single-family locality PDF template; Rural Set B safe subset'
+            : 'Polanów H2 2026 single-family locality PDF template; Garbno safe subset',
         artifact: {
           sha256: input.sha256,
           retrievedAt: input.retrievedAt,
