@@ -42,7 +42,7 @@ describe('PgkKoszalinPszokNormalizationService', () => {
     expect(markArtifactParsed).toHaveBeenNthCalledWith(1, expect.objectContaining({
       artifactId: '11111111-1111-1111-1111-111111111111',
       parserKey: 'pgk-koszalin-pszok-html',
-      parserVersion: '1.1.0',
+      parserVersion: '1.2.0',
       status: 'NORMALIZED',
       parseReport: expect.objectContaining({
         facilityKeys: [
@@ -59,7 +59,7 @@ describe('PgkKoszalinPszokNormalizationService', () => {
     }));
     expect(markArtifactParsed).toHaveBeenNthCalledWith(2, expect.objectContaining({
       artifactId: '22222222-2222-2222-2222-222222222222',
-      parserVersion: '1.1.0',
+      parserVersion: '1.2.0',
       parseReport: expect.objectContaining({
         facilityKeys: ['pl-3261011-pszok-komunalna-5'],
         assertions: expect.arrayContaining(['acceptedMaterials', 'quantityLimits']),
