@@ -7,8 +7,37 @@ import {
 } from './address-coverage-census.js';
 import type { CanonicalAddressRef, ServiceAreaDefinition, ServiceAreaRule } from '@wastepl/domain';
 
-describe('Address Coverage Census v2', () => {
-  it('correctly maps resolveServiceArea status to AddressResolutionStatus', () => {
+function localityRule(id: string, serviceAreaId: string, localityId: string): ServiceAreaRule {
+  return {
+    id,
+    serviceAreaId,
+    kind: 'INCLUDE',
+    priority: 50,
+    selector: {
+      type: 'LOCALITY',
+      localityId,
+      streetId: null,
+      numberFrom: null,
+      numberTo: null,
+      parity: null,
+      explicitNumbers: null,
+      addressId: null,
+    },
+  };
+}
+
+function area(id: string, externalKey: string, localityId: string): ServiceAreaDefinition {
+  return {
+    id,
+    municipalityId: 'm-1',
+    externalKey,
+    name: externalKey,
+    rules: [localityRule(`rule-${id}`, id, localityId)],
+  };
+}
+
+describe('Address Coverage Audit v2.1', () => {
+  it('maps resolver outcomes for individual canonical addresses', () => {
     const address: CanonicalAddressRef = {
       id: 'addr-1',
       municipalityId: 'm-1',
@@ -18,119 +47,28 @@ describe('Address Coverage Census v2', () => {
       canonicalText: 'Dworek 1',
     };
 
-    const matchedRule: ServiceAreaRule = {
-      id: 'r-1',
-      serviceAreaId: 'sa-1',
-      kind: 'INCLUDE',
-      priority: 50,
-      selector: {
-        type: 'LOCALITY',
-        localityId: 'loc-1',
-        streetId: null,
-        numberFrom: null,
-        numberTo: null,
-        parity: null,
-        explicitNumbers: null,
-        addressId: null,
-      },
-    };
-
-    const matchedArea: ServiceAreaDefinition = {
-      id: 'sa-1',
-      municipalityId: 'm-1',
-      externalKey: 'bedzino-trasa-1-safe-dworek',
-      name: 'Dworek',
-      rules: [matchedRule],
-    };
-
-    expect(evaluateAddressResolution(address, [matchedArea])).toBe('SUPPORTED');
-
-    const unrelatedRule: ServiceAreaRule = {
-      id: 'r-2',
-      serviceAreaId: 'sa-2',
-      kind: 'INCLUDE',
-      priority: 50,
-      selector: {
-        type: 'LOCALITY',
-        localityId: 'loc-999',
-        streetId: null,
-        numberFrom: null,
-        numberTo: null,
-        parity: null,
-        explicitNumbers: null,
-        addressId: null,
-      },
-    };
-
-    const unrelatedArea: ServiceAreaDefinition = {
-      id: 'sa-2',
-      municipalityId: 'm-1',
-      externalKey: 'other-area',
-      name: 'Other',
-      rules: [unrelatedRule],
-    };
-
-    expect(evaluateAddressResolution(address, [unrelatedArea])).toBe('UNSUPPORTED');
-
-    const ambiguousRule1: ServiceAreaRule = {
-      id: 'r-a1',
-      serviceAreaId: 'sa-a1',
-      kind: 'INCLUDE',
-      priority: 50,
-      selector: {
-        type: 'LOCALITY',
-        localityId: 'loc-1',
-        streetId: null,
-        numberFrom: null,
-        numberTo: null,
-        parity: null,
-        explicitNumbers: null,
-        addressId: null,
-      },
-    };
-
-    const ambiguousRule2: ServiceAreaRule = {
-      id: 'r-a2',
-      serviceAreaId: 'sa-a2',
-      kind: 'INCLUDE',
-      priority: 50,
-      selector: {
-        type: 'LOCALITY',
-        localityId: 'loc-1',
-        streetId: null,
-        numberFrom: null,
-        numberTo: null,
-        parity: null,
-        explicitNumbers: null,
-        addressId: null,
-      },
-    };
-
-    const ambiguousArea1: ServiceAreaDefinition = {
-      id: 'sa-a1',
-      municipalityId: 'm-1',
-      externalKey: 'area-a1',
-      name: 'Area A1',
-      rules: [ambiguousRule1],
-    };
-
-    const ambiguousArea2: ServiceAreaDefinition = {
-      id: 'sa-a2',
-      municipalityId: 'm-1',
-      externalKey: 'area-a2',
-      name: 'Area A2',
-      rules: [ambiguousRule2],
-    };
-
-    expect(evaluateAddressResolution(address, [ambiguousArea1, ambiguousArea2])).toBe('AMBIGUOUS');
+    expect(evaluateAddressResolution(address, [area('sa-1', 'matched', 'loc-1')])).toBe('SUPPORTED');
+    expect(evaluateAddressResolution(address, [area('sa-2', 'other', 'loc-999')])).toBe('UNSUPPORTED');
+    expect(
+      evaluateAddressResolution(address, [
+        area('sa-a1', 'ambiguous-a', 'loc-1'),
+        area('sa-a2', 'ambiguous-b', 'loc-1'),
+      ]),
+    ).toBe('AMBIGUOUS');
   });
 
-  it('runs address coverage census across all 8 pilot municipalities deterministically', async () => {
+  it('reports audited reference-pack coverage without claiming a full-population resolver census', async () => {
     const report = await runAddressCoverageCensus();
 
-    expect(report.censusEngineVersion).toBe('2.0.0');
+    expect(report.censusEngineVersion).toBe('2.1.0');
+    expect(report.measurementMode).toBe('AUDITED_REFERENCE_PACKS');
+    expect(report.qualityScope).toBe('AUDITED_REFERENCE_PACKS_ONLY');
+    expect(report.fullPopulationResolutionVerified).toBe(false);
+
     expect(report.totalPilotAddresses).toBe(25030);
+    expect(report.totalAuditedAddresses).toBe(12962);
     expect(report.totalSupported).toBe(12962);
+    expect(report.totalRemainingUnaudited).toBe(12068);
     expect(report.totalUnsupported).toBe(12068);
     expect(report.totalAmbiguous).toBe(0);
     expect(report.totalErrors).toBe(0);
@@ -139,28 +77,42 @@ describe('Address Coverage Census v2', () => {
     expect(report.municipalities).toHaveLength(8);
     for (const item of report.municipalities) {
       expect(item.totalPrgAddresses).toBeGreaterThan(0);
-      expect(item.supportedAddresses).toBeGreaterThan(0);
-      expect(item.unsupportedAddresses).toBe(item.totalPrgAddresses - item.supportedAddresses);
+      expect(item.auditedAddresses).toBe(item.supportedAddresses);
+      expect(item.remainingUnauditedAddresses).toBe(
+        item.totalPrgAddresses - item.supportedAddresses,
+      );
+      expect(item.unsupportedAddresses).toBe(item.remainingUnauditedAddresses);
       expect(item.coveragePercent).toBeGreaterThan(0);
       expect(item.backlogBlockers.length).toBeGreaterThan(0);
     }
-
-    const markdown = formatCensusMarkdown(report);
-    expect(markdown).toContain('Address Coverage Census — Raport Pokrycia Adresowego');
-    expect(markdown).toContain('51.79%');
-    expect(markdown).toContain('Koszalin');
-    expect(markdown).toContain('Polanów');
   });
 
-  it('preserves all 8 pilot municipalities with official TERC codes', () => {
+  it('makes audit scope and P0 full-census limitation explicit in generated Markdown', async () => {
+    const report = await runAddressCoverageCensus();
+    const markdown = formatCensusMarkdown(report);
+
+    expect(markdown).toContain('Address Coverage Audit');
+    expect(markdown).toContain('AUDITED_REFERENCE_PACKS');
+    expect(markdown).toContain('**Full-population resolution verified:** `false`');
+    expect(markdown).toContain('P0 #144');
+    expect(markdown).toContain('12 962');
+    expect(markdown).toContain('51.79%');
+    expect(markdown).toContain('Sianów');
+    expect(markdown).toContain('odpady segregowane');
+    expect(markdown).toContain('`OTHER`');
+    expect(markdown).not.toContain('Census obejmuje całą populację');
+    expect(markdown).not.toContain('gwarantuje 100% poprawności');
+    expect(markdown).not.toContain('rozbicie odpadów segregowanych na 3 frakcje');
+  });
+
+  it('preserves all 8 pilot municipalities with authoritative current TERC codes', () => {
     expect(PILOT_MUNICIPALITIES).toHaveLength(8);
-    const tercs = PILOT_MUNICIPALITIES.map((m) => m.terc);
-    expect(tercs).toEqual([
+    expect(PILOT_MUNICIPALITIES.map((municipality) => municipality.terc)).toEqual([
       '3261011', // Koszalin
-      '3209052', // Manowo
+      '3209042', // Manowo
       '3209033', // Bobolice
       '3209082', // Świeszyno
-      '3201053', // Tychowo
+      '3201043', // Tychowo (gmina miejsko-wiejska)
       '3209073', // Sianów
       '3209063', // Polanów
       '3209012', // Będzino

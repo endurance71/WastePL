@@ -1,127 +1,130 @@
 #!/usr/bin/env node
-import { readdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import process from 'node:process';
 
 /**
- * WastePL P1-C.1 Source Prioritization Model
+ * WastePL audited-coverage source prioritization model.
  *
- * Implements the official formula:
- * PriorityScore = unblockedAddresses / (estimatedHours + (maintenanceRisk * 10))
+ * PriorityScore = potentialAddresses / (estimatedHours + maintenanceRisk * 10)
  *
- * Evaluates candidate sources across:
- * - unblockedAddresses: PRG address denominator unlocked
- * - estimatedHours: implementation and test effort
- * - maintenanceRisk: score 1 (low) to 5 (extreme OCR/ambiguous)
- * - adapterReuse: REUSED_UNCHANGED | EXTENDED_EXISTING | NEW_ADAPTER
- * - upstreamStability: HIGH | MEDIUM | LOW
+ * IMPORTANT:
+ * `potentialAddresses` is currently the territorial PRG denominator remainder after
+ * subtracting audited supported reference packs. It is NOT a count of addresses that
+ * have already been run through the full resolver and classified as UNSUPPORTED.
+ * Full-population classification is tracked by P0 #144.
  */
 
 const CANDIDATES = [
   {
-    key: 'sianow-segregated-split-and-town',
+    key: 'sianow-route-13-and-safe-rural',
     municipality: 'Sianów',
     terc: '3209073',
-    unblockedAddresses: 2961,
+    potentialAddresses: 2961,
     estimatedHours: 16,
     maintenanceRisk: 3,
     adapterReuse: 'EXTENDED_EXISTING',
     upstreamStability: 'MEDIUM',
-    rationale: 'Largest remaining unlocked address volume (2,961 PRG). Town center and difficult-access routes remain.',
-  },
-  {
-    key: 'bedzino-trasa-2-ekosan',
-    municipality: 'Będzino',
-    terc: '3209012',
-    unblockedAddresses: 1505,
-    estimatedHours: 12,
-    maintenanceRisk: 2,
-    adapterReuse: 'EXTENDED_EXISTING',
-    upstreamStability: 'MEDIUM',
-    rationale: 'Remaining Ekosan Trasa II settlements and remaining Trasa I rural addresses without complex shelter rules.',
-  },
-  {
-    key: 'swieszyno-trasa-2-3',
-    municipality: 'Świeszyno',
-    terc: '3209082',
-    unblockedAddresses: 1784,
-    estimatedHours: 14,
-    maintenanceRisk: 3,
-    adapterReuse: 'EXTENDED_EXISTING',
-    upstreamStability: 'MEDIUM',
-    rationale: 'Remaining Trasa II settlements with multi-family shelters, Konikowo and Niekłonice (Trasa I).',
+    blocker: 'Route 13 exact H2 artifact + PRG packs; broad multi-route address mapping remains incomplete (#141)',
+    rationale: 'Largest audited-coverage remainder. Start with source-backed zero-overlap rural batches; generic segregated remains OTHER after #140.',
   },
   {
     key: 'bobolice-h2-rural-and-town',
     municipality: 'Bobolice',
     terc: '3209033',
-    unblockedAddresses: 2015,
+    potentialAddresses: 2015,
     estimatedHours: 20,
     maintenanceRisk: 4,
     adapterReuse: 'NEW_ADAPTER',
     upstreamStability: 'MEDIUM',
-    rationale: 'Mixed media attachments and images require multi-format parser handling.',
+    blocker: 'Current H2 mixed-media child artifacts require deterministic capture.',
+    rationale: 'Large denominator remainder but higher parser/maintenance cost from mixed media.',
   },
   {
-    key: 'polanow-h2-rural-and-town',
-    municipality: 'Polanów',
-    terc: '3209063',
-    unblockedAddresses: 1234,
+    key: 'swieszyno-next-safe-batches',
+    municipality: 'Świeszyno',
+    terc: '3209082',
+    potentialAddresses: 1784,
+    estimatedHours: 14,
+    maintenanceRisk: 3,
+    adapterReuse: 'EXTENDED_EXISTING',
+    upstreamStability: 'MEDIUM',
+    blocker: 'New PRG packs and zero-overlap proof for Konikowo/Niekłonice and remaining Trasa II scopes.',
+    rationale: 'Source fixtures already exist; next gain depends mainly on precise PRG/address overlap work.',
+  },
+  {
+    key: 'bedzino-next-trasa-2-safe-batches',
+    municipality: 'Będzino',
+    terc: '3209012',
+    potentialAddresses: 1505,
     estimatedHours: 12,
     maintenanceRisk: 2,
     adapterReuse: 'EXTENDED_EXISTING',
-    upstreamStability: 'HIGH',
-    rationale: 'PGK H2 rural schedules follow the proven tabular format used in Garbno.',
+    upstreamStability: 'MEDIUM',
+    blocker: 'Remaining Trasa II localities overlap shelters and 44 difficult-access properties in parts of the municipality.',
+    rationale: 'Existing parser and frozen H2 fixture are reusable; activate only newly proven PRG subsets.',
   },
   {
     key: 'tychowo-town-and-dense',
     municipality: 'Tychowo',
-    terc: '3201053',
-    unblockedAddresses: 1405,
+    terc: '3201043',
+    potentialAddresses: 1405,
     estimatedHours: 10,
     maintenanceRisk: 2,
     adapterReuse: 'EXTENDED_EXISTING',
     upstreamStability: 'HIGH',
-    rationale: 'Tychowo town center and dense areas. High stability upstream.',
+    blocker: 'Town-center/dense-address mapping and hard-to-reach exceptions need explicit evidence.',
+    rationale: 'Stable upstream and low adapter cost, but broad address mapping still needs proof.',
   },
   {
-    key: 'manowo-trasa-1',
-    municipality: 'Manowo',
-    terc: '3209052',
-    unblockedAddresses: 1164,
-    estimatedHours: 10,
+    key: 'polanow-next-h2-batches',
+    municipality: 'Polanów',
+    terc: '3209063',
+    potentialAddresses: 1234,
+    estimatedHours: 12,
     maintenanceRisk: 2,
     adapterReuse: 'EXTENDED_EXISTING',
     upstreamStability: 'HIGH',
-    rationale: 'Route 1 completing Manowo municipality via existing PGK PDF text adapter.',
+    blocker: 'Remaining rural/town scopes need new PRG packs and overlap proof.',
+    rationale: 'PGK H2 rural schedules follow the proven tabular family already used in Garbno/rural sets A and B.',
+  },
+  {
+    key: 'manowo-current-route-migration-and-expansion',
+    municipality: 'Manowo',
+    terc: '3209042',
+    potentialAddresses: 1164,
+    estimatedHours: 14,
+    maintenanceRisk: 3,
+    adapterReuse: 'EXTENDED_EXISTING',
+    upstreamStability: 'MEDIUM',
+    blocker: 'Legacy 2AB is HEALTHY, but current PGK index is split into manowo3/*; canonical migration must preserve 46/46 addresses (#143).',
+    rationale: 'Do source-identity migration first, then expand through current route children with fresh PRG packs.',
   },
 ];
 
 export function calculatePriorityScore(candidate) {
   const effectiveCost = candidate.estimatedHours + candidate.maintenanceRisk * 10;
-  return Number((candidate.unblockedAddresses / effectiveCost).toFixed(2));
+  return Number((candidate.potentialAddresses / effectiveCost).toFixed(2));
 }
 
 export function rankCandidates(candidates = CANDIDATES) {
   return candidates
-    .map((c) => ({
-      ...c,
-      priorityScore: calculatePriorityScore(c),
+    .map((candidate) => ({
+      ...candidate,
+      priorityScore: calculatePriorityScore(candidate),
     }))
-    .sort((a, b) => b.priorityScore - a.priorityScore);
+    .sort((left, right) => right.priorityScore - left.priorityScore);
 }
 
 if (process.argv[1] && process.argv[1].endsWith('prioritize-coverage-sources.mjs')) {
   const ranked = rankCandidates();
-  console.log('[WastePL P1-C.1 Source Prioritization Ranking]');
+  console.log('[WastePL audited-coverage source prioritization]');
+  console.log('NOTE: PRG remainder is potential coverage, not full-resolver UNSUPPORTED classification. P0 #144 owns that audit.');
   console.table(
-    ranked.map((r, idx) => ({
-      Rank: idx + 1,
-      Municipality: r.municipality,
-      'PRG Unlocked': r.unblockedAddresses,
-      'Est Hours': r.estimatedHours,
-      Risk: r.maintenanceRisk,
-      'ROI Score': r.priorityScore,
+    ranked.map((row, index) => ({
+      Rank: index + 1,
+      Municipality: row.municipality,
+      'PRG Potential': row.potentialAddresses,
+      'Est Hours': row.estimatedHours,
+      Risk: row.maintenanceRisk,
+      'ROI Score': row.priorityScore,
     })),
   );
 }

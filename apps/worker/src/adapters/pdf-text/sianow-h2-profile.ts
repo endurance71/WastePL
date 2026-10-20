@@ -208,12 +208,6 @@ export function parseSianowH2(
   const rows = parseRows(input.text);
   const collectionEvents: NormalizedCollectionEvent[] = [];
 
-  const CANONICAL_SEGREGATED_FRACTIONS: WasteFractionCode[] = [
-    'METALS_PLASTICS',
-    'PAPER',
-    'GLASS',
-  ];
-
   const serviceAreaKey = isBorowiec
     ? 'sianow-safe-h2-borowiec-rural'
     : isSkwierzynka
@@ -228,18 +222,16 @@ export function parseSianowH2(
       collectionEvents.push(event(input, serviceAreaKey, 'BIO', isoDate(row.month, day), null));
     }
     for (const day of row.segregated) {
-      const date = isoDate(row.month, day);
-      for (const fraction of CANONICAL_SEGREGATED_FRACTIONS) {
-        collectionEvents.push(
-          event(
-            input,
-            serviceAreaKey,
-            fraction,
-            date,
-            'Źródło: odpady segregowane (wspólny odbiór tworzyw, papieru i szkła)',
-          ),
-        );
-      }
+      collectionEvents.push(
+        event(
+          input,
+          serviceAreaKey,
+          'OTHER',
+          isoDate(row.month, day),
+          'Źródło: odpady segregowane (zbiorcza kategoria źródłowa; bez inferowania frakcji materiałowych)',
+          ['SOURCE_FRACTION_GENERIC_SEGREGATED_MAPPED_TO_OTHER'],
+        ),
+      );
     }
     if (row.bulky) {
       for (const day of row.bulky) {
