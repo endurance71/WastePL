@@ -66,13 +66,13 @@ describe('Address Coverage Audit v2.1', () => {
     expect(report.fullPopulationResolutionVerified).toBe(false);
 
     expect(report.totalPilotAddresses).toBe(25030);
-    expect(report.totalAuditedAddresses).toBe(12816);
-    expect(report.totalSupported).toBe(12816);
-    expect(report.totalRemainingUnaudited).toBe(12214);
-    expect(report.totalUnsupported).toBe(12214);
+    expect(report.totalAuditedAddresses).toBe(12962);
+    expect(report.totalSupported).toBe(12962);
+    expect(report.totalRemainingUnaudited).toBe(12068);
+    expect(report.totalUnsupported).toBe(12068);
     expect(report.totalAmbiguous).toBe(0);
     expect(report.totalErrors).toBe(0);
-    expect(report.overallCoveragePercent).toBe(51.2);
+    expect(report.overallCoveragePercent).toBe(51.79);
 
     expect(report.municipalities).toHaveLength(8);
     for (const item of report.municipalities) {
@@ -95,8 +95,8 @@ describe('Address Coverage Audit v2.1', () => {
     expect(markdown).toContain('AUDITED_REFERENCE_PACKS');
     expect(markdown).toContain('**Full-population resolution verified:** `false`');
     expect(markdown).toContain('P0 #144');
-    expect(markdown).toContain('12 816');
-    expect(markdown).toContain('51.2%');
+    expect(markdown).toContain('12 962');
+    expect(markdown).toContain('51.79%');
     expect(markdown).toContain('Sianów');
     expect(markdown).toContain('odpady segregowane');
     expect(markdown).toContain('`OTHER`');

@@ -66,6 +66,9 @@ test.describe('Moduł 6: Dostępność (Accessibility & WCAG 2.2 AA)', () => {
     const input = page.getByRole('textbox', { name: 'Wyszukaj adres' });
     const firstSuggested = page.locator('.suggested-btn').first();
 
+    // Wait for the app to render; a Tab pressed before hydration lands on <body> and skews the sequence.
+    await expect(input).toBeVisible();
+
     // Tab through interactive elements: header button -> search input -> suggested button
     await page.keyboard.press('Tab');
     const isInputFocused = await input.evaluate((el) => el === document.activeElement);
