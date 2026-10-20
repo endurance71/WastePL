@@ -1,14 +1,14 @@
 # Bieżący status WastePL
 
-> Zweryfikowano: 2026-09-07, commit `81510d43aa48a0ee2e3d879d69ada5dd717437d4`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
+> Zweryfikowano: 2026-10-20, commit `90e7ee74f3ed6c3577130b9e8f4565df2d64bbcb`. Stan odnosi się do `main` oraz manifestu `pilot-koszalin-region@2026.13`.
 
 ## Executive summary
 
 WastePL ma działającą, dobrze przetestowaną regionalną platformę danych dla 8 gmin pilota, 17 aktywnych źródeł, konsumencką PWA, offline/PWA, Web Push, PSZOK, provenance oraz rozbudowane bramki CI/production-readiness.
 
-Aktualny konserwatywny wynik pokrycia to **12 816 audytowanych adresów z deterministycznym harmonogramem na bieżącym baseline 25 030 adresów PRG = 51,20% audited supported coverage**.
+Aktualny konserwatywny wynik pokrycia to **12 962 audytowanych adresów z deterministycznym harmonogramem na bieżącym baseline 25 030 adresów PRG = 51,79% audited supported coverage**.
 
-Ta liczba **nie jest jeszcze pełnym wynikiem resolvera dla całej populacji**. Po audycie implementacji Census w PR #145 obowiązuje jawny tryb `AUDITED_REFERENCE_PACKS`, a `fullPopulationResolutionVerified=false`. Pozostałe 12 214 adresów nie zostało jeszcze sklasyfikowanych adres-po-adresie jako `UNSUPPORTED` / `AMBIGUOUS` / `ERROR`. Pełny audyt śledzi P0 #144.
+Ta liczba **nie jest jeszcze pełnym wynikiem resolvera dla całej populacji**. Po audycie implementacji Census w PR #145 obowiązuje jawny tryb `AUDITED_REFERENCE_PACKS`, a `fullPopulationResolutionVerified=false`. Pozostałe 12 068 adresów nie zostało jeszcze sklasyfikowanych adres-po-adresie jako `UNSUPPORTED` / `AMBIGUOUS` / `ERROR`. Pełny audyt śledzi P0 #144.
 
 Projekt **nie jest jeszcze gotowym ogólnopolskim systemem produkcyjnym**. Najważniejsze braki przed publicznym skalowaniem to:
 
@@ -29,7 +29,7 @@ Od PR #145 rozdzielamy cztery pojęcia:
 
 **8/8 gmin z ACTIVE collection source nie oznacza 100% coverage.**
 
-**51,20% nie oznacza, że pozostałe 48,80% zostało dowiedzione jako `UNSUPPORTED`.** Na obecnym etapie jest to remainder bez pełnej klasyfikacji resolvera.
+**51,79% nie oznacza, że pozostałe 48,21% zostało dowiedzione jako `UNSUPPORTED`.** Na obecnym etapie jest to remainder bez pełnej klasyfikacji resolvera.
 
 Globalne `0 ambiguity / 0 errors / 0 conflicts` nie może być publikowane jako wynik dla wszystkich 25 030 adresów, dopóki #144 nie wykona pełnego audytu. Obecne zera dotyczą aktywowanych, deterministycznych paczek i ich gate'ów.
 
@@ -41,16 +41,16 @@ Globalne `0 ambiguity / 0 errors / 0 conflicts` nie może być publikowane jako 
 | Gminy z >=1 ACTIVE collection scope | **8/8** | Municipality source presence = 100%. |
 | Gminy z ACTIVE PSZOK | **8/8** | Każda gmina pilota ma aktywny PSZOK. |
 | ACTIVE source identities | **17** | 9 collection + 8 PSZOK. |
-| Audited supported coverage | **51,20% (12 816 / 25 030)** | Tryb `AUDITED_REFERENCE_PACKS`, nie pełny census resolvera. |
+| Audited supported coverage | **51,79% (12 962 / 25 030)** | Tryb `AUDITED_REFERENCE_PACKS`, nie pełny census resolvera. |
 | Full-population resolution verified | **NIE** | P0 #144. |
-| Remaining population bez full classification | **12 214** | Nie należy automatycznie nazywać jej `UNSUPPORTED`. |
+| Remaining population bez full classification | **12 068** | Nie należy automatycznie nazywać jej `UNSUPPORTED`. |
 | Koszalin | **10 240 / 10 240 audited supported** | Pełny harmonogram miejski 5 frakcji w bieżącym baseline. |
 | Manowo | **46 / 1 210 audited supported** | Legacy 2AB; migracja kanoniczności do bieżącego indeksu PGK śledzona w #143. |
 | Bobolice | **65 / 2 080 audited supported** | Kłanino safe subset. |
 | Świeszyno | **646 / 2 430 audited supported** | Chałupy 167 + Trasa II safe rural 479. |
 | Tychowo | **45 / 1 450 audited supported** | Historyczny real-address subset. |
 | Sianów | **559 / 3 520 audited supported** | Grabówko 31 + Borowiec rural 90 + Dąbrowa 93 + Skwierzynka 345. |
-| Polanów | **430 / 1 810 audited supported** | Garbno 39 + rural set A 391. |
+| Polanów | **576 / 1 810 audited supported** | Garbno 39 + rural set A 391 + rural set B 146 (#173). |
 | Będzino | **785 / 2 290 audited supported** | Trasa I 487 + Trasa II safe rural 298. |
 | Trusted PSZOK geocoding | **8/8** | Zweryfikowana warstwa referencyjna. |
 | Consumer PWA | **PRE-PRODUCTION / działa** | Address flow, schedule, provenance, PSZOK/mapa, offline, Web Push. |
@@ -83,10 +83,10 @@ Bieżący Census v2.1:
 - `measurementMode = AUDITED_REFERENCE_PACKS`;
 - `qualityScope = AUDITED_REFERENCE_PACKS_ONLY`;
 - `fullPopulationResolutionVerified = false`;
-- `totalAuditedAddresses = 12 816`;
+- `totalAuditedAddresses = 12 962`;
 - baseline terytorialny = 25 030;
-- remaining unaudited = 12 214;
-- wynik = 51,20% audited supported coverage.
+- remaining unaudited = 12 068;
+- wynik = 51,79% audited supported coverage.
 
 Pola kompatybilności `unsupportedAddresses` / `totalUnsupported` nie są obecnie dowodem runtime resolution dla remainder. Raport jawnie opisuje tę różnicę.
 
@@ -228,7 +228,7 @@ Mechanizmy kompensacyjne:
 
 1. **P0 #144:** pełny PRG acquisition + versioned snapshot + full-population resolver audit;
 2. **P0 #84:** branch protection / required CI po zmianie planu lub widoczności repo;
-3. **P1:** zwiększanie audited supported coverage z 51,20% do >=90%, preferowane 95%+;
+3. **P1:** zwiększanie audited supported coverage z 51,79% do >=90%, preferowane 95%+;
 4. **P1:** fresh live-source staging na aktualnym HEAD po istotnych zmianach danych/parserów;
 5. **P2:** rzeczywisty staging/prod deployment;
 6. **P2:** pilot 10–20 użytkowników, następnie 50–100 po spełnieniu quality gates;
