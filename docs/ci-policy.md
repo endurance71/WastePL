@@ -8,13 +8,14 @@ A successful verification run checks contracts, applies the database migration t
 
 ## Branch protection
 
-`main` is protected by the repository ruleset `protect-main` (Settings → Rules → Rulesets), which targets the default branch with enforcement `Active` and no bypass actors. Verified on 2026-10-20.
+`main` is protected by the repository ruleset `protect-main` (Settings → Rules → Rulesets), which targets the default branch with enforcement `Active` and no bypass actors. Verified on 2026-10-21.
 
 | Rule | Effect |
 | --- | --- |
 | Restrict deletions | `main` cannot be deleted. |
 | Block force pushes | History on `main` cannot be rewritten. |
 | Require status checks to pass | `verify` (ci) and `Analyze (javascript-typescript)` (CodeQL) must succeed before a change lands on `main`. Branches are not required to be up to date. |
+| Require a pull request before merging | Every change to `main`, including docs, lands through a PR; direct pushes are rejected. Required approvals: 0 (solo maintainer), so the required checks are the merge gate. |
 
 Repository security settings (Settings → Advanced Security): secret scanning, push protection and Dependabot security updates are enabled.
 
